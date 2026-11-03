@@ -13,7 +13,6 @@ import { damageSector, newGroundProgress, stepGroundProgress } from "../shared/G
 import { sectorReinforcementReady, repairAllowed } from "../shared/RepairReserveRules";
 import { rearmDuration, rearmPose } from "../shared/RearmRules";
 import { SortieArmament } from "../shared/SortieArmament";
-import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 const policy = bp.scoring!;

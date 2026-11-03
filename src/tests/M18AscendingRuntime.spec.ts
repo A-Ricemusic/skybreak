@@ -7,7 +7,7 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { M18_ASCENDING } from "../shared/M18FinaleRules";
 import { createCombatSession } from "../server/CombatSessionFactory";
 import { FlightMath } from "../shared/FlightMath";
-import type { CombatSession } from "../server/CombatSession";
+
 function fixture() {
 	const folder = new Instance("Folder");
 	folder.Parent = Workspace;

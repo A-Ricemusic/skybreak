@@ -81,7 +81,7 @@ describe("M14 Aurora shield", () => {
 		});
 		expect(reaction[0]).toBeGreaterThan(reaction[1]);
 		expect(reaction[1]).toBeGreaterThan(reaction[2]);
-		for (const d of Difficulty.Order) {
+		for (const _d of Difficulty.Order) {
 			expect(bp.phases[2].concurrentRoutes).toBe(1);
 		}
 		expect(bp.countdownSeconds).toBe(1200);

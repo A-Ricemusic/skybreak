@@ -1,13 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { MissionScore, ScoreInput, ScoreResult } from "../shared/MissionScore";
-import {
-	CampaignCoordinator,
-	completeMission,
-	mergeProfiles,
-	normalizeProfile,
-	serializeProfile,
-} from "../server/CampaignRepository";
+import { CampaignCoordinator, completeMission } from "../server/CampaignRepository";
 import { MissionFinished } from "../shared/Types";
 import { GameConfig } from "../shared/GameConfig";
 import { LEGACY_MISSION_SCORING, MissionScoringPolicy } from "../shared/MissionPolicy";
@@ -32,31 +26,6 @@ function coordinator(): CampaignCoordinator {
 	const c = new CampaignCoordinator("offline-score", undefined, { now: () => 1000, defer: () => undefined });
 	c.load();
 	return c;
-}
-
-function finishMission3(
-	c: CampaignCoordinator,
-	extra: { elapsed: number; missilesFired: number; missileHits: number; damageTaken: number },
-): MissionFinished {
-	const bp = MissionCatalog.Get(3);
-	let message: MissionFinished | undefined;
-	completeMission(
-		c,
-		1,
-		3,
-		true,
-		{
-			slot: 1,
-			missionId: 3,
-			kills: MissionCatalog.RequiredAirKills(bp),
-			groundKills: 0,
-			completedPhases: bp.phases.size(),
-			...extra,
-		},
-		(m) => (message = m),
-		0,
-	);
-	return message!;
 }
 
 describe("MissionScore", () => {

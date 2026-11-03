@@ -13,7 +13,6 @@ import {
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { CombatBalance } from "../shared/CombatBalance";
-import { Difficulty } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { AlliedRules } from "../shared/AlliedRules";
 import { CampaignCoordinator, completeMission, serializeProfile, normalizeProfile } from "../server/CampaignRepository";

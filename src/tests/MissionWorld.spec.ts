@@ -8,7 +8,6 @@ import { BomberRules } from "../shared/BomberRules";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "@rbxts/jest-globals";
 import { Lighting, Workspace } from "@rbxts/services";
 import { MissionWorld } from "../server/MissionWorld";
-import { WorldAssets } from "../server/WorldAssets";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { PART_BUDGET } from "../server/Scenery";
@@ -16,7 +15,7 @@ import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
 import { SURFACE_MAPS, type SurfaceMap } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs, type UploadedAssetName } from "../shared/UploadedAssetSpecs";
-import { WorldPlanner, type PropAsset } from "../shared/WorldPlan";
+import { type PropAsset } from "../shared/WorldPlan";
 import { buildNightLighting } from "../server/NightLighting";
 import { GROUND_TARGET_LABELS } from "../shared/CampaignEncounters";
 import { M05_ENVIRONMENT, M05_WORLD_KEY } from "../shared/M05WorldPlan";
@@ -96,20 +95,7 @@ function cleanup(fixture: Folder | undefined): void {
 	for (const name of ["MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom"])
 		Lighting.FindFirstChild(name)?.Destroy();
 }
-const DECORATION = [
-	"Shallows",
-	"Marker light",
-	"Navigation light",
-	"Safety line",
-	"Centreline",
-	"Threshold",
-	"Outer runway threshold",
-	"Threshold bar",
-	"Approach bar",
-	"Center stripe",
-	"Lit windows",
-	"Protected beacon",
-];
+
 const inUploaded = (item: Instance) =>
 	item.FindFirstAncestorWhichIsA("Model")?.GetAttribute("GeometrySource") === "Uploaded";
 

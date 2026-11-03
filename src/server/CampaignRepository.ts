@@ -139,7 +139,7 @@ export function resolveMissionRequest(
 ): LuaTuple<[number | undefined, string | undefined]> {
 	if (requested === undefined) requested = resumeMission(slot);
 	if (!isValidMission(requested)) return $tuple(undefined, "Choose Practice or a mission (1-18).");
-	const unlocked = highestUnlocked(slot);
+
 	if (!canLaunchMission(requested, slot)) {
 		return $tuple(undefined, `Mission ${string.format("%02d", requested)} is locked or in development.`);
 	}

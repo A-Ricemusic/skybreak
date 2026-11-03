@@ -1,15 +1,12 @@
 import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { landingPose } from "../shared/LandingRules";
 import { PauseRules } from "../shared/SessionGuard";
-import { SortieArmament } from "../shared/SortieArmament";
-import { TargetScore } from "../shared/TargetScore";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { completeEliteRetreat, stepRingSweep } from "../server/RingSweepRuntime";
 import { stepRearm, skipRearm, liveJammers, announceJammerKill, lockAllowed } from "../server/RearmRuntime";
 import { CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionCatalog } from "../shared/MissionCatalog";
 import { RingSweep } from "../shared/RingSweepRules";
 import { FlightMath } from "../shared/FlightMath";
 import { createGroundTarget } from "../server/GroundTargetFactory";

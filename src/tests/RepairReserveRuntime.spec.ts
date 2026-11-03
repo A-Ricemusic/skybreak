@@ -13,7 +13,6 @@ import { stepRearm, skipRearm, answerRearmMenu } from "../server/RearmRuntime";
 import { RearmPlan } from "../shared/RearmRules";
 import { landingPose } from "../shared/LandingRules";
 import { TargetScore } from "../shared/TargetScore";
-import { SortieArmament } from "../shared/SortieArmament";
 import { recordScoredKill } from "../server/SortieScore";
 import { interceptHoldFixture } from "./InterceptHoldFixture";
 import { sessionFixture } from "./SessionFixture";

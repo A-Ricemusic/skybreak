@@ -45,8 +45,8 @@ export default tseslint.config(
 	{
 		files,
 		rules: {
-			// Baseline existing unused bindings and permissive tool types without mass edits.
-			"@typescript-eslint/no-unused-vars": "warn",
+			// Intentional unused callback/destructuring bindings use an underscore prefix.
+			"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
 			"@typescript-eslint/no-explicit-any": "warn",
 			// Existing Roblox callback aliases, dynamic require, and marker interface are intentional.
 			"@typescript-eslint/no-this-alias": "warn",

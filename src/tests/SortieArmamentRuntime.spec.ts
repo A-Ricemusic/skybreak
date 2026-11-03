@@ -3,7 +3,6 @@ import { stepRearm } from "../server/RearmRuntime";
 import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
-import { TargetScore } from "../shared/TargetScore";
 import { FlightMath } from "../shared/FlightMath";
 import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import type { RearmPlan } from "../shared/RearmRules";

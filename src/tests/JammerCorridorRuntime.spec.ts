@@ -12,7 +12,6 @@ import { stepProtection, clearProtection } from "../server/ProtectedAircraftRunt
 import { announceJammerKill, liveJammers, lockAllowed } from "../server/RearmRuntime";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { jammerCorridorFixture } from "./JammerCorridorFixture";
-import type { CombatSession } from "../server/CombatSession";
 import { sessionFixture } from "./SessionFixture";
 import { FlightMath } from "../shared/FlightMath";
 function fixture() {

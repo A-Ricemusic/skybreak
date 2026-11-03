@@ -30,7 +30,6 @@ import type {
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionScore } from "../shared/MissionScore";
-import { WeaponRules } from "../shared/WeaponRules";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { C, HUD } from "./Theme";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -53,7 +52,6 @@ import {
 	shouldAcceptInputModeChange,
 	type ControlHint,
 	type InputMode,
-	type Rectangle,
 } from "../shared/UILayout";
 import { BriefingScreen } from "./screens/BriefingScreen";
 import { CampaignScreen } from "./screens/CampaignScreen";
@@ -69,7 +67,6 @@ import {
 	normalizePersistence,
 	normalizeSlots,
 	RADIO_SECONDS,
-	resumeMission,
 	safeString,
 	sanitizeTelemetry,
 	scaleRectangle,

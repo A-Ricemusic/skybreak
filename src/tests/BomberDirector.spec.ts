@@ -3,7 +3,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearCruise, cruiseKilled, stepCruise } from "../server/CruiseMissileRuntime";
 import { createPhaseDirector, SpawnOptions } from "../server/PhaseDirector";
-import { AirRole, CombatSession, Enemy } from "../server/CombatSession";
+import { AirRole, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { BomberRules } from "../shared/BomberRules";

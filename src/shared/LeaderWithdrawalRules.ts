@@ -1,7 +1,7 @@
 // Enemy leader withdrawal routes and bridge closures (pure). Formerly EngineBatchD12.
 import { finiteNumber } from "./LandingRules";
 import { surfacePose, SurfaceRoute } from "./SurfaceTargetRules";
-import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
+import type { MissionPhaseBlueprint } from "./MissionCatalog";
 /** Reserved sortie identities, shared by admission and runtime spawning. Rusk is never credited. */
 export const WithdrawalIdentities = {
 	leader: "d12_rusk",

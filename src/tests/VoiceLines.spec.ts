@@ -159,7 +159,7 @@ describe("shipped voice table", () => {
 	});
 	it("keeps Teal's recordings on tape and gives every speaker in a cue a known chip name", () => {
 		for (const chapter of STORY)
-			chapter.beats.forEach((beat, index) => {
+			chapter.beats.forEach((beat, _index) => {
 				if (beat.recordingId === undefined) return;
 				const cue = VOICE_CUES[beat.recordingId];
 				if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);

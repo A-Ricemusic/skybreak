@@ -2,7 +2,6 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { auditCanyon, stepCanyon } from "../server/ArtilleryRuntime";
 import { CanyonEscape } from "../shared/ArtilleryRules";
-import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";

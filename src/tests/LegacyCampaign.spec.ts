@@ -9,21 +9,7 @@ import { AirRequest, WavePlan } from "../shared/WavePlan";
 import { GameConfig } from "../shared/GameConfig";
 import { LEVEL_LAYOUTS } from "../shared/MissionLayouts";
 import { LOG, MARSHAL, RECORDER, RUSK, SERA, STORY, TEAL, TRAINEE, VULTURE_TWO } from "./legacy/LegacyStory";
-import {
-	CampaignCoordinator,
-	completeMission,
-	highestUnlocked,
-	normalizeProfile,
-	mergeProfiles,
-	resolveMissionRequest,
-	serializeProfile,
-} from "../server/CampaignRepository";
 
-function coordinator(): CampaignCoordinator {
-	const c = new CampaignCoordinator("offline-domain", undefined, { now: () => 1000, defer: () => undefined });
-	c.load();
-	return c;
-}
 const origin = { x: 0, y: 250, z: 500 };
 /** A runner sortie strikes any lit hazard target (jammers, bank guns) so its phase can finish. */
 let hazardSerial = 0;
