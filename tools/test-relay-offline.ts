@@ -348,6 +348,9 @@ const MODULES: string[] = [
 MODULES.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
 // Pure specs that previously ran only in Studio; SpecialWeapons/WeaponRules are already staged above.
 MODULES.push("tests/SpecialWeapons.spec", "shared/LoadingGate", "tests/LoadingGate.spec");
+// Results-screen model extracted from GameUI; depends on MissionScore, Difficulty, TargetScore, OutcomeReason and
+// InitialTelemetry, all staged above.
+MODULES.push("shared/OutcomeModel", "tests/OutcomeModel.spec");
 
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);
