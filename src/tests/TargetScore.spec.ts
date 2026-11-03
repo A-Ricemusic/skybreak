@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { EncounterRole, MissionScoringPolicy } from "../shared/MissionPolicy";
-import { MAX_TARGET_SCORE_ROLES, readTargetScore, TargetScore } from "../shared/TargetScore";
+import { isTargetScoreSnapshot, MAX_TARGET_SCORE_ROLES, readTargetScore, TargetScore } from "../shared/TargetScore";
 
 const m01: MissionScoringPolicy = {
 	points: { bomber: 100, escort: 60, ace: 240 },
@@ -89,6 +89,22 @@ describe("TargetScore", () => {
 			kills: { raider: 1, ace: 1, ground: 1 },
 			points: { raider: 0, ace: 0, ground: 0 },
 		});
+	});
+
+	it("accepts a ledger snapshot off the wire and rejects malformed ones", () => {
+		const ledger = new TargetScore(m01);
+		ledger.RecordKill("bomber-1", "bomber");
+		expect(isTargetScoreSnapshot(ledger.Snapshot())).toBe(true);
+		expect(isTargetScoreSnapshot({ total: 0, kills: {}, points: {} })).toBe(true);
+		for (const bad of [
+			undefined,
+			7,
+			"100",
+			{ total: 0 / 0, kills: {}, points: {} },
+			{ total: 1, kills: {} },
+			{ total: 1, kills: { bomber: "1" }, points: {} },
+		])
+			expect(isTargetScoreSnapshot(bad)).toBe(false);
 	});
 
 	it("returns a detached serialisable snapshot", () => {

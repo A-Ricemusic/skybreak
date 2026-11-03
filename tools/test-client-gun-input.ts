@@ -69,6 +69,13 @@ const proc = await spawnWithTimeout([requireLuauBin(), path], { stdout: "inherit
 if (proc.code !== 0) process.exitCode = 1;
 
 // The HUD must retain an equipped gun even at zero rounds, and drop it for an unequipped sortie.
+// UIFormat takes its finite guard from shared/Finite; stage that pure module beside the harness.
+const finiteModule = (await Bun.file(resolve(root, "out/shared/Finite.luau")).text())
+	.split("\n")
+	.filter((line) => !line.startsWith("local TS = require("))
+	.join("\n");
+if (finiteModule.includes("TS.")) throw new Error("shared/Finite must stay free of runtime imports");
+await Bun.write(resolve(dir, "Finite.luau"), finiteModule);
 const format = await Bun.file(resolve(root, "out/client/screens/UIFormat.luau")).text();
 function formatMethod(start: string, end: string) {
 	const a = format.indexOf(start),
@@ -81,7 +88,8 @@ local MissionCatalog={IsValidId=function() return true end}
 local SpecialWeapons={IsKind=function() return false end}
 local WeaponRules={IsFireNotice=function() return false end}
 local CountdownDisplay={Value=function() return 0 end}
-${formatMethod("local function finite(", "local function scaleRectangle(")}
+local finiteOr = require("./Finite").finiteOr
+${formatMethod("local function safeString(", "local function scaleRectangle(")}
 ${formatMethod("local function sanitizeTelemetry(", "local function resumeMission(")}
 local baseline={health=100,speed=0,altitude=0,kills=0,total=1,missiles=0,missileCooldown=0,evadeCooldown=0,elapsed=0,lockProgress=0,missionId=1,targetName=''}
 for _, case in {{125,125},{0,0},{-5,0},{3.8,3},{math.huge,0}} do

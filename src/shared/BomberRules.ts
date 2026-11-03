@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 /** Pure, absolute-time formation motion. No instances, services, targeting or weapon state. */
 export interface BomberPoint {
 	x: number;
@@ -41,9 +42,8 @@ const cross = (a: BomberPoint, b: BomberPoint): BomberPoint => ({
 	y: a.z * b.x - a.x * b.z,
 	z: a.x * b.y - a.y * b.x,
 });
-const finite = (n: number) => n === n && math.abs(n) < math.huge;
 function checkPoint(p: BomberPoint): void {
-	assert(finite(p.x) && finite(p.y) && finite(p.z), "BomberRules: nonfinite point");
+	assert(isFiniteNumber(p.x) && isFiniteNumber(p.y) && isFiniteNumber(p.z), "BomberRules: nonfinite point");
 }
 function curveAt(c: Curve, t: number, derivative = false): BomberPoint {
 	const t2 = t * t,
@@ -83,7 +83,7 @@ export const BomberRules = {
 		slots: readonly BomberPoint[] = DEFAULT_SLOTS,
 	): BomberRoute {
 		assert(waypoints.size() >= 2 && slots.size() > 0, "BomberRules: route needs two points and a slot");
-		assert(finite(speed) && speed > 0, "BomberRules: invalid speed");
+		assert(isFiniteNumber(speed) && speed > 0, "BomberRules: invalid speed");
 		for (const p of waypoints) checkPoint(p);
 		for (const p of slots) checkPoint(p);
 		const deltas: BomberPoint[] = [],
@@ -135,7 +135,7 @@ export const BomberRules = {
 			slotIndex === undefined || (slotIndex % 1 === 0 && slotIndex >= 0 && slotIndex < route.slots.size()),
 			"BomberRules: invalid slot",
 		);
-		assert(finite(time), "BomberRules: invalid time");
+		assert(isFiniteNumber(time), "BomberRules: invalid time");
 		const escaped = time >= route.duration;
 		const traveled = escaped ? route.length : math.clamp(time * route.speed, 0, route.length);
 		let distance = traveled,

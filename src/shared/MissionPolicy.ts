@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 import { FlightMath } from "./FlightMath";
 import { GameConfig } from "./GameConfig";
 import { WorldAirspace } from "./WorldAirspace";
@@ -102,21 +103,17 @@ export const LEGACY_MISSION_SCORING: MissionScoringPolicy = {
 
 export const LEGACY_MISSION_COUNTDOWN = GameConfig.Campaign.MissionTimeLimit;
 
-function finite(value: number): boolean {
-	return typeIs(value, "number") && value === value && value > -math.huge && value < math.huge;
-}
-
 /** Validates only the optional policy surface; catalog content validation remains in MissionCatalog. */
 export function validateMissionPolicy(policy: MissionPolicy, missionId: number): void {
 	const tag = `Mission ${missionId} policy`;
 	if (policy.pressure !== undefined) {
 		const p = policy.pressure;
 		assert(
-			finite(p.playerPriority) && p.playerPriority >= 0 && p.playerPriority <= 1,
+			isFiniteNumber(p.playerPriority) && p.playerPriority >= 0 && p.playerPriority <= 1,
 			`${tag} playerPriority must be 0..1`,
 		);
 		assert(
-			finite(p.forwardConeDegrees) && p.forwardConeDegrees >= 10 && p.forwardConeDegrees <= 75,
+			isFiniteNumber(p.forwardConeDegrees) && p.forwardConeDegrees >= 10 && p.forwardConeDegrees <= 75,
 			`${tag} forward cone must be 10..75`,
 		);
 		assert(typeIs(p.tailDefence, "boolean"), `${tag} tailDefence must be boolean`);
@@ -124,7 +121,7 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 	if (policy.allies !== undefined) {
 		const a = policy.allies;
 		assert(
-			finite(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6,
+			isFiniteNumber(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6,
 			`${tag} allies.count must be 1..6`,
 		);
 		assert(a.model === "Kestrel", `${tag} allies.model must be friendly Kestrel`);
@@ -136,7 +133,7 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 		for (const offset of a.formation) {
 			for (const value of [offset.x, offset.y, offset.z])
 				assert(
-					finite(value) && math.abs(value) <= 1500,
+					isFiniteNumber(value) && math.abs(value) <= 1500,
 					`${tag} allies offsets must be finite within 1500 studs`,
 				);
 			assert(
@@ -148,7 +145,7 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 			if (value !== undefined) assert(typeIs(value, "boolean"), `${tag} allies switches must be boolean`);
 		if (a.killBudget !== undefined)
 			assert(
-				finite(a.killBudget) && a.killBudget >= 0 && a.killBudget % 1 === 0,
+				isFiniteNumber(a.killBudget) && a.killBudget >= 0 && a.killBudget % 1 === 0,
 				`${tag} allies.killBudget must be a nonnegative integer`,
 			);
 		assert(
@@ -158,14 +155,14 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 	}
 	if (policy.countdownSeconds !== undefined) {
 		assert(
-			finite(policy.countdownSeconds) && policy.countdownSeconds > 0,
+			isFiniteNumber(policy.countdownSeconds) && policy.countdownSeconds > 0,
 			`${tag} countdownSeconds must be finite and > 0`,
 		);
 	}
 	if (policy.airspace !== undefined) {
 		const airspace = policy.airspace;
 		for (const [name, value] of pairs(airspace)) {
-			assert(finite(value) && value > 0, `${tag} airspace.${name} must be finite and > 0`);
+			assert(isFiniteNumber(value) && value > 0, `${tag} airspace.${name} must be finite and > 0`);
 		}
 		assert(
 			airspace.hardHalfWidth >= airspace.softHalfWidth,
@@ -182,10 +179,10 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 			z: start.z,
 			headingDegrees: start.headingDegrees,
 		})) {
-			assert(finite(value), `${tag} start.${name} must be finite`);
+			assert(isFiniteNumber(value), `${tag} start.${name} must be finite`);
 		}
 		if (start.speed !== undefined)
-			assert(finite(start.speed) && start.speed > 0, `${tag} start.speed must be finite and > 0`);
+			assert(isFiniteNumber(start.speed) && start.speed > 0, `${tag} start.speed must be finite and > 0`);
 		if (policy.airspace !== undefined) {
 			assert(
 				math.abs(start.x) <= policy.airspace.hardHalfWidth &&
@@ -199,7 +196,7 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 		for (const [role, points] of pairs(policy.scoring.points)) {
 			roles += 1;
 			assert(typeIs(role, "string") && role.size() > 0, `${tag} scoring point roles must not be empty`);
-			assert(finite(points) && points >= 0, `${tag} scoring.points.${role} must be finite and >= 0`);
+			assert(isFiniteNumber(points) && points >= 0, `${tag} scoring.points.${role} must be finite and >= 0`);
 		}
 		assert(roles > 0, `${tag} scoring.points must define at least one role`);
 		const basis = policy.scoring.basis;
@@ -207,7 +204,8 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 		const rank = policy.scoring.rank;
 		if (basis === "rating")
 			assert(rank.S <= 100, `${tag} scoring.rank thresholds on the rating basis must be <= 100`);
-		for (const [name, value] of pairs(rank)) assert(finite(value), `${tag} scoring.rank.${name} must be finite`);
+		for (const [name, value] of pairs(rank))
+			assert(isFiniteNumber(value), `${tag} scoring.rank.${name} must be finite`);
 		assert(
 			rank.S > rank.A && rank.A > rank.B && rank.B > rank.C && rank.C >= 0,
 			`${tag} scoring rank thresholds must satisfy S > A > B > C >= 0`,

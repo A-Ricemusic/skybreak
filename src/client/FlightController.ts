@@ -10,7 +10,6 @@ import {
 	landingPose,
 } from "../shared/LandingRules";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
-import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { airspaceWarning } from "../shared/WorldAirspace";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -383,16 +382,20 @@ export class FlightController {
 				if (!typeIs(data, "table")) return;
 				const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
 				if (message.kind === "RearmStarted" && this.active) {
-					this.rearm = { plan: (data as { plan: RearmPlan }).plan, elapsed: 0 };
+					// Cinematic plans are server tables read later in render; a malformed packet is ignored.
+					const plan = (data as { plan?: unknown }).plan;
+					if (!typeIs(plan, "table")) return;
+					this.rearm = { plan: plan as RearmPlan, elapsed: 0 };
 					this.keys.clear();
 					this.ReleaseGun();
 					for (const part of this.visual?.GetDescendants() ?? [])
 						if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
-				} else if (message.kind === "RearmSkipped" && this.rearm)
-					this.rearm.elapsed = (data as { elapsed: number }).elapsed;
-				else if ((message.kind === "RearmMenu" || message.kind === "RearmTakeoff") && this.rearm) {
-					const menu = data as { elapsed: number; special: unknown };
-					this.rearm.elapsed = menu.elapsed;
+				} else if (message.kind === "RearmSkipped" && this.rearm) {
+					const elapsed = (data as { elapsed?: unknown }).elapsed;
+					if (FlightMath.IsFinite(elapsed)) this.rearm.elapsed = elapsed;
+				} else if ((message.kind === "RearmMenu" || message.kind === "RearmTakeoff") && this.rearm) {
+					const menu = data as { elapsed?: unknown; special: unknown };
+					if (FlightMath.IsFinite(menu.elapsed)) this.rearm.elapsed = menu.elapsed;
 					this.rearm.menu = message.kind === "RearmMenu";
 					// The menu owns the gamepad: D-pad/stick/A navigate the GUI; flight resumes on takeoff.
 					if (!this.paused) this.bindControls();
@@ -402,30 +405,31 @@ export class FlightController {
 						this.notify();
 					}
 				} else if (message.kind === "CutInStarted" && this.active) {
-					const start = data as { plan: CutInPlan; subjects: Model[] };
+					const start = data as { plan?: unknown; subjects?: unknown };
+					if (!typeIs(start.plan, "table") || !typeIs(start.subjects, "table")) return;
 					this.cutIn?.Stop();
 					this.cutIn = new EliteCutIn(
-						start.plan,
-						start.subjects.filter((m) => typeIs(m, "Instance")),
+						start.plan as CutInPlan,
+						(start.subjects as defined[]).filter((m): m is Model => typeIs(m, "Instance")),
 					);
 					this.keys.clear();
 					this.ReleaseGun();
 				} else if (message.kind === "CutInComplete" && this.cutIn) {
-					const handoff = data as FlightControlHandoff;
-					if (this.predictor) FlightPrediction.Handoff(this.predictor, handoff.state, handoff.sequence);
+					this.applyHandoff(data);
 					this.cutIn.Stop();
 					this.cutIn = undefined;
 					this.keys.clear();
 				} else if (message.kind === "RearmComplete" && this.active) {
-					const handoff = data as FlightControlHandoff;
-					if (this.predictor) FlightPrediction.Handoff(this.predictor, handoff.state, handoff.sequence);
+					this.applyHandoff(data);
 					this.rearm = undefined;
 					this.keys.clear();
 					if (!this.paused) this.bindControls();
 					for (const part of this.visual?.GetDescendants() ?? [])
 						if (part.IsA("BasePart")) part.LocalTransparencyModifier = 0;
 				} else if (message.kind === "LandingStarted" && this.active) {
-					this.landing = { plan: (data as { plan: LandingPlan }).plan, elapsed: 0 };
+					const plan = (data as { plan?: unknown }).plan;
+					if (!typeIs(plan, "table")) return;
+					this.landing = { plan: plan as LandingPlan, elapsed: 0 };
 					this.keys.clear();
 					this.ReleaseGun();
 					// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
@@ -439,10 +443,8 @@ export class FlightController {
 						this.landing.cameraCut = false;
 					}
 				} else if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
-					const handoff = data as FlightControlHandoff;
-					const predictor = this.predictor;
-					if (!predictor) return;
-					FlightPrediction.Handoff(predictor, handoff.state, handoff.sequence);
+					if (!this.predictor) return;
+					this.applyHandoff(data);
 					// Ignore delayed pre-handoff packets while the reliable pose gap blends through normal prediction.
 					this.launchIntro = undefined;
 					this.launchCameraTime = 0;
@@ -524,6 +526,12 @@ export class FlightController {
 			const [ok, message] = pcall(listener, this.telemetry);
 			if (!ok) warn(`SKYBREAK telemetry listener: ${tostring(message)}`);
 		}
+	}
+	/** Reliable pose handoff after a cinematic or launch; a malformed state or sequence leaves prediction alone. */
+	private applyHandoff(data: unknown): void {
+		const handoff = data as { state?: unknown; sequence?: unknown };
+		if (this.predictor && FlightPrediction.IsState(handoff.state) && FlightMath.IsFinite(handoff.sequence))
+			FlightPrediction.Handoff(this.predictor, handoff.state, handoff.sequence);
 	}
 	private applyHud(message: Partial<HudState>): void {
 		const t = this.telemetry;

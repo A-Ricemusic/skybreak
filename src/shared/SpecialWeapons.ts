@@ -1,5 +1,6 @@
 // Pure rules for the second weapon slot: the special chosen on the briefing screen.
 // The server owns the state and every gameplay effect; the HUD only renders it.
+import { isFiniteNumber } from "./Finite";
 import { WeaponRules } from "./WeaponRules";
 import type { SpecialDenied } from "./WeaponRules";
 
@@ -112,10 +113,6 @@ const DEFINITIONS: { [K in SpecialKind]: SpecialDefinition } = {
 };
 const ORDER: SpecialKind[] = ["uav", "flares", "salvo", "lance"];
 
-function finite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value !== math.huge && value !== -math.huge;
-}
-
 export const SpecialWeapons = {
 	Default: "uav" as SpecialKind,
 	Order: ORDER,
@@ -142,7 +139,7 @@ export const SpecialWeapons = {
 	},
 	/** Advances cooldown, effect time and recharge by `dt` seconds. */
 	Tick(state: SpecialState, dt: number): void {
-		if (!finite(dt) || dt <= 0) return;
+		if (!isFiniteNumber(dt) || dt <= 0) return;
 		state.cooldown = math.max(0, state.cooldown - dt);
 		state.active = math.max(0, state.active - dt);
 		const definition = DEFINITIONS[state.kind];
@@ -163,11 +160,11 @@ export const SpecialWeapons = {
 	 */
 	Activate(state: SpecialState, targets: number): SpecialDecision {
 		const definition = DEFINITIONS[state.kind];
-		if (!finite(state.charges) || state.charges <= 0) return { kind: "denied", reason: "special_empty" };
+		if (!isFiniteNumber(state.charges) || state.charges <= 0) return { kind: "denied", reason: "special_empty" };
 		// The drone's cooldown outlasts its flight, so "already up" is checked first to explain the press.
 		if (state.kind === "uav" && state.active > 0) return { kind: "denied", reason: "special_active" };
 		if (state.cooldown > 0) return { kind: "denied", reason: "special_cooldown" };
-		if ((state.kind === "salvo" || state.kind === "lance") && (!finite(targets) || targets < 1))
+		if ((state.kind === "salvo" || state.kind === "lance") && (!isFiniteNumber(targets) || targets < 1))
 			return { kind: "denied", reason: "special_no_target" };
 		state.charges -= 1;
 		state.cooldown = definition.cooldown;
@@ -197,7 +194,7 @@ export const SpecialWeapons = {
 		const picked: number[] = [];
 		for (let index = 0; index < candidates.size(); index++) {
 			const candidate = candidates[index];
-			if (!candidate.allowed || !finite(candidate.distance) || !finite(candidate.dot)) continue;
+			if (!candidate.allowed || !isFiniteNumber(candidate.distance) || !isFiniteNumber(candidate.dot)) continue;
 			if (
 				candidate.distance > WeaponRules.EnvelopeRange(range, candidate.ground) ||
 				candidate.dot < WeaponRules.LockDotFor(candidate.ground)
@@ -220,7 +217,7 @@ export const SpecialWeapons = {
 	},
 	/** Whether a missile inside the decoy cloud takes the bait; `roll` is uniform in [0, 1). */
 	FlareDecoys(roll: number, ace: boolean): boolean {
-		return finite(roll) && roll < SpecialWeapons.FlareChance(ace);
+		return isFiniteNumber(roll) && roll < SpecialWeapons.FlareChance(ace);
 	},
 	/** Hull damage and speed of a missile launched by this special. */
 	MissileDamage(kind: SpecialKind): number {
@@ -233,11 +230,11 @@ export const SpecialWeapons = {
 	/** HUD button label and state; the server answers every press, so it is always enabled. */
 	Button(kind: SpecialKind, charges: number, cooldown: number, active: number): SpecialButtonState {
 		const definition = DEFINITIONS[kind];
-		const count = finite(charges) ? math.max(0, math.floor(charges)) : 0;
-		if (finite(active) && active > 0)
+		const count = isFiniteNumber(charges) ? math.max(0, math.floor(charges)) : 0;
+		if (isFiniteNumber(active) && active > 0)
 			return { text: `${definition.short} ${math.ceil(active)}`, filled: true, enabled: true, dimmed: false };
 		if (count <= 0) return { text: `${definition.short} 0`, filled: false, enabled: true, dimmed: true };
-		if (finite(cooldown) && cooldown > 0)
+		if (isFiniteNumber(cooldown) && cooldown > 0)
 			return { text: string.format("%.1f", cooldown), filled: false, enabled: true, dimmed: true };
 		return { text: `${definition.short} ${count}`, filled: false, enabled: true, dimmed: false };
 	},

@@ -1,5 +1,6 @@
 // Pure difficulty rules: the level chosen on the briefing screen and how it scales
 // combat threat. The server owns every gameplay effect; the client only renders names.
+import { isFiniteNumber } from "./Finite";
 
 export type DifficultyKind = "easy" | "normal" | "ace";
 
@@ -103,10 +104,6 @@ const BEHAVIOURS: { [K in DifficultyKind]: DifficultyBehaviour } = {
 	ace: { banditFlares: 1, banditsAlwaysBreak: true, aceSalvo: 1, extraRaiders: 1 },
 };
 
-function finite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value !== math.huge && value !== -math.huge;
-}
-
 export const Difficulty = {
 	Default: "normal" as DifficultyKind,
 	Order: ORDER,
@@ -144,7 +141,7 @@ export const Difficulty = {
 	},
 	/** `value` scaled for this level; a non-finite value passes through untouched. */
 	Scale(kind: DifficultyKind, knob: DifficultyKnob, value: number): number {
-		if (!finite(value)) return value;
+		if (!isFiniteNumber(value)) return value;
 		return value * MULTIPLIERS[knob][kind];
 	},
 };

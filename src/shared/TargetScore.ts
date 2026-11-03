@@ -1,5 +1,6 @@
 // Pure per-target scoring. The server wiring owns target identity and decides
 // when a kill happened; this ledger only deduplicates and totals those facts.
+import { isFiniteNumber } from "./Finite";
 import { MissionScoringPolicy } from "./MissionPolicy";
 
 export interface TargetScoreSnapshot {
@@ -9,7 +10,20 @@ export interface TargetScoreSnapshot {
 }
 
 function finiteNonnegative(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value >= 0 && value < math.huge;
+	return isFiniteNumber(value) && value >= 0;
+}
+
+function finiteMap(map: unknown): boolean {
+	if (!typeIs(map, "table")) return false;
+	for (const [, value] of pairs(map as Map<string, unknown>)) if (!isFiniteNumber(value)) return false;
+	return true;
+}
+
+/** Wire-side check for a result packet's `targetScore`: finite total and numeric per-role maps. */
+export function isTargetScoreSnapshot(value: unknown): value is TargetScoreSnapshot {
+	if (!typeIs(value, "table")) return false;
+	const snapshot = value as Partial<TargetScoreSnapshot>;
+	return isFiniteNumber(snapshot.total) && finiteMap(snapshot.kills) && finiteMap(snapshot.points);
 }
 
 export class TargetScore {

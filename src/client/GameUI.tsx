@@ -30,6 +30,8 @@ import type {
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionScore } from "../shared/MissionScore";
+import { finiteOr } from "../shared/Finite";
+import { isTargetScoreSnapshot } from "../shared/TargetScore";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { C, HUD } from "./Theme";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -61,7 +63,7 @@ import { SortieOverlay } from "./SortieOverlay";
 import { OutcomeScreen, type OutcomeState } from "./screens/OutcomeScreen";
 import { HintRow } from "./screens/Primitives";
 import {
-	finite,
+	findDeletion,
 	killedTargetPoint,
 	killSnapshot,
 	normalizePersistence,
@@ -552,7 +554,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!response) showToast(problem ?? "Command rejected the request.", true);
 				else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
 				else {
-					const deletion = response.deletions?.find((entry) => entry.slot === slot);
+					const deletion = findDeletion(response.deletions, slot);
 					const report = (status?: string) => {
 						const name = `Save ${string.format("%02d", slot)}`;
 						if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
@@ -590,9 +592,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 										return { latest };
 									},
 									({ latest }) => {
-										const current = latest?.deletions?.find(
-											(entry) => entry.slot === slot && entry.generation === deletion.generation,
-										);
+										const current = findDeletion(latest?.deletions, slot, deletion.generation);
 										if (current && current.status !== "pending") {
 											report(current.status);
 											finished = true;
@@ -908,14 +908,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!launchLoading.Pending()) return;
 				launchLoading.Building();
 				setLaunchPhase(launchLoading.Phase());
-				setBuildFolder(payload.folder);
+				setBuildFolder(typeIs(payload.folder, "Instance") ? payload.folder : undefined);
 				return;
 			}
 			if (payload.kind === "Loading") {
 				if (!launchLoading.Preload()) return;
 				setLaunchPhase(launchLoading.Phase());
 				const loading = payload as MissionLoading;
-				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
+				const slot = math.clamp(math.floor(finiteOr(loading.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(loading.missionId) ? loading.missionId : 1;
 				selectedSlotRef.current = slot;
 				setSelectedSlot(slot);
@@ -929,7 +929,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const alive = () =>
 					mountedRef.current && loadingSerialRef.current === serial && screenRef.current === "loading";
 				task.spawn(() => {
-					const expected = finite(loading.expectedParts, 0) > 0 ? loading.expectedParts : undefined;
+					const expected = finiteOr(loading.expectedParts, 0) > 0 ? loading.expectedParts : undefined;
 					const ready = preloadMission(loading.aircraft, expected, alive, (fraction) => {
 						if (alive()) setLoadingProgress(fraction);
 					});
@@ -952,7 +952,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!launchLoading.Started()) return;
 				loadingSerialRef.current++;
 				const started = payload as MissionStarted;
-				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
+				const slot = math.clamp(math.floor(finiteOr(started.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(started.missionId) ? started.missionId : 1;
 				selectedSlotRef.current = slot;
 				setSelectedSlot(slot);
@@ -1040,17 +1040,18 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 								: won
 									? "RESULT RECEIVED — SAVE NOT CONFIRMED"
 									: "";
-				const count = (value: unknown, fallback = 0) => math.max(0, math.floor(finite(value, fallback)));
+				const targetScore = isTargetScoreSnapshot(finished.targetScore) ? finished.targetScore : undefined;
+				const count = (value: unknown, fallback = 0) => math.max(0, math.floor(finiteOr(value, fallback)));
 				const kills = count(finished.kills, current.kills);
 				const groundKills = math.min(kills, count(finished.groundKills, current.groundKills ?? 0));
-				const elapsed = math.max(0, finite(finished.elapsed, current.elapsed));
+				const elapsed = math.max(0, finiteOr(finished.elapsed, current.elapsed));
 				const par =
-					finite(finished.par, 0) > 0
+					finiteOr(finished.par, 0) > 0
 						? finished.par!
 						: MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 				const missilesFired = count(finished.missilesFired);
 				const missileHits = math.min(missilesFired, count(finished.missileHits));
-				const damageTaken = math.clamp(finite(finished.damageTaken, 100 - current.health), 0, 100);
+				const damageTaken = math.clamp(finiteOr(finished.damageTaken, 100 - current.health), 0, 100);
 				// The server scores the run; an older or fallback message is scored here for display only.
 				const fallback = MissionScore.Compute(
 					{
@@ -1062,16 +1063,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						missilesFired,
 						missileHits,
 						damageTaken,
-						difficulty: finished.difficulty,
-						targetPoints: finished.targetScore?.total,
+						difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
+						targetPoints: targetScore?.total,
 					},
 					MissionCatalog.Scoring(missionId),
 				);
 				setOutcome({
 					won,
 					missionId,
-					targetScore:
-						MissionCatalog.Scoring(missionId).basis === "points" ? finished.targetScore : undefined,
+					targetScore: MissionCatalog.Scoring(missionId).basis === "points" ? targetScore : undefined,
 					airKills: kills - groundKills,
 					optionalKills: count(finished.optionalKills),
 					groundKills,
@@ -1084,13 +1084,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					missilesFired,
 					missileHits,
 					damageTaken,
-					lowestHealth: math.clamp(finite(finished.lowestHealth, current.health), 0, 100),
+					lowestHealth: math.clamp(finiteOr(finished.lowestHealth, current.health), 0, 100),
 					evades: count(finished.evades),
-					score: finite(finished.score, -1) >= 0 ? math.floor(finished.score!) : fallback.score,
+					score: finiteOr(finished.score, -1) >= 0 ? math.floor(finished.score!) : fallback.score,
 					rank: MissionScore.IsRank(finished.rank) ? finished.rank : fallback.rank,
 					newBestScore: finished.newBestScore === true,
 					newBestRank: finished.newBestRank === true,
-					bestScore: finite(finished.bestScore, -1) >= 0 ? math.floor(finished.bestScore!) : undefined,
+					bestScore: finiteOr(finished.bestScore, -1) >= 0 ? math.floor(finished.bestScore!) : undefined,
 					bestRank: MissionScore.IsRank(finished.bestRank) ? finished.bestRank : undefined,
 					reason: isMissionReason(finished.reason) ? finished.reason : undefined,
 					difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,

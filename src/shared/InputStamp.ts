@@ -1,3 +1,5 @@
+import { isFiniteNumber } from "./Finite";
+
 /**
  * Client input stamp staleness. Pure so it runs in the offline Luau VM.
  *
@@ -19,15 +21,11 @@ export type InputStampDecision =
 	/** Accept the packet; `floor` is the new accepted stamp and `reset` marks an implausible jump. */
 	| { readonly kind: "accept"; readonly floor: number; readonly reset: boolean };
 
-function isFinite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value > -math.huge && value < math.huge;
-}
-
 export const InputStamp = {
 	/** `previous` is the current floor (0 when no stamp has been accepted this sortie). */
 	Decide(previous: number, incoming: unknown, window = INPUT_STAMP_RESET_WINDOW): InputStampDecision {
-		if (!isFinite(incoming) || incoming <= 0) return { kind: "unstamped" };
-		if (!isFinite(previous) || previous <= 0) return { kind: "accept", floor: incoming, reset: false };
+		if (!isFiniteNumber(incoming) || incoming <= 0) return { kind: "unstamped" };
+		if (!isFiniteNumber(previous) || previous <= 0) return { kind: "accept", floor: incoming, reset: false };
 		if (math.abs(incoming - previous) > window) return { kind: "accept", floor: incoming, reset: true };
 		if (incoming < previous) return { kind: "stale" };
 		return { kind: "accept", floor: incoming, reset: false };

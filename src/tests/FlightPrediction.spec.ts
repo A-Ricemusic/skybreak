@@ -22,6 +22,16 @@ function flown(seconds: number, input = CRUISE) {
 }
 
 describe("client flight prediction and reconciliation", () => {
+	it("recognises a handoff state only when every predicted field is a finite number", () => {
+		const state = FlightMath.NewState();
+		expect(FlightPrediction.IsState(state)).toBe(true);
+		expect(FlightPrediction.IsState(undefined)).toBe(false);
+		expect(FlightPrediction.IsState(5)).toBe(false);
+		expect(FlightPrediction.IsState({ ...state, qw: 0 / 0 })).toBe(false);
+		const partial: Partial<FlightState> = { ...state };
+		partial.speed = undefined;
+		expect(FlightPrediction.IsState(partial)).toBe(false);
+	});
 	it("ignores non-finite frame deltas without corrupting pending corrections or history", () => {
 		const [predictor, now] = flown(0.5);
 		const server = copy(predictor.state);

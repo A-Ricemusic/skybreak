@@ -6,6 +6,7 @@
 // decoy window; any hostile missile that is within 450 studs, or in the last 1.2 s of its
 // flight, while the window is open is decoyed. Pressing early only wastes the charge.
 // Charges come back one at a time, 10 s each.
+import { isFiniteNumber } from "./Finite";
 export interface EvadeState {
 	charges: number;
 	/** Seconds banked toward the next charge (only while below MaxCharges). */
@@ -20,10 +21,6 @@ const TAIL_SECONDS = 1.2;
 /** The press is honoured for this long so a phone's round trip does not eat the timing. */
 const WINDOW_SECONDS = 0.6;
 
-function finite(value: number): boolean {
-	return value === value && math.abs(value) !== math.huge;
-}
-
 export const EvadeRules = {
 	MaxCharges: MAX_CHARGES,
 	RechargeSeconds: RECHARGE_SECONDS,
@@ -34,7 +31,7 @@ export const EvadeRules = {
 		return { charges: MAX_CHARGES, recharge: 0, window: 0 };
 	},
 	Tick(state: EvadeState, dt: number): void {
-		if (!finite(dt) || dt <= 0) return;
+		if (!isFiniteNumber(dt) || dt <= 0) return;
 		state.window = math.max(0, state.window - dt);
 		if (state.charges >= MAX_CHARGES) {
 			state.recharge = 0;
@@ -61,7 +58,8 @@ export const EvadeRules = {
 	/** Does an open window decoy a hostile missile `distance` studs away with `remainingLife` seconds left? */
 	Decoys(distance: number, remainingLife: number): boolean {
 		return (
-			(finite(distance) && distance <= DECOY_RADIUS) || (finite(remainingLife) && remainingLife <= TAIL_SECONDS)
+			(isFiniteNumber(distance) && distance <= DECOY_RADIUS) ||
+			(isFiniteNumber(remainingLife) && remainingLife <= TAIL_SECONDS)
 		);
 	},
 	/**
@@ -69,7 +67,7 @@ export const EvadeRules = {
 	 * the running roll, else 0 with a charge in hand, else the time to the next charge.
 	 */
 	Cooldown(state: EvadeState, rollRemaining: number): number {
-		if (finite(rollRemaining) && rollRemaining > 0) return rollRemaining;
+		if (isFiniteNumber(rollRemaining) && rollRemaining > 0) return rollRemaining;
 		if (state.charges > 0) return 0;
 		return math.max(0, RECHARGE_SECONDS - state.recharge);
 	},

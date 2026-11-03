@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 import { duelTargetId } from "./FinaleDuelRules";
 import { WithdrawalIdentities } from "./LeaderWithdrawalRules";
 import { validateNavalTargets, SurfaceRoute } from "./SurfaceTargetRules";
@@ -235,9 +236,6 @@ export function authoredAirPose(
 export function airSpawnHeight(y: number, surfaceY?: number): number {
 	return math.max(170, y, surfaceY !== undefined ? surfaceY + 120 : 170);
 }
-function finite(n: number): boolean {
-	return typeIs(n, "number") && n === n && math.abs(n) < math.huge;
-}
 /** One sortie-wide namespace for authored encounter/kill identities, independent of phase order. */
 export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): void {
 	const ids = new Set<string>();
@@ -277,9 +275,9 @@ export function validateCampaignEncounters(
 	assert(phases.size() > 0, "Mission needs at least one phase");
 	const point = (p: FlightPoint, ceiling = 2000) => {
 		assert(
-			finite(p.x) &&
-				finite(p.y) &&
-				finite(p.z) &&
+			isFiniteNumber(p.x) &&
+				isFiniteNumber(p.y) &&
+				isFiniteNumber(p.z) &&
 				math.abs(p.x) <= airspace.spawnLimit &&
 				math.abs(p.z) <= airspace.spawnLimit &&
 				p.y >= 0 &&
@@ -296,7 +294,7 @@ export function validateCampaignEncounters(
 		assert(phase.label.size() > 0 && phase.label.size() <= 40, "Phase needs a short label");
 		if (phase.count !== undefined)
 			assert(
-				finite(phase.count) && phase.count % 1 === 0 && phase.count > 0,
+				isFiniteNumber(phase.count) && phase.count % 1 === 0 && phase.count > 0,
 				"Phase count must be a positive integer",
 			);
 		validateNavalTargets(phase.groundTargets ?? [], airspace.spawnLimit);
@@ -305,7 +303,7 @@ export function validateCampaignEncounters(
 			point(target.position);
 			role(target.scoreRole);
 			assert(
-				GROUND_TYPES.includes(target.type) && finite(target.yaw) && typeIs(target.required, "boolean"),
+				GROUND_TYPES.includes(target.type) && isFiniteNumber(target.yaw) && typeIs(target.required, "boolean"),
 				"Invalid typed target",
 			);
 			if (target.group !== undefined) {
@@ -333,19 +331,23 @@ export function validateCampaignEncounters(
 		}
 	}
 	const trigger = (t: ArrivalTrigger, owner: number) => {
-		if (t.kind === "time") assert(finite(t.seconds) && t.seconds >= 0, "Invalid arrival time");
+		if (t.kind === "time") assert(isFiniteNumber(t.seconds) && t.seconds >= 0, "Invalid arrival time");
 		else if (t.kind === "phase_start")
 			assert(
-				finite(t.phase) && t.phase % 1 === 0 && t.phase >= 0 && t.phase < phases.size() && t.phase <= owner,
+				isFiniteNumber(t.phase) &&
+					t.phase % 1 === 0 &&
+					t.phase >= 0 &&
+					t.phase < phases.size() &&
+					t.phase <= owner,
 				"Invalid arrival phase",
 			);
 		else if (t.kind === "required_count")
-			assert(finite(t.count) && t.count % 1 === 0 && t.count > 0, "Invalid required kill trigger");
+			assert(isFiniteNumber(t.count) && t.count % 1 === 0 && t.count > 0, "Invalid required kill trigger");
 		else if (t.kind === "approach")
 			assert(
-				finite(t.x) &&
-					finite(t.z) &&
-					finite(t.radius) &&
+				isFiniteNumber(t.x) &&
+					isFiniteNumber(t.z) &&
+					isFiniteNumber(t.radius) &&
 					t.radius > 0 &&
 					math.abs(t.x) <= airspace.hardHalfWidth &&
 					math.abs(t.z) <= airspace.hardHalfWidth,
@@ -381,7 +383,7 @@ export function validateCampaignEncounters(
 			trigger(wave.trigger, owner);
 			role(wave.scoreRole);
 			assert(
-				finite(wave.count) &&
+				isFiniteNumber(wave.count) &&
 					wave.count % 1 === 0 &&
 					wave.count >= 1 &&
 					wave.count <= 32 &&
@@ -389,7 +391,7 @@ export function validateCampaignEncounters(
 				"Invalid fighter wave",
 			);
 			if (wave.spawn) point(wave.spawn, phase.protection?.altitudeCeiling ?? 2000);
-			if (wave.headingDegrees !== undefined) assert(finite(wave.headingDegrees), "Invalid heading");
+			if (wave.headingDegrees !== undefined) assert(isFiniteNumber(wave.headingDegrees), "Invalid heading");
 			if (wave.call !== undefined)
 				assert(wave.call.size() > 0 && wave.call.size() <= 72, "Invalid fighter wave call");
 			assert(
@@ -407,14 +409,14 @@ export function validateCampaignEncounters(
 				ace.name.size() > 0 &&
 					ace.name.size() <= 32 &&
 					(ace.livery === "Vulture" || ace.livery === "Rusk") &&
-					finite(ace.health) &&
+					isFiniteNumber(ace.health) &&
 					ace.health > 0 &&
 					ace.scoreRole === "ace" &&
 					(ace.behaviour === "dogfight" || ace.behaviour === "ground_attack"),
 				"Invalid standalone ace",
 			);
 			if (ace.spawn) point(ace.spawn);
-			if (ace.headingDegrees !== undefined) assert(finite(ace.headingDegrees), "Invalid ace heading");
+			if (ace.headingDegrees !== undefined) assert(isFiniteNumber(ace.headingDegrees), "Invalid ace heading");
 			if (ace.call !== undefined)
 				assert(ace.call.size() > 0 && ace.call.size() <= 72, "Invalid standalone ace call");
 		}

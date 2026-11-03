@@ -170,6 +170,14 @@ export const FlightPrediction = {
 		return predictor.count > 0 ? predictor.times[predictor.head] : now;
 	},
 
+	/** True when a wire value carries every field `Handoff`/`Reconcile` read, each a finite number. */
+	IsState(value: unknown): value is FlightState {
+		if (!typeIs(value, "table")) return false;
+		const state = value as Partial<Record<(typeof KEYS)[number], unknown>>;
+		for (const key of KEYS) if (!FlightMath.IsFinite(state[key])) return false;
+		return true;
+	},
+
 	/** Reliable launch handoff: preserve the displayed pose and blend every remaining authoritative gap. */
 	Handoff(predictor: Predictor, server: FlightState, sequence: number): void {
 		predictor.sequence = math.max(predictor.sequence, sequence);

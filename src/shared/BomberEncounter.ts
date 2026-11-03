@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 import { BomberPoint, BomberRoute, BomberRules, BomberSlotPose } from "./BomberRules";
 import type { MissionPhaseBlueprint } from "./MissionCatalog";
 import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
@@ -27,7 +28,6 @@ export interface BomberEncounterState {
 	escortsSpawned: number;
 	bombersSpawned?: number;
 }
-const finite = (n: number) => n === n && math.abs(n) < math.huge;
 export function validateBomberEncounter(
 	phase: MissionPhaseBlueprint,
 	bounds: MissionAirspacePolicy,
@@ -40,11 +40,11 @@ export function validateBomberEncounter(
 	assert(b.scoreRole === undefined || scoring.points[b.scoreRole] !== undefined, "Invalid route score role");
 	for (const role of [b.scoreRole ?? "bomber", "escort", "ace"]) {
 		const n = scoring.points[role];
-		assert(n !== undefined && finite(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values");
+		assert(n !== undefined && isFiniteNumber(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values");
 	}
 	assert(phase.kind === "required_air" && phase.count === b.count, "Bombers require matching required_air count");
 	assert(b.count % 1 === 0 && b.count >= 1 && b.count <= 6, "Bomber route budget is six");
-	assert(finite(b.speed) && b.speed > 0, "Invalid bomber speed");
+	assert(isFiniteNumber(b.speed) && b.speed > 0, "Invalid bomber speed");
 	assert(b.escapeCall === undefined || b.escapeCall.size() > 0, "Bomber escape call must not be empty");
 	const e = b.escorts;
 	assert(
@@ -57,14 +57,18 @@ export function validateBomberEncounter(
 		"Invalid escort budget",
 	);
 	assert(
-		e.role === "escort" && e.aceName.size() > 0 && e.aceName.size() <= 40 && finite(e.aceAt) && e.aceAt >= 0,
+		e.role === "escort" &&
+			e.aceName.size() > 0 &&
+			e.aceName.size() <= 40 &&
+			isFiniteNumber(e.aceAt) &&
+			e.aceAt >= 0,
 		"Invalid escort ace",
 	);
 	for (const p of [...b.waypoints, b.escape])
 		assert(
-			finite(p.x) &&
-				finite(p.y) &&
-				finite(p.z) &&
+			isFiniteNumber(p.x) &&
+				isFiniteNumber(p.y) &&
+				isFiniteNumber(p.z) &&
 				math.abs(p.x) <= bounds.spawnLimit &&
 				math.abs(p.z) <= bounds.spawnLimit &&
 				p.y >= 40 &&

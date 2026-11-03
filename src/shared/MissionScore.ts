@@ -1,5 +1,6 @@
 // Pure post-mission scoring shared by the server (authoritative score, saved bests)
 // and the debrief screen. Nothing here reads instances or the clock.
+import { finiteOr } from "./Finite";
 import { Difficulty, DifficultyKind } from "./Difficulty";
 import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { MissionScoringPolicy } from "./MissionPolicy";
@@ -55,12 +56,8 @@ const RANK_CUTS: { rank: MissionRank; rating: number }[] = [
 	{ rank: "C", rating: 35 },
 ];
 
-function finite(value: number, fallback = 0): number {
-	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
-}
-
 function pointsRank(total: number, policy: MissionScoringPolicy): MissionRank {
-	const value = math.max(0, finite(total));
+	const value = math.max(0, finiteOr(total, 0));
 	if (value >= policy.rank.S) return "S";
 	if (value >= policy.rank.A) return "A";
 	if (value >= policy.rank.B) return "B";
@@ -133,20 +130,20 @@ export const MissionScore = {
 
 	/** Points-basis policies use raw TargetScore points; rating missions retain the legacy path exactly. */
 	Compute(input: ScoreInput, policy?: MissionScoringPolicy): ScoreResult {
-		const airKills = math.max(0, math.floor(finite(input.airKills)));
-		const groundKills = math.max(0, math.floor(finite(input.groundKills)));
-		const fired = math.max(0, math.floor(finite(input.missilesFired)));
-		const hits = math.clamp(math.floor(finite(input.missileHits)), 0, fired);
-		const elapsed = math.max(0, finite(input.elapsed));
-		const par = math.max(1, finite(input.par, 1));
-		const damage = math.clamp(finite(input.damageTaken), 0, 100);
+		const airKills = math.max(0, math.floor(finiteOr(input.airKills, 0)));
+		const groundKills = math.max(0, math.floor(finiteOr(input.groundKills, 0)));
+		const fired = math.max(0, math.floor(finiteOr(input.missilesFired, 0)));
+		const hits = math.clamp(math.floor(finiteOr(input.missileHits, 0)), 0, fired);
+		const elapsed = math.max(0, finiteOr(input.elapsed, 0));
+		const par = math.max(1, finiteOr(input.par, 1));
+		const damage = math.clamp(finiteOr(input.damageTaken, 0), 0, 100);
 
 		const time = elapsed <= par ? 1 : math.clamp(1 - (elapsed - par) / (par * (SLOW_LIMIT - 1)), 0, 1);
 		// A sortie with no shots fired (pure flying objectives) is not penalised for accuracy.
 		const accuracy = fired > 0 ? hits / fired : 1;
 		const survival = 1 - damage / 100;
 		if (policy?.basis === "points") {
-			const score = math.max(0, finite(input.targetPoints ?? 0));
+			const score = math.max(0, finiteOr(input.targetPoints ?? 0, 0));
 			if (!input.won) return { score, rank: "D", rating: 0, time, accuracy, survival };
 			const rating = math.floor(
 				WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6,

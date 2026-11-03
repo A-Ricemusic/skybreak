@@ -2,6 +2,7 @@
 // attributes on PlayerGui (they outlive respawns and every React remount, and
 // need no server or DataStore). Audio (workstream D) reads `MusicVolume` and
 // `SfxVolume` straight from PlayerGui, 0–1, default 1; voice-over reads `VoiceVolume`.
+import { isFiniteNumber } from "./Finite";
 
 export interface PlayerSettings {
 	/** Pushing the stick (or W) up dives instead of climbing. */
@@ -81,15 +82,11 @@ export function defaultSettings(): PlayerSettings {
 	return { invertY: false, levelAssist: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 };
 }
 
-function finite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge;
-}
-
 /** Snaps to the range's step grid (keeps 0.1 steps from drifting) and clamps. */
 export function clampSetting(key: NumericSettingKey, value: unknown): number {
 	const range = SETTING_RANGES[key];
 	const fallback = defaultSettings()[key];
-	if (!finite(value)) return fallback;
+	if (!isFiniteNumber(value)) return fallback;
 	const steps = math.floor((value - range.min) / range.step + 0.5);
 	return math.clamp(math.floor((range.min + steps * range.step) * 100 + 0.5) / 100, range.min, range.max);
 }

@@ -1,4 +1,5 @@
 // Moving surface targets: naval hull classes, surface routes, SAM and anti-ship rules (pure). Formerly EngineBatchD2.
+import { isFiniteNumber } from "./Finite";
 import { SpecialWeapons, SpecialState, SpecialDecision } from "./SpecialWeapons";
 // Dormant naval/shore defence rules. No mission roster is activated here.
 import type { FlightPoint } from "./MissionCatalog";
@@ -46,11 +47,10 @@ export function surfacePose(
 	error("Surface route needs two points");
 }
 export function validateNavalTargets(targets: TypedGroundTarget[], limit: number): void {
-	const finite = (v: number) => typeIs(v, "number") && v === v && math.abs(v) < math.huge;
 	for (const t of targets) {
 		if (t.naval !== undefined) assert(t.naval === true && navalHull(t.type), "Invalid naval lifecycle opt-in");
 		if (t.health !== undefined)
-			assert(finite(t.health) && t.health >= 1 && t.health <= 2000, "Invalid target health");
+			assert(isFiniteNumber(t.health) && t.health >= 1 && t.health <= 2000, "Invalid target health");
 		if (t.sam !== undefined) assert(t.sam === true && t.type === "sam", "Firing SAM needs explicit sam target");
 		if (t.parentId !== undefined) {
 			const parent = targets.find((p) => p.id === t.parentId);
@@ -76,7 +76,7 @@ export function validateNavalTargets(targets: TypedGroundTarget[], limit: number
 				navalHull(t.type) &&
 					r.waypoints.size() >= 2 &&
 					r.waypoints.size() <= 32 &&
-					finite(r.speed) &&
+					isFiniteNumber(r.speed) &&
 					r.speed > 0 &&
 					r.speed <= 60,
 				"Invalid surface route",
@@ -90,9 +90,9 @@ export function validateNavalTargets(targets: TypedGroundTarget[], limit: number
 			for (let i = 0; i < r.waypoints.size(); i++) {
 				const p = r.waypoints[i];
 				assert(
-					finite(p.x) &&
-						finite(p.y) &&
-						finite(p.z) &&
+					isFiniteNumber(p.x) &&
+						isFiniteNumber(p.y) &&
+						isFiniteNumber(p.z) &&
 						math.abs(p.x) <= limit &&
 						math.abs(p.z) <= limit &&
 						p.y === t.position.y,
@@ -106,7 +106,7 @@ export function validateNavalTargets(targets: TypedGroundTarget[], limit: number
 			const firstYaw = surfacePose(r, 0).yaw;
 			const difference = ((t.yaw - firstYaw + 180) % 360) - 180;
 			assert(
-				finite(t.yaw) && math.abs(difference) <= 0.1,
+				isFiniteNumber(t.yaw) && math.abs(difference) <= 0.1,
 				"Surface yaw must match first route leg (0.1 degree tolerance)",
 			);
 		}

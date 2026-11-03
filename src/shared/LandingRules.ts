@@ -1,5 +1,6 @@
 // Landing, return-line and terrain-clearance phase rules (pure). Formerly EngineBatchB.
 import { FlightMath, FlightState } from "./FlightMath";
+import { isFiniteNumber } from "./Finite";
 
 export interface PointXZ {
 	x: number;
@@ -33,9 +34,8 @@ export interface LandingPlan {
 	/** Optional controller radio, `at` seconds after the landing begins. */
 	radio?: { at: number; text: string }[];
 }
-export function finiteNumber(n: number): boolean {
-	return typeIs(n, "number") && n === n && math.abs(n) < math.huge;
-}
+/** Kept exported: many rules modules import their finite guard from here. */
+export const finiteNumber = isFiniteNumber;
 export function crossesReturnLine(line: ReturnLine, from: PointXZ, to: PointXZ): boolean {
 	for (const n of [from.x, from.z, to.x, to.z]) if (!finiteNumber(n)) return false;
 	const before = (from.x - line.a.x) * line.direction.x + (from.z - line.a.z) * line.direction.z;
