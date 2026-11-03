@@ -6,6 +6,7 @@ import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
 import { CombatSession, Enemy, TargetKind } from "./CombatSession";
 import { FlightMath, FlightState } from "../shared/FlightMath";
+import { dampedSteer } from "../shared/EncounterKinematics";
 import { recordScoredKill } from "./SortieScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -47,6 +48,12 @@ export function unitOr(vector: Vector3, fallback: Vector3): Vector3 {
 
 export function point(vector: Vector3): { x: number; y: number; z: number } {
 	return { x: vector.X, y: vector.Y, z: vector.Z };
+}
+
+/** Damped steer of `direction` toward `desired` at rate `turn`; see EncounterKinematics.dampedSteer. */
+export function steerAircraft(direction: Vector3, desired: Vector3, turn: number, dt: number): Vector3 {
+	const d = dampedSteer(point(direction), point(desired), turn, dt);
+	return new Vector3(d.x, d.y, d.z);
 }
 
 export function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
