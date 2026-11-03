@@ -6,25 +6,65 @@ describe("deletion observation lifetime", () => {
 	it("does not dispatch after navigation before the RPC", () => {
 		const observation = new DeletionObservation();
 		const token = observation.capture();
-		let calls = 0; let notices = 0;
+		let calls = 0;
+		let notices = 0;
 		observation.cancel();
-		observation.read(token, () => true, () => { calls++; return "confirmed"; }, () => { notices++; });
-		expect(calls).toBe(0); expect(notices).toBe(0);
+		observation.read(
+			token,
+			() => true,
+			() => {
+				calls++;
+				return "confirmed";
+			},
+			() => {
+				notices++;
+			},
+		);
+		expect(calls).toBe(0);
+		expect(notices).toBe(0);
 	});
 	it("suppresses stale notifications when navigation happens inside a yielding RPC, even after returning to the same screen", () => {
 		const observation = new DeletionObservation();
 		const token = observation.capture();
 		let notices = 0;
-		observation.read(token, () => true, () => {
-			observation.cancel(); observation.cancel(); return "confirmed";
-		}, () => { notices++; });
+		observation.read(
+			token,
+			() => true,
+			() => {
+				observation.cancel();
+				observation.cancel();
+				return "confirmed";
+			},
+			() => {
+				notices++;
+			},
+		);
 		expect(notices).toBe(0);
-		observation.read(observation.capture(), () => true, () => "confirmed", () => { notices++; });
+		observation.read(
+			observation.capture(),
+			() => true,
+			() => "confirmed",
+			() => {
+				notices++;
+			},
+		);
 		expect(notices).toBe(1);
 	});
 	it("suppresses results when unmounted or superseded during the RPC", () => {
-		const observation = new DeletionObservation(); let alive = true; let notices = 0;
-		observation.read(observation.capture(), () => alive, () => { alive = false; return "failed"; }, () => { notices++; });
+		const observation = new DeletionObservation();
+		let alive = true;
+		let notices = 0;
+		observation.read(
+			observation.capture(),
+			() => alive,
+			() => {
+				alive = false;
+				return "failed";
+			},
+			() => {
+				notices++;
+			},
+		);
 		expect(notices).toBe(0);
 	});
 });

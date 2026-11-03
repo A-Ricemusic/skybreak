@@ -27,9 +27,33 @@ function radioTexts(): string[] {
 }
 
 const FAKE: Record<string, VoiceCue> = {
-	"story.c03.b01": { bank: "bankA", start: 10, finish: 14.5, speaker: "SERA", tape: false, radio: false, text: "Story line." },
-	"radio.m02.p1.beat": { bank: "bankA", start: 20, finish: 22, speaker: "SERA", tape: false, radio: true, text: "SERA: Radio line." },
-	"radio.m03.p1.beat": { bank: "bankB", start: 1, finish: 3, speaker: "TEAL", tape: true, radio: true, text: "TEAL (tape): Tape line." },
+	"story.c03.b01": {
+		bank: "bankA",
+		start: 10,
+		finish: 14.5,
+		speaker: "SERA",
+		tape: false,
+		radio: false,
+		text: "Story line.",
+	},
+	"radio.m02.p1.beat": {
+		bank: "bankA",
+		start: 20,
+		finish: 22,
+		speaker: "SERA",
+		tape: false,
+		radio: true,
+		text: "SERA: Radio line.",
+	},
+	"radio.m03.p1.beat": {
+		bank: "bankB",
+		start: 1,
+		finish: 3,
+		speaker: "TEAL",
+		tape: true,
+		radio: true,
+		text: "TEAL (tape): Tape line.",
+	},
 };
 
 describe("voice-over cue lookup", () => {
@@ -62,12 +86,30 @@ describe("voice-over cue lookup", () => {
 
 describe("shipped voice table", () => {
 	it("reuses exact speaker/text recordings and leaves changed lines silent", () => {
-		let recorded = 0, pending = 0;
-		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			const clip=Voice.Story(chapter.id,index,beat.text);
-			if (beat.recordingId === undefined) { expect(clip).toBeUndefined(); pending++; }
-			else { const cue=VOICE_CUES[beat.recordingId]; expect(cue.text).toBe(beat.text); expect(cue.speaker).toBe(speakerStyle(beat.speaker).name === "MARSHAL" ? "RUSK" : speakerStyle(beat.speaker).name === "FLIGHT LOG" ? "LOG" : speakerStyle(beat.speaker).name === "RECORDER 7-T" ? "RECORDER" : speakerStyle(beat.speaker).name); expect(clip).toBeDefined(); recorded++; }
-		});
+		let recorded = 0,
+			pending = 0;
+		for (const chapter of STORY)
+			chapter.beats.forEach((beat, index) => {
+				const clip = Voice.Story(chapter.id, index, beat.text);
+				if (beat.recordingId === undefined) {
+					expect(clip).toBeUndefined();
+					pending++;
+				} else {
+					const cue = VOICE_CUES[beat.recordingId];
+					expect(cue.text).toBe(beat.text);
+					expect(cue.speaker).toBe(
+						speakerStyle(beat.speaker).name === "MARSHAL"
+							? "RUSK"
+							: speakerStyle(beat.speaker).name === "FLIGHT LOG"
+								? "LOG"
+								: speakerStyle(beat.speaker).name === "RECORDER 7-T"
+									? "RECORDER"
+									: speakerStyle(beat.speaker).name,
+					);
+					expect(clip).toBeDefined();
+					recorded++;
+				}
+			});
 		expect(recorded).toBe(78);
 		expect(pending).toBe(44);
 	});
@@ -76,9 +118,10 @@ describe("shipped voice table", () => {
 		expect(texts.size()).toBeGreaterThan(250);
 		// Revised M1 safety instructions intentionally have no recording: never play the old
 		// long-hold instructions over the new subtitles. Asset generation is a separate task.
-		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map(phase => phase.beat!));
+		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map((phase) => phase.beat!));
 		expect(subtitleOnly.size()).toBe(4);
-		for (const text of [BlueprintRunner.LiveWarning, BlueprintRunner.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
+		for (const text of [BlueprintRunner.LiveWarning, BlueprintRunner.PracticeReset])
+			expect(Voice.Radio(text)).toBeUndefined();
 		for (const text of texts) {
 			if (subtitleOnly.has(text)) expect(Voice.Radio(text)).toBeUndefined();
 			else expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);
@@ -89,8 +132,14 @@ describe("shipped voice table", () => {
 		expect(Voice.RadioId("SERA: AIR MARSHAL RUSK pulled back to call his wing. 3 inbound.")).toBeDefined();
 	});
 	it("never voices HUD system text or the trainee on the radio", () => {
-		for (const text of ["MISSION FAILED", "MISSION ACCOMPLISHED · RETURN TO BASE", "Select the radar: TGT / Tab / Y",
-			"Recon drone up: all contacts marked", "VULTURE LEAD deployed flares"]) expect(Voice.RadioId(text)).toBeUndefined();
+		for (const text of [
+			"MISSION FAILED",
+			"MISSION ACCOMPLISHED · RETURN TO BASE",
+			"Select the radar: TGT / Tab / Y",
+			"Recon drone up: all contacts marked",
+			"VULTURE LEAD deployed flares",
+		])
+			expect(Voice.RadioId(text)).toBeUndefined();
 		for (const [, cue] of pairs(VOICE_CUES)) if (cue.radio) expect(cue.speaker === "TRAINEE").toBe(false);
 	});
 	it("keeps every cue inside a known bank, in order, without overlap, under 6.5 minutes", () => {
@@ -109,11 +158,12 @@ describe("shipped voice table", () => {
 		}
 	});
 	it("keeps Teal's recordings on tape and gives every speaker in a cue a known chip name", () => {
-		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			if (beat.recordingId === undefined) return;
-			const cue = VOICE_CUES[beat.recordingId];
-			if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);
-		});
+		for (const chapter of STORY)
+			chapter.beats.forEach((beat, index) => {
+				if (beat.recordingId === undefined) return;
+				const cue = VOICE_CUES[beat.recordingId];
+				if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);
+			});
 	});
 	it("stays silent for every line whose bank has no approved asset yet", () => {
 		for (const [id, cue] of pairs(VOICE_CUES)) {

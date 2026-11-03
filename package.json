@@ -19,13 +19,23 @@
     "docs:relay-tables": "bun tools/relay-tables.ts",
     "docs:world-counts": "bun tools/world-report.ts",
     "test:voice:offline": "bun run build && bun tools/test-voice-offline.ts && python3 -m unittest discover -s tools/tests -p test_place_voice.py",
-    "test:roblox:perf": "bun tools/test-roblox.ts --perf"
+    "test:roblox:perf": "bun tools/test-roblox.ts --perf",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",
     "@rbxts/types": "^1.0.959",
+    "eslint": "^9",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-roblox-ts": "^1.4.1",
+    "globals": "^17.14.0",
+    "prettier": "^3",
     "roblox-ts": "3.0.0",
-    "typescript": "5.5.3"
+    "typescript": "5.5.3",
+    "typescript-eslint": "^8.72.1"
   },
   "dependencies": {
     "@rbxts/jest": "3.16.0-ts.2",

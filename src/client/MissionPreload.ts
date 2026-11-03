@@ -8,7 +8,14 @@ function isModel(value: unknown): value is Model {
 function preloadable(root: Instance): Instance[] {
 	const items: Instance[] = [];
 	for (const item of root.GetDescendants()) {
-		if (item.IsA("MeshPart") || item.IsA("Decal") || item.IsA("Texture") || item.IsA("ImageLabel") || item.IsA("SpecialMesh")) items.push(item);
+		if (
+			item.IsA("MeshPart") ||
+			item.IsA("Decal") ||
+			item.IsA("Texture") ||
+			item.IsA("ImageLabel") ||
+			item.IsA("SpecialMesh")
+		)
+			items.push(item);
 	}
 	return items;
 }
@@ -17,7 +24,13 @@ function preloadable(root: Instance): Instance[] {
  * and their mesh/texture content is preloaded, or until `timeout` seconds pass.
  * `alive` lets the caller abandon a stale load; progress is reported in 0..1.
  */
-export function preloadMission(aircraft: unknown, expectedParts: number | undefined, alive: () => boolean, onProgress: (fraction: number) => void, timeout = 6): boolean {
+export function preloadMission(
+	aircraft: unknown,
+	expectedParts: number | undefined,
+	alive: () => boolean,
+	onProgress: (fraction: number) => void,
+	timeout = 6,
+): boolean {
 	const deadline = os.clock() + timeout;
 	const remaining = () => deadline - os.clock();
 	if (!isModel(aircraft)) return false;
@@ -38,7 +51,11 @@ export function preloadMission(aircraft: unknown, expectedParts: number | undefi
 	// Content preload with a watchdog, since PreloadAsync has no timeout of its own.
 	const items = preloadable(folder);
 	let finished = items.size() === 0;
-	if (!finished) task.spawn(() => { pcall(() => ContentProvider.PreloadAsync(items)); finished = true; });
+	if (!finished)
+		task.spawn(() => {
+			pcall(() => ContentProvider.PreloadAsync(items));
+			finished = true;
+		});
 	while (alive() && !finished && remaining() > 0) task.wait(0.1);
 	onProgress(1);
 	return alive();

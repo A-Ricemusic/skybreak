@@ -32,7 +32,13 @@ import {
 import { WavePlan } from "./WavePlan";
 
 export type { SortieArmament } from "./SortieArmament";
-export type { EncounterRole, MissionAirspacePolicy, MissionPolicy, MissionScoringPolicy, MissionStartPolicy } from "./MissionPolicy";
+export type {
+	EncounterRole,
+	MissionAirspacePolicy,
+	MissionPolicy,
+	MissionScoringPolicy,
+	MissionStartPolicy,
+} from "./MissionPolicy";
 
 export type Act = 1 | 2 | 3;
 
@@ -90,16 +96,27 @@ export type PhaseKind =
 	| "chase";
 
 /** A radio line fired once when the phase progress fraction crosses `at` (0-1). */
-export interface PhaseChatter { at: number; text: string }
+export interface PhaseChatter {
+	at: number;
+	text: string;
+}
 /** Optional raiders spawned at objective progress `at`; bomber phases use elapsed route fraction. */
-export interface PhaseReinforcement { at: number; count: number }
+export interface PhaseReinforcement {
+	at: number;
+	count: number;
+}
 /**
  * Ground targets that light up during a timed phase once its progress fraction reaches `at`
  * (they stay hidden until then). They are required kills. While any is alive, "jam" freezes a
  * signal hold's timer and "guns" fire on the protected convoy or site (each drains like 1.5
  * raiders); the phase cannot complete until they are destroyed.
  */
-export interface PhaseHazard { at: number; count: number; text: string; effect: "jam" | "guns" }
+export interface PhaseHazard {
+	at: number;
+	count: number;
+	text: string;
+	effect: "jam" | "guns";
+}
 /**
  * A mid-phase twist: when the phase progress fraction reaches `at` (0-1; 1 fires as the
  * phase completes), the radio plays `text` and `insert` is spliced into the mission right
@@ -107,7 +124,12 @@ export interface PhaseHazard { at: number; count: number; text: string; effect: 
  * ends the current phase on the spot so the inserted objectives take over immediately.
  * Inserted phases are ordinary blueprints; they may not carry twists of their own.
  */
-export interface PhaseTwist { at: number; text: string; insert: MissionPhaseBlueprint[]; mode?: "after" | "now" }
+export interface PhaseTwist {
+	at: number;
+	text: string;
+	insert: MissionPhaseBlueprint[];
+	mode?: "after" | "now";
+}
 
 /** Execution details preserving the original training and harbor sortie choreography. */
 export interface PhaseExecution {
@@ -143,7 +165,7 @@ export interface MissionPhaseBlueprint {
 	cruiseIntercept?: CruisePlan;
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
- spatialJamming?: SpatialJamming;
+	spatialJamming?: SpatialJamming;
 	groundProgress?: GroundProgressPlan;
 	rearm?: RearmPlan;
 	/** HUD-less cut-in with the mission clock held (SortieCutaways). */
@@ -204,7 +226,11 @@ export interface MissionPhaseBlueprint {
 	hidden?: boolean;
 }
 
-export interface FlightPoint { x: number; y: number; z: number }
+export interface FlightPoint {
+	x: number;
+	y: number;
+	z: number;
+}
 
 export interface GroundTargetSpec {
 	asset: GroundAsset;
@@ -270,14 +296,23 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
-	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+(w.required ? 0 : w.count),0);
+	for (const phase of expandPhases(mission.phases))
+		optional +=
+			(phase.bombers?.escorts.count ?? 0) +
+			(phase.optionalRaiders ?? 0) +
+			(phase.standaloneAce ? 1 : 0) +
+			(phase.fighterWaves ?? []).reduce((sum, w) => sum + (w.required ? 0 : w.count), 0);
 	mission.optionalRaiderMax = optional;
 }
 
 export const MISSION_COUNT = MISSIONS.size();
 
 /** Display names for the three campaign acts (see the story outline above). */
-export const ACT_NAMES: { readonly [act: number]: string } = { 1: "RIM STATIC", 2: "PLATEAU SIGNAL", 3: "COASTAL FRACTURE" };
+export const ACT_NAMES: { readonly [act: number]: string } = {
+	1: "RIM STATIC",
+	2: "PLATEAU SIGNAL",
+	3: "COASTAL FRACTURE",
+};
 export const ACT_NUMERALS: { readonly [act: number]: string } = { 1: "I", 2: "II", 3: "III" };
 export const ACTS: Act[] = [1, 2, 3];
 
@@ -317,13 +352,24 @@ function validateBlueprintContracts(blueprint: MissionBlueprint, id: number): vo
 	const scoring = blueprint.scoring ?? LEGACY_MISSION_SCORING;
 	const phases = expandPhases(blueprint.phases);
 	validateMissionPolicy(blueprint, id);
-	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings, "boolean"), "Invalid terrain warning flag");
+	assert(
+		blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings, "boolean"),
+		"Invalid terrain warning flag",
+	);
 	if (blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, airspace.hardHalfWidth);
 	validateRearmPhases(phases, airspace.hardHalfWidth, blueprint.id);
 	validateRepairReservePhases(phases, blueprint.id);
-	validateArmament(blueprint.armament, phases.some((phase) => phase.rearm?.gun === true));
+	validateArmament(
+		blueprint.armament,
+		phases.some((phase) => phase.rearm?.gun === true),
+	);
 	validateCruiseMissilePhases(phases, airspace.hardHalfWidth);
-	validateJammerCorridorPhases(phases, airspace.spawnLimit, blueprint.armament?.gun !== undefined, scoring.basis === "points" ? scoring.points : undefined);
+	validateJammerCorridorPhases(
+		phases,
+		airspace.spawnLimit,
+		blueprint.armament?.gun !== undefined,
+		scoring.basis === "points" ? scoring.points : undefined,
+	);
 	validateProtectedAircraftPhases(phases, airspace.spawnLimit);
 	validateContactInventoryPhases(phases, airspace.hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateInterceptHoldPhases(phases, airspace.spawnLimit);
@@ -342,26 +388,41 @@ function validateBlueprintContracts(blueprint: MissionBlueprint, id: number): vo
 
 /** Authoring limits only the shipped catalog must meet: text lengths, twists, flight volumes, waves, hazards, ground counts. */
 function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): void {
-	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
-	for (const line of [...(blueprint.aceStages ?? []), ...(blueprint.aceReturns ?? [])]) assert(line.size() <= 72, `Mission ${id} ace radio must fit 72 characters`);
+	assert(
+		blueprint.failure.size() > 0 && blueprint.failure.size() <= 120,
+		`Mission ${id} needs a short failure outcome`,
+	);
+	for (const line of [...(blueprint.aceStages ?? []), ...(blueprint.aceReturns ?? [])])
+		assert(line.size() <= 72, `Mission ${id} ace radio must fit 72 characters`);
 	let requiredAce = 0;
 	let groundCount = 0;
-	for (const phase of blueprint.phases) if (phase.twist) {
-		const tag = `Mission ${id} phase ${phase.kind} twist`;
-		assert(phase.twist.at > 0 && phase.twist.at <= 1, `${tag} at must be within (0, 1]`);
-		assert(phase.twist.text.size() > 0 && phase.twist.text.size() <= 72, `${tag} needs a short radio line`);
-		assert(phase.twist.insert.size() >= 1, `${tag} must insert at least one phase`);
-		for (const inserted of phase.twist.insert) assert(inserted.twist === undefined, `${tag} may not nest twists`);
-		assert(phase.kind !== "route" || phase.twist.mode !== "now", `${tag} cannot cut a route short`);
-		// A hazard's targets must die before its phase ends; a "now" twist would strand them.
-		assert(phase.hazard === undefined || phase.twist.mode !== "now", `${tag} cannot cut a hazard phase short`);
-		if (phase.twist.mode === "now" && (phase.kind === "required_air" || phase.kind === "required_ground" || phase.kind === "ace" || phase.kind === "chase")) {
-			// Kill phases progress in whole increments: the first kill that reaches `at` must leave work undone,
-			// otherwise the twist would only fire on the completing kill and silently be a no-op.
-			const span = phase.kind === "ace" ? 1 : phase.count ?? 0;
-			assert(math.ceil(phase.twist.at * span - 1e-5) < span, `${tag} with mode "now" would only fire on the completing kill`);
+	for (const phase of blueprint.phases)
+		if (phase.twist) {
+			const tag = `Mission ${id} phase ${phase.kind} twist`;
+			assert(phase.twist.at > 0 && phase.twist.at <= 1, `${tag} at must be within (0, 1]`);
+			assert(phase.twist.text.size() > 0 && phase.twist.text.size() <= 72, `${tag} needs a short radio line`);
+			assert(phase.twist.insert.size() >= 1, `${tag} must insert at least one phase`);
+			for (const inserted of phase.twist.insert)
+				assert(inserted.twist === undefined, `${tag} may not nest twists`);
+			assert(phase.kind !== "route" || phase.twist.mode !== "now", `${tag} cannot cut a route short`);
+			// A hazard's targets must die before its phase ends; a "now" twist would strand them.
+			assert(phase.hazard === undefined || phase.twist.mode !== "now", `${tag} cannot cut a hazard phase short`);
+			if (
+				phase.twist.mode === "now" &&
+				(phase.kind === "required_air" ||
+					phase.kind === "required_ground" ||
+					phase.kind === "ace" ||
+					phase.kind === "chase")
+			) {
+				// Kill phases progress in whole increments: the first kill that reaches `at` must leave work undone,
+				// otherwise the twist would only fire on the completing kill and silently be a no-op.
+				const span = phase.kind === "ace" ? 1 : (phase.count ?? 0);
+				assert(
+					math.ceil(phase.twist.at * span - 1e-5) < span,
+					`${tag} with mode "now" would only fire on the completing kill`,
+				);
+			}
 		}
-	}
 	for (const phase of expandPhases(blueprint.phases)) {
 		const tag = `Mission ${id} phase ${phase.kind}`;
 		assert(phase.label.size() > 0 && phase.label.size() <= 40, `${tag} label must fit 40 characters`);
@@ -371,69 +432,129 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 			assert((phase.count ?? 0) >= 1, `${tag} needs count >= 1`);
 		}
 		if (phase.kind === "required_ground" && phase.groundTargets === undefined) groundCount += phase.count ?? 0;
-		if (phase.kind === "tutorial_missile") { assert(id === 0, `${tag} is only valid in Practice`); groundCount += phase.count ?? 0; }
+		if (phase.kind === "tutorial_missile") {
+			assert(id === 0, `${tag} is only valid in Practice`);
+			groundCount += phase.count ?? 0;
+		}
 		if (phase.parkedEscort) {
-			assert((phase.kind === "recon" || phase.kind === "signal" || phase.kind === "route") && inBounds(phase.parkedEscort), `${tag} parked escort needs an in-bounds recon, signal or route stop`);
+			assert(
+				(phase.kind === "recon" || phase.kind === "signal" || phase.kind === "route") &&
+					inBounds(phase.parkedEscort),
+				`${tag} parked escort needs an in-bounds recon, signal or route stop`,
+			);
 		}
 		if (phase.points) {
 			assert(phase.points.size() > 0, `${tag} needs at least one point`);
-			for (const point of phase.points) assert(inBounds(point), `${tag} point is outside the flyable area or 40-900 altitude`);
+			for (const point of phase.points)
+				assert(inBounds(point), `${tag} point is outside the flyable area or 40-900 altitude`);
 			assert((phase.radius ?? 0) > 0, `${tag} needs radius > 0`);
-			if (phase.kind === "recon" || phase.kind === "signal" || phase.kind === "escort" || phase.kind === "defend") {
+			if (
+				phase.kind === "recon" ||
+				phase.kind === "signal" ||
+				phase.kind === "escort" ||
+				phase.kind === "defend"
+			) {
 				assert((phase.seconds ?? 0) > 0, `${tag} needs seconds > 0`);
 			}
 			if (phase.ceiling !== undefined) assert(phase.ceiling >= 230, `${tag} ceiling must be >= 230`);
 		}
 		if (phase.kind === "chase") {
 			assert(phase.count === 1 && (phase.seconds ?? 0) > 0, `${tag} chases one courier for a positive time`);
-			assert(phase.escape !== undefined && inBounds(phase.escape) && phase.points === undefined, `${tag} needs an in-bounds escape point and no flight volume`);
+			assert(
+				phase.escape !== undefined && inBounds(phase.escape) && phase.points === undefined,
+				`${tag} needs an in-bounds escape point and no flight volume`,
+			);
 		}
-		if (phase.groups !== undefined || phase.stagger !== undefined || phase.flank !== undefined || phase.groupAt !== undefined || phase.groupCalls !== undefined) {
-			assert(phase.kind === "required_air", `${tag}: groups, stagger, flank, groupAt and groupCalls are only for required_air`);
-			assert((phase.groups ?? 1) >= 1 && (phase.groups ?? 1) <= (phase.count ?? 0), `${tag} groups must be 1..count`);
+		if (
+			phase.groups !== undefined ||
+			phase.stagger !== undefined ||
+			phase.flank !== undefined ||
+			phase.groupAt !== undefined ||
+			phase.groupCalls !== undefined
+		) {
+			assert(
+				phase.kind === "required_air",
+				`${tag}: groups, stagger, flank, groupAt and groupCalls are only for required_air`,
+			);
+			assert(
+				(phase.groups ?? 1) >= 1 && (phase.groups ?? 1) <= (phase.count ?? 0),
+				`${tag} groups must be 1..count`,
+			);
 			assert(phase.stagger === undefined || phase.stagger > 0, `${tag} stagger must be positive`);
 			const plan = WavePlan.Groups(phase.count ?? 0, phase.groups ?? 1);
 			if (phase.groupAt) {
-				assert(phase.groupAt.size() === plan.size() - 1 && phase.stagger === undefined, `${tag} groupAt needs one share per later group and no stagger`);
-				let previous = 0, spawned = plan[0];
+				assert(
+					phase.groupAt.size() === plan.size() - 1 && phase.stagger === undefined,
+					`${tag} groupAt needs one share per later group and no stagger`,
+				);
+				let previous = 0,
+					spawned = plan[0];
 				for (let index = 0; index < phase.groupAt.size(); index++) {
 					const at: number = phase.groupAt[index];
 					// A share the groups already out cannot reach would strand the phase.
-					assert(at > previous && at < 1 && math.ceil(at * (phase.count ?? 0) - 1e-5) <= spawned, `${tag} groupAt shares must rise and be reachable`);
-					previous = at; spawned += plan[index + 1];
+					assert(
+						at > previous && at < 1 && math.ceil(at * (phase.count ?? 0) - 1e-5) <= spawned,
+						`${tag} groupAt shares must rise and be reachable`,
+					);
+					previous = at;
+					spawned += plan[index + 1];
 				}
 			}
 			if (phase.groupCalls) {
 				assert(phase.groupCalls.size() <= plan.size() - 1, `${tag} has more group calls than later groups`);
-				for (const line of phase.groupCalls) assert(line.size() > 0 && line.size() <= 72, `${tag} group calls need a short radio line`);
+				for (const line of phase.groupCalls)
+					assert(line.size() > 0 && line.size() <= 72, `${tag} group calls need a short radio line`);
 			}
 		}
 		if (phase.hazard) {
 			const effect = phase.hazard.effect;
-			assert((effect === "jam" && phase.kind === "signal") || (effect === "guns" && (phase.kind === "escort" || phase.kind === "defend")),
-				`${tag} hazard "${effect}" does not fit this phase`);
-			assert(phase.hazard.at >= 0 && phase.hazard.at < 1 && phase.hazard.count >= 1, `${tag} hazard needs at in [0, 1) and a count`);
-			assert(phase.hazard.text.size() > 0 && phase.hazard.text.size() <= 72, `${tag} hazard needs a short radio line`);
+			assert(
+				(effect === "jam" && phase.kind === "signal") ||
+					(effect === "guns" && (phase.kind === "escort" || phase.kind === "defend")),
+				`${tag} hazard "${effect}" does not fit this phase`,
+			);
+			assert(
+				phase.hazard.at >= 0 && phase.hazard.at < 1 && phase.hazard.count >= 1,
+				`${tag} hazard needs at in [0, 1) and a count`,
+			);
+			assert(
+				phase.hazard.text.size() > 0 && phase.hazard.text.size() <= 72,
+				`${tag} hazard needs a short radio line`,
+			);
 			groundCount += phase.hazard.count;
 		}
 		if (phase.hidden) assert(phase.kind === "required_ground", `${tag}: only ground strikes hide their targets`);
 		if (phase.reinforce) {
-			assert(reinforceTotal(phase) >= 1 && reinforceTotal(phase) <= (phase.optionalRaiders ?? 0), `${tag} reinforcements must fit within optionalRaiders`);
+			assert(
+				reinforceTotal(phase) >= 1 && reinforceTotal(phase) <= (phase.optionalRaiders ?? 0),
+				`${tag} reinforcements must fit within optionalRaiders`,
+			);
 			let previous = -1;
 			for (const wave of phase.reinforce) {
-				assert(wave.count >= 1 && wave.at >= 0 && wave.at <= 1 && wave.at > previous, `${tag} reinforce waves need a count and increasing at in 0-1`);
+				assert(
+					wave.count >= 1 && wave.at >= 0 && wave.at <= 1 && wave.at > previous,
+					`${tag} reinforce waves need a count and increasing at in 0-1`,
+				);
 				previous = wave.at;
 			}
 		}
-		if (phase.chatter) for (const line of phase.chatter) {
-			assert(line.at >= 0 && line.at <= 1, `${tag} chatter.at must be within 0-1`);
-			assert(line.text.size() > 0 && line.text.size() <= 72, `${tag} chatter needs text`);
-		}
+		if (phase.chatter)
+			for (const line of phase.chatter) {
+				assert(line.at >= 0 && line.at <= 1, `${tag} chatter.at must be within 0-1`);
+				assert(line.text.size() > 0 && line.text.size() <= 72, `${tag} chatter needs text`);
+			}
 	}
-	assert(groundCount === blueprint.ground.size(), `Mission ${id} ground objectives (${groundCount}) must match its ground targets (${blueprint.ground.size()})`);
+	assert(
+		groundCount === blueprint.ground.size(),
+		`Mission ${id} ground objectives (${groundCount}) must match its ground targets (${blueprint.ground.size()})`,
+	);
 	assert(requiredAce <= 1, `Mission ${id} can have at most one ace phase`);
 	if (blueprint.aceStages) assert(requiredAce === 1, `Mission ${id} has ace stages without an ace phase`);
-	if (blueprint.aceReturns) assert(requiredAce === 1 && blueprint.aceReturns.size() === 2, `Mission ${id} needs two ace return lines and an ace`);
+	if (blueprint.aceReturns)
+		assert(
+			requiredAce === 1 && blueprint.aceReturns.size() === 2,
+			`Mission ${id} needs two ace return lines and an ace`,
+		);
 }
 
 // Validate at module load so a bad authoring edit fails the server immediately.
@@ -456,7 +577,9 @@ function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
 
 export const MissionCatalog = {
 	/** M3-M27 changed layout; older best times belong to the shorter sorties. */
-	TimeVersion(id: number): number { return id >= 3 ? 2 : 1; },
+	TimeVersion(id: number): number {
+		return id >= 3 ? 2 : 1;
+	},
 	Get(id: number): MissionBlueprint {
 		return resolveBlueprint(id);
 	},
@@ -468,7 +591,8 @@ export const MissionCatalog = {
 	MaxMissionSeconds(value: number | MissionBlueprint): number {
 		const blueprint = resolveBlueprint(value);
 		let limit = MissionCatalog.CountdownSeconds(blueprint);
-		for (const phase of expandPhases(blueprint.phases)) limit += (phase.update?.countdownSeconds ?? 0)+(phase.scoreThreshold?.seconds ?? 0);
+		for (const phase of expandPhases(blueprint.phases))
+			limit += (phase.update?.countdownSeconds ?? 0) + (phase.scoreThreshold?.seconds ?? 0);
 		return limit;
 	},
 	/** Effective horizontal world limits; absent policy preserves WorldAirspace exactly. */
@@ -521,7 +645,8 @@ export const MissionCatalog = {
 	RequiredAirKills(blueprint: MissionBlueprint): number {
 		let total = 0;
 		for (const phase of expandPhases(blueprint.phases)) {
-			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.cruiseIntercept ? 0 : phase.eliteFormation ? 1 : phase.count ?? 0;
+			if (phase.kind === "required_air" || phase.kind === "chase")
+				total += phase.cruiseIntercept ? 0 : phase.eliteFormation ? 1 : (phase.count ?? 0);
 			else if (phase.kind === "ace") total += 1;
 		}
 		return total;
@@ -544,7 +669,8 @@ export const MissionCatalog = {
 	GroundStart(phases: MissionPhaseBlueprint[], index: number): number {
 		let start = 0;
 		for (let i = 0; i < index && i < phases.size(); i++) {
-			if (phases[i].kind === "required_ground" && phases[i].groundTargets === undefined) start += phases[i].count ?? 0;
+			if (phases[i].kind === "required_ground" && phases[i].groundTargets === undefined)
+				start += phases[i].count ?? 0;
 			start += phases[i].hazard?.count ?? 0;
 		}
 		return start;
@@ -555,7 +681,10 @@ export const MissionCatalog = {
 		const phases = expandPhases(blueprint.phases);
 		for (let index = 0; index < phases.size(); index++) {
 			const phase = phases[index];
-			const count = phase.groundTargets !== undefined ? 0 : phase.hazard?.count ?? (phase.hidden ? phase.count ?? 0 : 0);
+			const count =
+				phase.groundTargets !== undefined
+					? 0
+					: (phase.hazard?.count ?? (phase.hidden ? (phase.count ?? 0) : 0));
 			const start = MissionCatalog.GroundStart(phases, index);
 			for (let offset = 0; offset < count; offset++) hidden.add(start + offset);
 		}
@@ -569,12 +698,20 @@ export const MissionCatalog = {
 	/** Separate raider waves a phase spawns: its opening wave, each reinforcement, or an ace's two calls. */
 	RaiderWaves(phase: MissionPhaseBlueprint): number {
 		const raiders = phase.optionalRaiders ?? 0;
-		if (phase.kind === "ace") return (math.ceil(raiders / 2) > 0 ? 1 : 0) + (raiders - math.ceil(raiders / 2) > 0 ? 1 : 0);
+		if (phase.kind === "ace")
+			return (math.ceil(raiders / 2) > 0 ? 1 : 0) + (raiders - math.ceil(raiders / 2) > 0 ? 1 : 0);
 		return (MissionCatalog.InitialRaiders(phase) > 0 ? 1 : 0) + (phase.reinforce?.size() ?? 0);
 	},
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
-		return (phase.finale?.ascending?.size() ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+(w.required ? 0 : w.count),0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+		return (
+			(phase.finale?.ascending?.size() ?? 0) +
+			(phase.standaloneAce ? 1 : 0) +
+			(phase.fighterWaves ?? []).reduce((sum, w) => sum + (w.required ? 0 : w.count), 0) +
+			(phase.bombers?.escorts.count ?? 0) +
+			(phase.optionalRaiders ?? 0) +
+			math.max(0, extra) * MissionCatalog.RaiderWaves(phase)
+		);
 	},
 	/**
 	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a
@@ -618,7 +755,8 @@ export const MissionCatalog = {
 	MaxOptionalRaiders(blueprint: MissionBlueprint): number {
 		if (blueprint.optionalRaiderMax !== undefined) return blueprint.optionalRaiderMax;
 		let total = 0;
-		for (const phase of expandPhases(blueprint.phases)) total += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0);
+		for (const phase of expandPhases(blueprint.phases))
+			total += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0);
 		return total;
 	},
 };

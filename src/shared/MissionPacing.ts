@@ -5,27 +5,50 @@ import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./
 // Two standard hits per bandit; later acts retain stronger defensive maneuvers.
 const PER_BANDIT: { [A in Act]: number } = { 1: 13, 2: 15, 3: 16 };
 function estimate(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): number {
-	const count = phase.count ?? 0, points = phase.points?.size() ?? 0, seconds = phase.seconds ?? 0;
+	const count = phase.count ?? 0,
+		points = phase.points?.size() ?? 0,
+		seconds = phase.seconds ?? 0;
 	const hazards = (phase.hazard?.count ?? 0) * 10;
 	switch (phase.kind) {
-		case "protected_air": return math.max(0,...(phase.protection?.aircraft ?? []).map(protectedDuration));
-		case "score_threshold": return phase.scoreThreshold?.seconds ?? 0;
-		case "tutorial_move": return 20;
-		case "tutorial_target": return 10;
-		case "tutorial_missile": return 20;
-		case "required_air": return 10 + count * PER_BANDIT[act];
-		case "required_ground": return count * 10;
-		case "return_line": return 70;
-		case "landing": return 0;
-		case "route": return points * 12;
-		case "recon": return points * (seconds * 1.25 + 10);
-		case "escort": case "defend": return seconds * 1.05 + 10 + hazards;
-		case "signal": return seconds * 1.25 + 10 + hazards;
-		case "chase": return 45;
-		case "ace": return aceHealth * 0.36;
+		case "protected_air":
+			return math.max(0, ...(phase.protection?.aircraft ?? []).map(protectedDuration));
+		case "score_threshold":
+			return phase.scoreThreshold?.seconds ?? 0;
+		case "tutorial_move":
+			return 20;
+		case "tutorial_target":
+			return 10;
+		case "tutorial_missile":
+			return 20;
+		case "required_air":
+			return 10 + count * PER_BANDIT[act];
+		case "required_ground":
+			return count * 10;
+		case "return_line":
+			return 70;
+		case "landing":
+			return 0;
+		case "route":
+			return points * 12;
+		case "recon":
+			return points * (seconds * 1.25 + 10);
+		case "escort":
+		case "defend":
+			return seconds * 1.05 + 10 + hazards;
+		case "signal":
+			return seconds * 1.25 + 10 + hazards;
+		case "chase":
+			return 45;
+		case "ace":
+			return aceHealth * 0.36;
 	}
 }
-export interface ContactWindow { seconds: number; live: number; directed: boolean; ace: boolean }
+export interface ContactWindow {
+	seconds: number;
+	live: number;
+	directed: boolean;
+	ace: boolean;
+}
 export const MissionPacing = {
 	/**
 	 * Design model, not missile simulation or measured player telemetry. Uses the same
@@ -45,15 +68,28 @@ export const MissionPacing = {
 			for (const wave of phase.reinforce ?? []) waves.push({ at: wave.at * duration, count: wave.count });
 			if (phase.kind === "ace") {
 				const count = phase.optionalRaiders ?? 0;
-				waves.push({ at: duration / 3, count: math.ceil(count / 2) }, { at: duration * 2 / 3, count: math.floor(count / 2) });
+				waves.push(
+					{ at: duration / 3, count: math.ceil(count / 2) },
+					{ at: (duration * 2) / 3, count: math.floor(count / 2) },
+				);
 			}
 			for (let time = 0; time < contactEnd; time++) {
 				let live = phase.kind === "required_air" ? math.ceil((phase.count ?? 0) * (1 - time / duration)) : 0;
 				for (const wave of waves) {
 					const elapsed = time - wave.at;
-					if (elapsed >= 0) live += math.clamp(wave.count - math.floor(math.max(0, elapsed - 10) / PER_BANDIT[blueprint.act]), 0, wave.count);
+					if (elapsed >= 0)
+						live += math.clamp(
+							wave.count - math.floor(math.max(0, elapsed - 10) / PER_BANDIT[blueprint.act]),
+							0,
+							wave.count,
+						);
 				}
-				windows.push({ seconds: math.min(1, contactEnd - time), live: math.min(7, live), directed: phase.directed === true, ace: phase.kind === "ace" });
+				windows.push({
+					seconds: math.min(1, contactEnd - time),
+					live: math.min(7, live),
+					directed: phase.directed === true,
+					ace: phase.kind === "ace",
+				});
 			}
 		}
 		return windows;

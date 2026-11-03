@@ -4,7 +4,15 @@ import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
-import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_TERRAIN_BUDGET, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
+import {
+	buildM03Plan,
+	M03,
+	M03_ENVIRONMENT,
+	M03_FILL_CHUNK,
+	M03_TERRAIN_BUDGET,
+	M03_WORLD_KEY,
+	type M03Target,
+} from "../shared/M03WorldPlan";
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
@@ -20,7 +28,11 @@ function placeM03Target(parent: Instance, t: M03Target): Model {
 	m.SetAttribute("StandIn", true);
 	const frame = new CFrame(t.x, t.y, t.z).mul(CFrame.Angles(0, t.yaw, 0));
 	const part = (name: string, size: Vector3, offset: Vector3, color: Color3, ball = false) => {
-		const p = Scenery.Part(m, name, size, new Vector3(0, 0, 0), color, Enum.Material.SmoothPlastic, { shape: ball ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: true, castShadow: false });
+		const p = Scenery.Part(m, name, size, new Vector3(0, 0, 0), color, Enum.Material.SmoothPlastic, {
+			shape: ball ? Enum.PartType.Ball : Enum.PartType.Block,
+			flightSolid: true,
+			castShadow: false,
+		});
 		p.CFrame = frame.mul(new CFrame(offset));
 		if (m.PrimaryPart === undefined) m.PrimaryPart = p;
 	};
@@ -45,12 +57,12 @@ function placeM03Target(parent: Instance, t: M03Target): Model {
 	return m;
 }
 
-
 /** Target-only assembly, shared by the full world and bounded instance-budget regressions. */
 export function buildM03TargetVisuals(scene: Instance, targets: M03Target[]): Map<string, Model> {
- const visuals = new Map<string, Model>();
- for (const t of targets) visuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type], false));
- return visuals;
+	const visuals = new Map<string, Model>();
+	for (const t of targets)
+		visuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type], false));
+	return visuals;
 }
 
 /** Mission 3's world. Uses procedural target visuals to avoid military mesh/PBR residency on mobile. Every m03TargetLayout site is drawn exactly once, as its
@@ -59,7 +71,8 @@ export function buildM03TargetVisuals(scene: Instance, targets: M03Target[]): Ma
 export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
 		const start = os.clock();
-		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
+		parent.SetAttribute("WorldBuildPhase", "plan");
+		traceWorldPhase("setup");
 		const profile = planProfiler(parent);
 		const plan = buildM03Plan(seed, profile.checkpoint);
 		profile.finish();
@@ -68,27 +81,46 @@ export const M03World = {
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(62, 70, 78));
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Ground, Color3.fromRGB(65, 75, 62));
 		const rays = new Instance("SunRaysEffect");
-		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
-		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
+		rays.Name = "M03SunRays";
+		rays.Intensity = 0.12;
+		rays.Spread = 0.85;
+		rays.Parent = Lighting;
+		const scene = new Instance("Folder");
+		scene.Name = M03_WORLD_KEY;
+		scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
 		trackTerrainFootprint(plan.ops);
 		const timing = TerrainWriter.Write(plan.ops, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
-	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
+		parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
- parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
- parent.SetAttribute("WorldTerrainYields", timing.yields);
-		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
+		parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+		parent.SetAttribute("WorldTerrainYields", timing.yields);
+		parent.SetAttribute("WorldBuildPhase", "dressing");
+		traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
-			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
+			Scenery.Part(
+				scene,
+				p.name,
+				new Vector3(p.sx, p.sy, p.sz),
+				new Vector3(p.x, p.y, p.z),
+				Color3.fromRGB(...p.color),
+				material(p.material),
+				{
+					shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block,
+					flightSolid: p.solid,
+					castShadow: false,
+				},
+			);
 			if (i % 32 === 31) WorldBuildScheduler.Pause();
 		}
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
 		const targetVisuals = buildM03TargetVisuals(scene, plan.targets);
 		assertWorldInstanceBudget(scene, M03.budget.descendants);
-		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
+		parent.SetAttribute("WorldBuildPhase", "done");
+		traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		parent.SetAttribute("WorldTargetVisuals", targetVisuals.size());

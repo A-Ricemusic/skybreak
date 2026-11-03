@@ -27,7 +27,10 @@ afterAll(() => UploadedAssets.Configure());
 
 describe("Roblox jet and missile integration", () => {
 	let fixture: Folder | undefined;
-	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
+	afterEach(() => {
+		fixture?.Destroy();
+		fixture = undefined;
+	});
 	function folder(): Folder {
 		fixture = new Instance("Folder");
 		fixture.Name = "SkybreakJetIntegrationFixture";
@@ -69,7 +72,8 @@ describe("Roblox jet and missile integration", () => {
 		const root = folder();
 		const player = JetFactory.Create("Test Kestrel", false);
 		const enemy = JetFactory.Create("Test Vanta", true);
-		player.Parent = root; enemy.Parent = root;
+		player.Parent = root;
+		enemy.Parent = root;
 		if (ServerStorage.FindFirstChild("KestrelGeometry") !== undefined) {
 			// A packaged test asset must never silently pass using fallback geometry.
 			expect(player.GetAttribute("GeometrySource")).toBe("Blender");
@@ -144,7 +148,8 @@ describe("Roblox jet and missile integration", () => {
 			}
 			expect(cosmetics).toBe(3 + 2 + 1 + 2);
 			JetFactory.SetTrails(aircraft, true);
-			for (const item of aircraft.GetDescendants()) if (JetFactory.IsCosmetic(item)) expect(item.Enabled).toBe(true);
+			for (const item of aircraft.GetDescendants())
+				if (JetFactory.IsCosmetic(item)) expect(item.Enabled).toBe(true);
 		}
 		const playerShell = player.FindFirstChild("Fuselage") as BasePart;
 		const enemyShell = enemy.FindFirstChild("Fuselage") as BasePart;
@@ -162,13 +167,55 @@ describe("Roblox jet and missile integration", () => {
 		expect(meshes.size()).toBe(7);
 		// Independently recorded from the validated Blender export, in Roblox XYZ studs.
 		const groups = [
-			{ name: "Fuselage", material: "White", triangles: 892, center: new Vector3(0, 0.043326, 0), size: new Vector3(22.755948, 5.47284, 26) },
-			{ name: "Navy", material: "Navy", triangles: 1144, center: new Vector3(0, -1.579746, 0.6), size: new Vector3(22.769654, 2.28, 21.8) },
-			{ name: "Cyan", material: "Cyan", triangles: 628, center: new Vector3(0, 0.2176105, -1.7073285), size: new Vector3(16.285028, 4.074713, 22.445341) },
-			{ name: "Canopy", material: "Canopy", triangles: 140, center: new Vector3(0, -0.41907, -4.1), size: new Vector3(1.931852, 1.026854, 6.5) },
-			{ name: "Gunmetal", material: "Gunmetal", triangles: 440, center: new Vector3(0, -1.9797465, 1.957692), size: new Vector3(5.9, 1.600001, 0.224616) },
-			{ name: "Exhaust", material: "Exhaust", triangles: 320, center: new Vector3(0, -1.919746, 11.5), size: new Vector3(5.72, 1.42, 0.247274) },
-			{ name: "Glow", material: "Glow", triangles: 120, center: new Vector3(0, -1.919746, 11.61), size: new Vector3(5.16, 0.86, 0.18) },
+			{
+				name: "Fuselage",
+				material: "White",
+				triangles: 892,
+				center: new Vector3(0, 0.043326, 0),
+				size: new Vector3(22.755948, 5.47284, 26),
+			},
+			{
+				name: "Navy",
+				material: "Navy",
+				triangles: 1144,
+				center: new Vector3(0, -1.579746, 0.6),
+				size: new Vector3(22.769654, 2.28, 21.8),
+			},
+			{
+				name: "Cyan",
+				material: "Cyan",
+				triangles: 628,
+				center: new Vector3(0, 0.2176105, -1.7073285),
+				size: new Vector3(16.285028, 4.074713, 22.445341),
+			},
+			{
+				name: "Canopy",
+				material: "Canopy",
+				triangles: 140,
+				center: new Vector3(0, -0.41907, -4.1),
+				size: new Vector3(1.931852, 1.026854, 6.5),
+			},
+			{
+				name: "Gunmetal",
+				material: "Gunmetal",
+				triangles: 440,
+				center: new Vector3(0, -1.9797465, 1.957692),
+				size: new Vector3(5.9, 1.600001, 0.224616),
+			},
+			{
+				name: "Exhaust",
+				material: "Exhaust",
+				triangles: 320,
+				center: new Vector3(0, -1.919746, 11.5),
+				size: new Vector3(5.72, 1.42, 0.247274),
+			},
+			{
+				name: "Glow",
+				material: "Glow",
+				triangles: 120,
+				center: new Vector3(0, -1.919746, 11.61),
+				size: new Vector3(5.16, 0.86, 0.18),
+			},
 		];
 		let vertices = 0;
 		let triangles = 0;
@@ -197,7 +244,11 @@ describe("Roblox jet and missile integration", () => {
 		expect(mesh(aircraft, "Glow").Position.Z).toBeGreaterThan(0);
 		expect(mesh(aircraft, "Glow").Material).toBe(Enum.Material.Neon);
 		const centers = trailCenters(aircraft);
-		for (const tip of [new Vector3(-11.35, -1.58, 2.2), new Vector3(11.35, -1.58, 2.2), new Vector3(0, -1.92, 11.7)]) {
+		for (const tip of [
+			new Vector3(-11.35, -1.58, 2.2),
+			new Vector3(11.35, -1.58, 2.2),
+			new Vector3(0, -1.92, 11.7),
+		]) {
 			expect(centers.some((center) => center.sub(tip).Magnitude < 0.001)).toBe(true);
 		}
 		const target = new CFrame(-50, 150, 200).mul(CFrame.Angles(0.3, -0.7, 0.2));
@@ -216,16 +267,63 @@ describe("Roblox jet and missile integration", () => {
 		aircraft.Parent = root;
 		expect(aircraft.GetAttribute("GeometrySource")).toBe("Blender");
 		expect(aircraft.GetAttribute("GeometryAsset")).toBe("Vanta");
-		expect(aircraft.GetChildren().filter((item) => item.IsA("MeshPart")).size()).toBe(7);
+		expect(
+			aircraft
+				.GetChildren()
+				.filter((item) => item.IsA("MeshPart"))
+				.size(),
+		).toBe(7);
 		// Independently recorded from the Blender export, before mesh centering.
 		const groups = [
-			{ name: "Fuselage", vertices: 400, triangles: 776, center: new Vector3(0, 0.7882315, 1.1465545), size: new Vector3(16.846856, 4.950247, 19.861109) },
-			{ name: "Navy", vertices: 374, triangles: 736, center: new Vector3(0, -1.684892, 0), size: new Vector3(24.376172, 1.496, 26.4) },
-			{ name: "Cyan", vertices: 248, triangles: 480, center: new Vector3(0, 0.4267015, -1.45846), size: new Vector3(23.091432, 4.227187, 23.363078) },
-			{ name: "Canopy", vertices: 84, triangles: 164, center: new Vector3(0, -0.904392, -6.1499995), size: new Vector3(1.774368, 0.835, 5.899999) },
-			{ name: "Gunmetal", vertices: 320, triangles: 620, center: new Vector3(0, -1.946892, 1.715), size: new Vector3(24.371604, 1.86, 21.03) },
-			{ name: "Exhaust", vertices: 244, triangles: 480, center: new Vector3(0, -1.9468925, 12.19039), size: new Vector3(2.66, 2.632925, 0.69255) },
-			{ name: "Glow", vertices: 300, triangles: 584, center: new Vector3(0, -1.776892, 6.6600005), size: new Vector3(1.44514, 1.8, 11.500001) },
+			{
+				name: "Fuselage",
+				vertices: 400,
+				triangles: 776,
+				center: new Vector3(0, 0.7882315, 1.1465545),
+				size: new Vector3(16.846856, 4.950247, 19.861109),
+			},
+			{
+				name: "Navy",
+				vertices: 374,
+				triangles: 736,
+				center: new Vector3(0, -1.684892, 0),
+				size: new Vector3(24.376172, 1.496, 26.4),
+			},
+			{
+				name: "Cyan",
+				vertices: 248,
+				triangles: 480,
+				center: new Vector3(0, 0.4267015, -1.45846),
+				size: new Vector3(23.091432, 4.227187, 23.363078),
+			},
+			{
+				name: "Canopy",
+				vertices: 84,
+				triangles: 164,
+				center: new Vector3(0, -0.904392, -6.1499995),
+				size: new Vector3(1.774368, 0.835, 5.899999),
+			},
+			{
+				name: "Gunmetal",
+				vertices: 320,
+				triangles: 620,
+				center: new Vector3(0, -1.946892, 1.715),
+				size: new Vector3(24.371604, 1.86, 21.03),
+			},
+			{
+				name: "Exhaust",
+				vertices: 244,
+				triangles: 480,
+				center: new Vector3(0, -1.9468925, 12.19039),
+				size: new Vector3(2.66, 2.632925, 0.69255),
+			},
+			{
+				name: "Glow",
+				vertices: 300,
+				triangles: 584,
+				center: new Vector3(0, -1.776892, 6.6600005),
+				size: new Vector3(1.44514, 1.8, 11.500001),
+			},
 		];
 		let vertices = 0;
 		let triangles = 0;
@@ -285,7 +383,10 @@ describe("Roblox jet and missile integration", () => {
 			if (!item.IsA("Trail")) continue;
 			const a = item.Attachment0!;
 			const b = item.Attachment1!;
-			closeVector(a.WorldPosition.add(b.WorldPosition).div(2), target.PointToWorldSpace(a.Position.add(b.Position).div(2)));
+			closeVector(
+				a.WorldPosition.add(b.WorldPosition).div(2),
+				target.PointToWorldSpace(a.Position.add(b.Position).div(2)),
+			);
 		}
 	}, 60000);
 	it("shares static content within each aircraft kind and isolates Vanta from Kestrel", () => {
@@ -294,7 +395,8 @@ describe("Roblox jet and missile integration", () => {
 		for (const enemy of [false, true]) {
 			const first = JetFactory.Create("First cached aircraft", enemy);
 			const second = JetFactory.Create("Second cached aircraft", enemy);
-			first.Parent = root; second.Parent = root;
+			first.Parent = root;
+			second.Parent = root;
 			cachedAircraft.push(second);
 			expect(first.GetAttribute("GeometrySource")).toBe("Blender");
 			expect(second.GetAttribute("GeometrySource")).toBe("Blender");
@@ -364,7 +466,9 @@ describe("Roblox jet and missile integration", () => {
 });
 // Threat rules through the Vector3 adaptation CombatService uses (plain points in, plain points out).
 describe("Enemy threat rules with engine vectors", () => {
-	function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
+	function point(vector: Vector3): { x: number; y: number; z: number } {
+		return { x: vector.X, y: vector.Y, z: vector.Z };
+	}
 	it("breaks a bandit perpendicular to its heading, toward its bracket side, and nose down", () => {
 		const heading = new Vector3(0.6, 0, 0.8);
 		const lateral = new Vector3(-heading.Z, 0, heading.X);
@@ -384,7 +488,8 @@ describe("Enemy threat rules with engine vectors", () => {
 			{ target: me, position: new Vector3(0, 300, ThreatRules.InboundRange + 50) },
 		];
 		const targetOf = (missile: { target?: typeof me; position: Vector3 }) => missile.target;
-		const distanceTo = (missile: { target?: typeof me; position: Vector3 }) => missile.position.sub(me.position).Magnitude;
+		const distanceTo = (missile: { target?: typeof me; position: Vector3 }) =>
+			missile.position.sub(me.position).Magnitude;
 		expect(ThreatRules.Inbound(me, projectiles, targetOf, distanceTo)).toBe(false);
 		projectiles[1].position = new Vector3(0, 300, ThreatRules.InboundRange - 50);
 		expect(ThreatRules.Inbound(me, projectiles, targetOf, distanceTo)).toBe(true);
@@ -402,11 +507,17 @@ describe("Enemy threat rules with engine vectors", () => {
 // Round 2: protected actors are grounded from their bounds and the surface under them.
 describe("Protected actor grounding", () => {
 	let fixture: Folder | undefined;
-	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
+	afterEach(() => {
+		fixture?.Destroy();
+		fixture = undefined;
+	});
 	function surface(parent: Instance, name: string, top: number, center: Vector3, size: Vector3): Part {
 		const part = new Instance("Part");
-		part.Name = name; part.Anchored = true; part.CanCollide = false;
-		part.Size = size; part.Position = new Vector3(center.X, top - size.Y / 2, center.Z);
+		part.Name = name;
+		part.Anchored = true;
+		part.CanCollide = false;
+		part.Size = size;
+		part.Position = new Vector3(center.X, top - size.Y / 2, center.Z);
 		part.SetAttribute("FlightSolid", true);
 		part.Parent = parent;
 		return part;
@@ -461,27 +572,37 @@ describe("Protected actor grounding", () => {
 // Round 2: every session step runs under a StepGuard (error isolation + re-entrancy).
 describe("Guarded Heartbeat stepping", () => {
 	let fixture: Folder | undefined;
-	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
+	afterEach(() => {
+		fixture?.Destroy();
+		fixture = undefined;
+	});
 	it("never re-enters a step that yields, even when the first enemy jet of the server is built inside it", () => {
 		fixture = new Instance("Folder");
 		fixture.Name = "SkybreakGuardFixture";
 		fixture.Parent = Workspace;
 		const guard = StepGuard.New();
-		let inside = 0, overlaps = 0, steps = 0, refused = 0;
+		let inside = 0,
+			overlaps = 0,
+			steps = 0,
+			refused = 0;
 		let jet: Model | undefined;
 		const connection = RunService.Heartbeat.Connect(() => {
-			const ran = StepGuard.Run(guard, () => {
-				inside += 1;
-				if (inside > 1) overlaps += 1;
-				steps += 1;
-				if (jet === undefined) {
-					// May yield while mesh templates build; a forced wait makes the yield certain.
-					jet = JetFactory.Create("Heartbeat Vanta", true);
-					jet.Parent = fixture;
-					task.wait(0.15);
-				}
-				inside -= 1;
-			}, () => undefined);
+			const ran = StepGuard.Run(
+				guard,
+				() => {
+					inside += 1;
+					if (inside > 1) overlaps += 1;
+					steps += 1;
+					if (jet === undefined) {
+						// May yield while mesh templates build; a forced wait makes the yield certain.
+						jet = JetFactory.Create("Heartbeat Vanta", true);
+						jet.Parent = fixture;
+						task.wait(0.15);
+					}
+					inside -= 1;
+				},
+				() => undefined,
+			);
 			if (!ran) refused += 1;
 		});
 		task.wait(0.6);
@@ -494,13 +615,21 @@ describe("Guarded Heartbeat stepping", () => {
 	}, 60000);
 	it("isolates a throwing step: one internal_error report, no error every frame", () => {
 		const guard = StepGuard.New();
-		let reports = 0, attempts = 0;
+		let reports = 0,
+			attempts = 0;
 		let reason = "";
 		const connection = RunService.Heartbeat.Connect(() => {
-			StepGuard.Run(guard, () => {
-				attempts += 1;
-				error("MissileWarning was destroyed mid-windup");
-			}, (message) => { reports += 1; reason = message; });
+			StepGuard.Run(
+				guard,
+				() => {
+					attempts += 1;
+					error("MissileWarning was destroyed mid-windup");
+				},
+				(message) => {
+					reports += 1;
+					reason = message;
+				},
+			);
 		});
 		task.wait(0.3);
 		connection.Disconnect();

@@ -17,7 +17,15 @@ import { pointsLine, rearmRadioDue } from "../shared/SortieCutaways";
 import { buildM06Plan, M06, M06_SURFACE, M06_WORLD_KEY, m06TargetLayout } from "../shared/M06WorldPlan";
 import { M06_AIRSPACE } from "../shared/M06Limits";
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
-import { M06_ARMAMENT, M06_HULL_HEALTH, M06_REARM, M06_START, M06_TARGET_POINTS, M06_TARGET_TYPES, m06MountParent } from "../shared/missions/m06";
+import {
+	M06_ARMAMENT,
+	M06_HULL_HEALTH,
+	M06_REARM,
+	M06_START,
+	M06_TARGET_POINTS,
+	M06_TARGET_TYPES,
+	m06MountParent,
+} from "../shared/missions/m06";
 import type { MissionFinished } from "../shared/Types";
 
 const bp = MissionCatalog.Get(6);
@@ -33,22 +41,51 @@ const countOf = (list: TypedGroundTarget[], role: string) => list.filter((t) => 
 function context(elapsed: number, x = M06_START.x, z = M06_START.z): TriggerContext {
 	return { elapsed, phase: 0, requiredKills: 0, destroyed: new Set<string>(), targets, player: { x, z } };
 }
-function rejects(fn: () => void): boolean { const [ok] = pcall(fn); return !ok; }
+function rejects(fn: () => void): boolean {
+	const [ok] = pcall(fn);
+	return !ok;
+}
 /** Missions 3 and 4 may be released by their own PRs on older bases; fixtures open them so mission 6's unlock can be exercised. */
 function withEarlierMissions(fn: () => void): void {
 	const before = [MISSIONS[2].available, MISSIONS[3].available, MISSIONS[4].available];
-	MISSIONS[2].available = true; MISSIONS[3].available = true; MISSIONS[4].available = true;
+	MISSIONS[2].available = true;
+	MISSIONS[3].available = true;
+	MISSIONS[4].available = true;
 	const [ok, err] = pcall(fn);
-	MISSIONS[2].available = before[0]; MISSIONS[3].available = before[1]; MISSIONS[4].available = before[2];
+	MISSIONS[2].available = before[0];
+	MISSIONS[3].available = before[1];
+	MISSIONS[4].available = before[2];
 	if (!ok) error(err, 0);
 }
-function fresh() { const c = new CampaignCoordinator("m06-unlock", undefined, { now: () => 1000, defer: () => undefined }); c.load(); return c; }
-function finish(c: CampaignCoordinator, missionId: number, extra: { elapsed?: number; score?: TargetScore; phases?: number } = {}, notify: (m: MissionFinished) => void = () => undefined): boolean {
+function fresh() {
+	const c = new CampaignCoordinator("m06-unlock", undefined, { now: () => 1000, defer: () => undefined });
+	c.load();
+	return c;
+}
+function finish(
+	c: CampaignCoordinator,
+	missionId: number,
+	extra: { elapsed?: number; score?: TargetScore; phases?: number } = {},
+	notify: (m: MissionFinished) => void = () => undefined,
+): boolean {
 	const m = MissionCatalog.Get(missionId);
-	return completeMission(c, 1, missionId, true, {
-		slot: 1, missionId, kills: MissionCatalog.RequiredAirKills(m) + MissionCatalog.RequiredGroundKills(m), groundKills: MissionCatalog.RequiredGroundKills(m),
-		completedPhases: extra.phases ?? MissionCatalog.TotalPhases(m), elapsed: extra.elapsed ?? 100, targetScore: extra.score?.Snapshot(),
-	}, notify, 0);
+	return completeMission(
+		c,
+		1,
+		missionId,
+		true,
+		{
+			slot: 1,
+			missionId,
+			kills: MissionCatalog.RequiredAirKills(m) + MissionCatalog.RequiredGroundKills(m),
+			groundKills: MissionCatalog.RequiredGroundKills(m),
+			completedPhases: extra.phases ?? MissionCatalog.TotalPhases(m),
+			elapsed: extra.elapsed ?? 100,
+			targetScore: extra.score?.Snapshot(),
+		},
+		notify,
+		0,
+	);
 }
 
 describe("Mission 6 data: the Iron Coast military quays", () => {
@@ -57,7 +94,12 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 		expect(MissionCatalog.WorldKey(6)).toBe(M06_WORLD_KEY);
 		expect(MissionCatalog.Airspace(6)).toEqual(M06_AIRSPACE);
 		expect(MissionCatalog.Start(6)).toEqual(M06_START);
-		expect([M06_START.x, M06_START.y, M06_START.z, M06_START.headingDegrees]).toEqual([M06.start.x, M06.start.y, M06.start.z, 0]);
+		expect([M06_START.x, M06_START.y, M06_START.z, M06_START.headingDegrees]).toEqual([
+			M06.start.x,
+			M06.start.y,
+			M06.start.z,
+			0,
+		]);
 		expect(MissionCatalog.CountdownSeconds(6)).toBe(900);
 		expect(MissionCatalog.MaxMissionSeconds(6)).toBe(900 + 900);
 		expect(MissionScore.ParSeconds(bp)).toBe(925);
@@ -79,8 +121,14 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 		const story = MISSION_STORY_TEXT[6];
 		expect([bp.briefing, bp.debrief, bp.failure]).toEqual([story.briefing, story.debrief, story.failure]);
 		expect(strike.chatter![strike.chatter!.size() - 1]).toEqual({ at: 1, text: story.radio[1] });
-		const lines = [strike.beat!, ...strike.chatter!.map((c) => c.text), ...strike.fighterWaves!.map((w) => w.call!),
-			strike.standaloneAce!.call!, ...strike.standaloneAce!.stageLines!, ...M06_REARM.radio!.map((r) => r.text)];
+		const lines = [
+			strike.beat!,
+			...strike.chatter!.map((c) => c.text),
+			...strike.fighterWaves!.map((w) => w.call!),
+			strike.standaloneAce!.call!,
+			...strike.standaloneAce!.stageLines!,
+			...M06_REARM.radio!.map((r) => r.text),
+		];
 		for (const line of lines) expect(line.size() > 0 && line.size() <= 72).toBe(true);
 		expect(strike.label.size() <= 40).toBe(true);
 		expect(bp.failure.size() <= 120).toBe(true);
@@ -117,10 +165,27 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 		expect(mounts.size()).toBe(18);
 		expect(hulls.size() + yards.size() + mounts.size()).toBe(targets.size());
 		// Naval ledger: destroyers and frigates 100, cruisers and submarines 120, missile boats 60, support hulls 100.
-		const naval: [string, number][] = [["destroyer", 6], ["frigate", 6], ["cruiser", 9], ["submarine", 3], ["missile_boat", 3], ["supply_ship", 3], ["landing_ship", 3], ["container_ship", 3]];
+		const naval: [string, number][] = [
+			["destroyer", 6],
+			["frigate", 6],
+			["cruiser", 9],
+			["submarine", 3],
+			["missile_boat", 3],
+			["supply_ship", 3],
+			["landing_ship", 3],
+			["container_ship", 3],
+		];
 		for (const [role, n] of naval) expect(countOf(hulls, role)).toBe(n);
 		expect(sum(hulls)).toBe(3720);
-		const yard: [string, number][] = [["crane", 6], ["containers", 7], ["fuel_tank", 6], ["gas_tank", 6], ["storage", 7], ["aa", 4], ["sam", 4]];
+		const yard: [string, number][] = [
+			["crane", 6],
+			["containers", 7],
+			["fuel_tank", 6],
+			["gas_tank", 6],
+			["storage", 7],
+			["aa", 4],
+			["sam", 4],
+		];
 		for (const [role, n] of yard) expect(countOf(yards, role)).toBe(n);
 		expect(sum(yards)).toBe(1480);
 		for (const role of ["gun", "aa", "sam"]) expect(countOf(mounts, role)).toBe(6);
@@ -178,11 +243,21 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 			expect(surfacePose(route, 0).yaw).toBeCloseTo(hull.yaw, 3);
 			// Each leg, sampled every 40 studs and widened by the 180-stud half hull, stays in the native-water channel.
 			for (let i = 1; i < route.waypoints.size(); i++) {
-				const a = route.waypoints[i - 1], b = route.waypoints[i];
-				const length = math.sqrt((b.x - a.x) ** 2 + (b.z - a.z) ** 2), steps = math.ceil(length / 40);
+				const a = route.waypoints[i - 1],
+					b = route.waypoints[i];
+				const length = math.sqrt((b.x - a.x) ** 2 + (b.z - a.z) ** 2),
+					steps = math.ceil(length / 40);
 				for (let s = 0; s <= steps; s++) {
-					const x = a.x + (b.x - a.x) * s / steps, z = a.z + (b.z - a.z) * s / steps;
-					for (const [dx, dz] of [[0, 0], [180, 0], [-180, 0], [0, 180], [0, -180]]) expect(M06_SURFACE.nativeWater!(x + dx, z + dz)).toBe(true);
+					const x = a.x + ((b.x - a.x) * s) / steps,
+						z = a.z + ((b.z - a.z) * s) / steps;
+					for (const [dx, dz] of [
+						[0, 0],
+						[180, 0],
+						[-180, 0],
+						[0, 180],
+						[0, -180],
+					])
+						expect(M06_SURFACE.nativeWater!(x + dx, z + dz)).toBe(true);
 				}
 			}
 			// About three laps fit the 15:00 clock; the hull then holds at the end of its route.
@@ -197,14 +272,23 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 	});
 	it("fields sixteen hostile aircraft (eleven on the reference roster, five more for pressure) and peaks at 6,800 points", () => {
 		const waves = strike.fighterWaves!;
-		expect(waves.map((w) => w.id)).toEqual(["m06_harbour_cap", "m06_basin_helicopters", "m06_strike_pair", "m06_reserves", "m06_outer_patrol", "m06_last_flight"]);
+		expect(waves.map((w) => w.id)).toEqual([
+			"m06_harbour_cap",
+			"m06_basin_helicopters",
+			"m06_strike_pair",
+			"m06_reserves",
+			"m06_outer_patrol",
+			"m06_last_flight",
+		]);
 		expect(waves.reduce((n, w) => n + w.count, 0) + 1).toBe(16);
 		expect(bp.optionalRaiderMax).toBe(16);
 		expect(MissionCatalog.RaiderCap(strike, 0)).toBe(16);
 		const air = waves.reduce((n, w) => n + w.count * scoring.points[w.scoreRole], 0) + scoring.points.ace;
 		expect(air).toBe(11 * 60 + 2 * 60 + 2 * 50 + 240);
-		expect(scoring.points.fighter).toBe(60); expect(scoring.points.fighter_bomber).toBe(60);
-		expect(scoring.points.helicopter).toBe(50); expect(scoring.points.ace).toBe(240);
+		expect(scoring.points.fighter).toBe(60);
+		expect(scoring.points.fighter_bomber).toBe(60);
+		expect(scoring.points.helicopter).toBe(50);
+		expect(scoring.points.ace).toBe(240);
 		expect(sum(targets) + air).toBe(6800);
 		// Ground alone already clears S: a strike-only run can reach every rank.
 		expect(sum(targets) >= scoring.rank.S).toBe(true);
@@ -217,7 +301,8 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 	it("schedules the waves: harbour CAP, helicopters and strike jets on approach, reserves, patrol, the ace and a last flight", () => {
 		const waves = strike.fighterWaves!;
 		const fired = new Set<string>();
-		const due = (c: TriggerContext) => [...waves, strike.standaloneAce!].filter((a) => takeArrival(a.id, a.trigger, c, fired)).map((a) => a.id);
+		const due = (c: TriggerContext) =>
+			[...waves, strike.standaloneAce!].filter((a) => takeArrival(a.id, a.trigger, c, fired)).map((a) => a.id);
 		expect(due(context(19))).toEqual([]);
 		expect(due(context(20))).toEqual(["m06_harbour_cap"]);
 		expect(due(context(60, M06.basins[1].x, M06.basins[1].z + 6100))).toEqual([]);
@@ -232,7 +317,19 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 	it("ranks S 5,000, A 4,200, B 3,600, C 3,000 inside the footage bounds; a failed sortie is D", () => {
 		expect(scoring.rank).toEqual({ S: 5000, A: 4200, B: 3600, C: 3000 });
 		// Footage: 3,050 read C, 4,250 read A, 4,770 still A and 5,060 S (m06 §7).
-		for (const [total, rank] of [[3000, "C"], [3050, "C"], [3590, "C"], [3600, "B"], [4190, "B"], [4250, "A"], [4770, "A"], [5000, "S"], [5060, "S"], [6260, "S"], [6800, "S"]] as [number, string][]) {
+		for (const [total, rank] of [
+			[3000, "C"],
+			[3050, "C"],
+			[3590, "C"],
+			[3600, "B"],
+			[4190, "B"],
+			[4250, "A"],
+			[4770, "A"],
+			[5000, "S"],
+			[5060, "S"],
+			[6260, "S"],
+			[6800, "S"],
+		] as [number, string][]) {
 			expect(MissionScore.RankPoints(total, true, scoring)).toBe(rank);
 		}
 		expect(MissionScore.RankPoints(6800, false, scoring)).toBe("D");
@@ -253,32 +350,59 @@ describe("Mission 6 armament, rearm and allies", () => {
 		expect(SortieArmament.EmptyNotice(bp.armament)).toBe("missiles_spent");
 		const lance = SortieArmament.NewSpecial("lance", bp.armament);
 		expect(lance.finite).toBe(true);
-		const refill = SortieArmament.Refill({ missiles: M06_REARM.missiles, special: M06_REARM.special, gun: M06_REARM.gun }, bp.armament, "lance");
+		const refill = SortieArmament.Refill(
+			{ missiles: M06_REARM.missiles, special: M06_REARM.special, gun: M06_REARM.gun },
+			bp.armament,
+			"lance",
+		);
 		expect(refill.missiles).toBe(60);
 		expect(refill.gunRounds).toBe(1200);
 		expect(refill.special?.charges).toBe(lance.charges);
 		// The anti-ship fit refuses quays and mounts and admits any hull.
 		const state = SpecialWeapons.New("lance");
 		expect(AntiShipRules.Activate(state, 1, "crane")).toEqual({ kind: "denied", reason: "anti_ship_hull_only" });
-		expect(AntiShipRules.Activate(state, 1, "gun_mount")).toEqual({ kind: "denied", reason: "anti_ship_hull_only" });
+		expect(AntiShipRules.Activate(state, 1, "gun_mount")).toEqual({
+			kind: "denied",
+			reason: "anti_ship_hull_only",
+		});
 		expect(AntiShipRules.Activate(state, 1, "cruiser")).toEqual({ kind: "ok" });
 	});
 	it("opens the rearm at a gate on the way home and lands southbound on the service runway", () => {
-		const plan = strike.rearm!, gate = landingPose(plan.landing, 0), rollout = landingPose(plan.landing, landingDuration(plan.landing));
+		const plan = strike.rearm!,
+			gate = landingPose(plan.landing, 0),
+			rollout = landingPose(plan.landing, landingDuration(plan.landing));
 		expect(plan).toBe(M06_REARM);
-		expect(plan.health).toBe(false); expect(plan.missiles).toBe(true); expect(plan.special).toBe(true); expect(plan.gun).toBe(true); expect(plan.weaponMenu).toBe(true);
-		const runway = M06.runway, north = runway.z - runway.length / 2, south = runway.z + runway.length / 2;
+		expect(plan.health).toBe(false);
+		expect(plan.missiles).toBe(true);
+		expect(plan.special).toBe(true);
+		expect(plan.gun).toBe(true);
+		expect(plan.weaponMenu).toBe(true);
+		const runway = M06.runway,
+			north = runway.z - runway.length / 2,
+			south = runway.z + runway.length / 2;
 		expect(math.abs(gate.x - runway.x)).toBeLessThan(1e-6);
 		expect(gate.z).toBeCloseTo(north - 1980, 3);
 		expect(plan.landing.touchdown.z > north && rollout.z < south).toBe(true);
 		expect(plan.landing.touchdown.y).toBe(runway.y + 6);
-		expect(math.sqrt((gate.x - plan.zone.x) ** 2 + (gate.y - plan.zone.y) ** 2 + (gate.z - plan.zone.z) ** 2)).toBeLessThan(1e-6);
+		expect(
+			math.sqrt((gate.x - plan.zone.x) ** 2 + (gate.y - plan.zone.y) ** 2 + (gate.z - plan.zone.z) ** 2),
+		).toBeLessThan(1e-6);
 		// The start is well outside the rearm zone, and the harbour SAMs cannot reach the approach.
-		expect(math.sqrt((M06_START.x - plan.zone.x) ** 2 + (M06_START.z - plan.zone.z) ** 2) > plan.radius + 1000).toBe(true);
-		for (const sam of targets.filter((t) => t.sam)) expect(math.sqrt((sam.position.x - gate.x) ** 2 + (sam.position.z - gate.z) ** 2) > SamRules.Range + plan.radius).toBe(true);
+		expect(
+			math.sqrt((M06_START.x - plan.zone.x) ** 2 + (M06_START.z - plan.zone.z) ** 2) > plan.radius + 1000,
+		).toBe(true);
+		for (const sam of targets.filter((t) => t.sam))
+			expect(
+				math.sqrt((sam.position.x - gate.x) ** 2 + (sam.position.z - gate.z) ** 2) >
+					SamRules.Range + plan.radius,
+			).toBe(true);
 		validateRearmPhases(bp.phases, M06_AIRSPACE.hardHalfWidth);
 		validateLandingPhases(bp.phases, M06_AIRSPACE.hardHalfWidth);
-		expect(rejects(() => validateRearmPhases([{ ...strike, rearm: { ...plan, health: true } }], M06_AIRSPACE.hardHalfWidth))).toBe(true);
+		expect(
+			rejects(() =>
+				validateRearmPhases([{ ...strike, rearm: { ...plan, health: true } }], M06_AIRSPACE.hardHalfWidth),
+			),
+		).toBe(true);
 		expect(rejects(() => validateArmament({ stock: { missiles: 60 } }, true))).toBe(true);
 		expect(rearmRadioDue(plan, 0, 1)).toEqual([plan.radio![0].text]);
 	});
@@ -288,11 +412,18 @@ describe("Mission 6 armament, rearm and allies", () => {
 		expect(AlliedRules.MayDestroy(allies)).toBe(true);
 		expect(allies.killBudget).toBe(1);
 		expect(AlliedRules.Credit(allies)).toBe(false);
-		const state = BlueprintRunner.NewState(bp, 0), ledger = new TargetScore(scoring);
-		expect(recordAlliedKill(state, ledger, [], allies, hulls[0].id, "ground", false, 5, hulls[0].scoreRole)).toBe(false);
+		const state = BlueprintRunner.NewState(bp, 0),
+			ledger = new TargetScore(scoring);
+		expect(recordAlliedKill(state, ledger, [], allies, hulls[0].id, "ground", false, 5, hulls[0].scoreRole)).toBe(
+			false,
+		);
 		const destroyed: string[] = [];
-		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_victim", "air", false, 6, "raider")).toBe(true);
-		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_second", "air", false, 7, "raider")).toBe(false);
+		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_victim", "air", false, 6, "raider")).toBe(
+			true,
+		);
+		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_second", "air", false, 7, "raider")).toBe(
+			false,
+		);
 		expect(AlliedRules.ShotDamage(allies, destroyed.size(), false, 30)).toBe(0);
 		expect(ledger.Total()).toBe(0);
 	});
@@ -300,11 +431,15 @@ describe("Mission 6 armament, rearm and allies", () => {
 
 describe("Mission 6 flow: threshold, failure and settlement", () => {
 	it("credits a hull and its mount once each, holds a met goal until 15:00, then wins and settles rank C", () => {
-		const state = BlueprintRunner.NewState(bp, 0), ledger = new TargetScore(scoring);
+		const state = BlueprintRunner.NewState(bp, 0),
+			ledger = new TargetScore(scoring);
 		let now = 0;
-		const kill = (t: TypedGroundTarget) => expect(recordScoredKill(state, ledger, t.id, "ground", false, now += 3, t.scoreRole, t.type)).toBe(true);
-		const mount = mounts[0], hull = targets.find((t) => t.id === mount.parentId)!;
-		kill(mount); kill(hull);
+		const kill = (t: TypedGroundTarget) =>
+			expect(recordScoredKill(state, ledger, t.id, "ground", false, (now += 3), t.scoreRole, t.type)).toBe(true);
+		const mount = mounts[0],
+			hull = targets.find((t) => t.id === mount.parentId)!;
+		kill(mount);
+		kill(hull);
 		expect(ledger.Total()).toBe(value(mount) + value(hull));
 		expect(recordScoredKill(state, ledger, hull.id, "ground", false, now, hull.scoreRole)).toBe(false);
 		expect(recordScoredKill(state, ledger, mount.id, "ground", false, now, mount.scoreRole)).toBe(false);
@@ -321,40 +456,71 @@ describe("Mission 6 flow: threshold, failure and settlement", () => {
 		expect(state.outcome).toBe("won");
 		withEarlierMissions(() => {
 			const c = fresh();
-			for (let id = 1; id <= 5; id++) { expect(canLaunchMission(6, c.getSlots()[0])).toBe(false); expect(finish(c, id)).toBe(true); }
+			for (let id = 1; id <= 5; id++) {
+				expect(canLaunchMission(6, c.getSlots()[0])).toBe(false);
+				expect(finish(c, id)).toBe(true);
+			}
 			expect(highestUnlocked(c.getSlots()[0])).toBe(6);
 			let message: MissionFinished | undefined;
-			expect(finish(c, 6, { elapsed: state.elapsed, score: ledger, phases: state.phaseIndex }, (m) => { message = m; })).toBe(true);
+			expect(
+				finish(c, 6, { elapsed: state.elapsed, score: ledger, phases: state.phaseIndex }, (m) => {
+					message = m;
+				}),
+			).toBe(true);
 			expect(message?.kind).toBe("Completed");
 			expect(message?.rank).toBe(scored >= 3600 ? "B" : "C");
-			const record = normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() })).slots[0].missions![6];
+			const record = normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() })).slots[0]
+				.missions![6];
 			expect(record.completed).toBe(true);
 			expect(record.bestScore).toBe(scored);
 			expect(record.bestTargetScore?.total).toBe(scored);
 		});
 	});
 	it("fails below 3,000 at 15:00 and when shot down; a short or overlong result never settles as completed", () => {
-		const exact = BlueprintRunner.NewState(bp, 0); exact.score = 3000; BlueprintRunner.Tick(exact, 899);
-		expect(exact.outcome).toBeUndefined(); BlueprintRunner.Tick(exact, 900); expect(exact.outcome).toBe("won");
-		const low = BlueprintRunner.NewState(bp, 0); low.score = 2999; BlueprintRunner.Tick(low, 900);
-		expect(low.outcome).toBe("failed"); expect(low.reason).toBe("timeout");
-		const early = BlueprintRunner.NewState(bp, 0); early.score = 4000; BlueprintRunner.Tick(early, 120, 0);
+		const exact = BlueprintRunner.NewState(bp, 0);
+		exact.score = 3000;
+		BlueprintRunner.Tick(exact, 899);
+		expect(exact.outcome).toBeUndefined();
+		BlueprintRunner.Tick(exact, 900);
+		expect(exact.outcome).toBe("won");
+		const low = BlueprintRunner.NewState(bp, 0);
+		low.score = 2999;
+		BlueprintRunner.Tick(low, 900);
+		expect(low.outcome).toBe("failed");
+		expect(low.reason).toBe("timeout");
+		const early = BlueprintRunner.NewState(bp, 0);
+		early.score = 4000;
+		BlueprintRunner.Tick(early, 120, 0);
 		expect(early.reason).toBe("destroyed");
 		withEarlierMissions(() => {
 			const c = fresh();
 			for (let id = 1; id <= 5; id++) finish(c, id);
 			let kind: string | undefined;
-			expect(finish(c, 6, { phases: 0 }, (m) => { kind = m.kind; })).toBe(true);
+			expect(
+				finish(c, 6, { phases: 0 }, (m) => {
+					kind = m.kind;
+				}),
+			).toBe(true);
 			expect(kind).toBe("Failed");
-			expect(finish(c, 6, { elapsed: MissionCatalog.MaxMissionSeconds(6) }, (m) => { kind = m.kind; })).toBe(true);
+			expect(
+				finish(c, 6, { elapsed: MissionCatalog.MaxMissionSeconds(6) }, (m) => {
+					kind = m.kind;
+				}),
+			).toBe(true);
 			expect(kind).toBe("Failed");
 			expect(c.getSlots()[0].missions?.[6]?.completed === true).toBe(false);
 		});
 	});
 	it("holds the clock while a rearm runs: the runner never ticks it", () => {
-		const s = BlueprintRunner.NewState(bp, 0); s.score = 3200;
-		s.rearmActive = true; BlueprintRunner.Tick(s, 1200); expect(s.elapsed).toBe(0); expect(s.outcome).toBeUndefined();
-		s.rearmActive = undefined; BlueprintRunner.Tick(s, 900); expect(s.outcome).toBe("won");
+		const s = BlueprintRunner.NewState(bp, 0);
+		s.score = 3200;
+		s.rearmActive = true;
+		BlueprintRunner.Tick(s, 1200);
+		expect(s.elapsed).toBe(0);
+		expect(s.outcome).toBeUndefined();
+		s.rearmActive = undefined;
+		BlueprintRunner.Tick(s, 900);
+		expect(s.outcome).toBe("won");
 	});
 });
 
@@ -386,8 +552,11 @@ describe("Mission 6 unlock", () => {
 			forged.missions ??= {};
 			for (let id = 1; id <= 18; id++) forged.missions[id] = { completed: true };
 			expect(highestUnlocked(forged)).toBe(18);
-			expect(canLaunchMission(18,forged)).toBe(true);expect(canLaunchMission(19,forged)).toBe(false);
-			expect(canLaunchMission(7, forged)).toBe(true); expect(canLaunchMission(8, forged)).toBe(true); expect(canLaunchMission(9, forged)).toBe(true);
+			expect(canLaunchMission(18, forged)).toBe(true);
+			expect(canLaunchMission(19, forged)).toBe(false);
+			expect(canLaunchMission(7, forged)).toBe(true);
+			expect(canLaunchMission(8, forged)).toBe(true);
+			expect(canLaunchMission(9, forged)).toBe(true);
 		});
 		expect(notified).toBe(0);
 	});

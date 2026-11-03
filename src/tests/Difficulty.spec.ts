@@ -5,7 +5,16 @@ import { MissionScore, ScoreInput } from "../shared/MissionScore";
 // Also runs in the offline Luau VM (tools/test-relay-offline.ts), whose assertions
 // are limited to toBe and toBeUndefined.
 
-const perfect: ScoreInput = { won: true, airKills: 4, groundKills: 1, elapsed: 60, par: 120, missilesFired: 8, missileHits: 8, damageTaken: 0 };
+const perfect: ScoreInput = {
+	won: true,
+	airKills: 4,
+	groundKills: 1,
+	elapsed: 60,
+	par: 120,
+	missilesFired: 8,
+	missileHits: 8,
+	damageTaken: 0,
+};
 
 describe("Difficulty catalog", () => {
 	it("offers three levels in order with Normal as the default", () => {

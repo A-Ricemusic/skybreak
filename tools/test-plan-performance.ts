@@ -59,8 +59,8 @@ local baseline={2595689487,3022175266,4091653953,3359413120,3709475856,133999714
 local builders={}
 `;
 for (let id = 1; id <= 18; id++) {
- const n = String(id).padStart(2, "0");
- source += `builders[${id}]=require("./M${n}WorldPlan").buildM${n}Plan\n`;
+	const n = String(id).padStart(2, "0");
+	source += `builders[${id}]=require("./M${n}WorldPlan").buildM${n}Plan\n`;
 }
 source += `
 -- Reverse the second pass: an order-dependent leak must not hide behind mission complexity.
@@ -124,7 +124,12 @@ print("PLAN_PERFORMANCE passed=36 failed=0")
 const path = resolve(root, "build/offline-relay/performance.luau");
 await Bun.write(path, source);
 const proc = Bun.spawn([requireLuauBin(), path], { cwd: root, stdout: "pipe", stderr: "pipe" });
-const [out, err, code] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited]);
-console.log(out); if (err) console.error(err);
+const [out, err, code] = await Promise.all([
+	new Response(proc.stdout).text(),
+	new Response(proc.stderr).text(),
+	proc.exited,
+]);
+console.log(out);
+if (err) console.error(err);
 await Bun.write(resolve(root, "build/plan-performance.log"), out + err);
 if (code !== 0) process.exitCode = code;

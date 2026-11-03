@@ -1,5 +1,16 @@
 import { viewportOrigin } from "./ViewportGui";
-import { FRIENDLY_TAG, TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
+import {
+	FRIENDLY_TAG,
+	TARGET_BOX_LIMIT,
+	TARGET_TAG_GAP,
+	TARGET_TAG_HEIGHT,
+	TARGET_TAG_RISE,
+	TARGET_TAG_WIDTH,
+	TargetBoxes,
+	TargetBoxFlags,
+	TargetBoxTone,
+	TargetTagSide,
+} from "../shared/TargetBoxes";
 import type { Rectangle } from "../shared/UILayout";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 
@@ -11,7 +22,14 @@ import { HUD, HUD_FONT_BOLD } from "./Theme";
 const COLOR = { required: HUD.Green, optional: HUD.Dim, protected: HUD.Dim } as const;
 const FRIENDLY_COLOR = Color3.fromRGB(85, 185, 255);
 const OUTLINE = Color3.fromRGB(6, 13, 22);
-const WATCHED = new Set(["SkybreakFriendly", "SkybreakEnemy", "SkybreakOwner", "Damageable", "RequiredTarget", "TargetKind"]);
+const WATCHED = new Set([
+	"SkybreakFriendly",
+	"SkybreakEnemy",
+	"SkybreakOwner",
+	"Damageable",
+	"RequiredTarget",
+	"TargetKind",
+]);
 
 interface Contact {
 	model: Model;
@@ -69,11 +87,20 @@ export class TargetBoxOverlay {
 		this.gui = undefined;
 	}
 	/** Touch controls in viewport px and the safe area (TargetBoxes.Bounds): boxes and their text keep inside it and off them. */
-	public SetPlacement(keepouts: readonly Rectangle[], bounds: Rectangle): void { this.keepouts = keepouts; this.bounds = bounds; }
-	public GetKeepouts(): readonly Rectangle[] { return this.keepouts; }
-	public GetBounds(): Rectangle | undefined { return this.bounds; }
+	public SetPlacement(keepouts: readonly Rectangle[], bounds: Rectangle): void {
+		this.keepouts = keepouts;
+		this.bounds = bounds;
+	}
+	public GetKeepouts(): readonly Rectangle[] {
+		return this.keepouts;
+	}
+	public GetBounds(): Rectangle | undefined {
+		return this.bounds;
+	}
 	/** Whether `model` has a box this frame. */
-	public IsBoxed(model: Model): boolean { return this.contacts.get(model)?.boxed === true; }
+	public IsBoxed(model: Model): boolean {
+		return this.contacts.get(model)?.boxed === true;
+	}
 	public HitTest(x: number, y: number): Model | undefined {
 		const contacts: Contact[] = [];
 		for (const [, contact] of this.contacts) contacts.push(contact);
@@ -83,15 +110,26 @@ export class TargetBoxOverlay {
 	public SetSelectedBox(model: Model, x: number, y: number, size: number, boxed: boolean): void {
 		const contact = this.contacts.get(model);
 		if (!contact) return;
-		contact.x = x; contact.y = y; contact.size = size; contact.boxed = boxed && !contact.friendly;
+		contact.x = x;
+		contact.y = y;
+		contact.size = size;
+		contact.boxed = boxed && !contact.friendly;
 	}
 
 	/**
 	 * Boxes the nearest valid on-screen targets other than `selected` (which the caller draws).
 	 * `positionOf` gives the world point the player sees for a contact (smoothed clone for jets).
 	 */
-	public Update(camera: Camera, origin: Vector3, selected: Model | undefined, positionOf: (model: Model, ground: boolean) => Vector3, visualRange=math.huge): void {
-		const gui = this.gui, bounds = this.bounds, keepouts = this.keepouts;
+	public Update(
+		camera: Camera,
+		origin: Vector3,
+		selected: Model | undefined,
+		positionOf: (model: Model, ground: boolean) => Vector3,
+		visualRange = math.huge,
+	): void {
+		const gui = this.gui,
+			bounds = this.bounds,
+			keepouts = this.keepouts;
 		if (!gui || !bounds) return;
 		const viewport = camera.ViewportSize;
 		const ranked = this.ranked;
@@ -104,11 +142,15 @@ export class TargetBoxOverlay {
 			// Behind the camera or out of view: no box and no further work (the radar covers it).
 			if (!onScreen) continue;
 			const distance = world.sub(origin).Magnitude;
-			if(distance>visualRange) continue;
+			if (distance > visualRange) continue;
 			const size = TargetBoxes.Size(distance, viewport.Y);
-			const x = math.floor(screen.X + 0.5), y = math.floor(screen.Y + 0.5);
+			const x = math.floor(screen.X + 0.5),
+				y = math.floor(screen.Y + 0.5);
 			if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;
-			contact.distance = distance; contact.x = x; contact.y = y; contact.size = size;
+			contact.distance = distance;
+			contact.x = x;
+			contact.y = y;
+			contact.size = size;
 			ranked.push(contact);
 		}
 		// One slot always stays the selected bracket's, so at most TARGET_BOX_LIMIT box frames ever exist.
@@ -116,40 +158,54 @@ export class TargetBoxOverlay {
 		// All slots share the same inset and rendered parent geometry this frame.
 		const guiOrigin = count > 0 ? viewportOrigin(gui) : Vector2.zero;
 		const guiSize = gui.AbsoluteSize;
-		const width = math.max(1, guiSize.X), height = math.max(1, guiSize.Y);
+		const width = math.max(1, guiSize.X),
+			height = math.max(1, guiSize.Y);
 		for (let index = 0; index < count; index++) {
 			const contact = ranked[index];
 			contact.boxed = !contact.friendly;
 			const slot = this.slots[index] ?? this.createSlot(gui, index);
 			// Re-evaluate even for a stationary target: topbar/safe-area geometry can change.
-			slot.frame.Position = UDim2.fromScale((contact.x - guiOrigin.X) / width, (contact.y - guiOrigin.Y) / height);
-			if (contact.size !== slot.size) { slot.size = contact.size; slot.frame.Size = UDim2.fromOffset(contact.size, contact.size); }
+			slot.frame.Position = UDim2.fromScale(
+				(contact.x - guiOrigin.X) / width,
+				(contact.y - guiOrigin.Y) / height,
+			);
+			if (contact.size !== slot.size) {
+				slot.size = contact.size;
+				slot.frame.Size = UDim2.fromOffset(contact.size, contact.size);
+			}
 			if (contact.tone !== slot.tone || contact.friendly !== slot.friendly) {
 				slot.tone = contact.tone;
 				slot.friendly = contact.friendly;
 				const color = contact.friendly ? FRIENDLY_COLOR : COLOR[contact.tone!];
-				slot.stroke.Color = color; slot.tagLabel.TextColor3 = color;
+				slot.stroke.Color = color;
+				slot.tagLabel.TextColor3 = color;
 				slot.stroke.Enabled = !contact.friendly;
 				slot.tagLabel.Text = contact.friendly ? FRIENDLY_TAG : "TGT";
 				// Raiders read a step quieter than mission targets; only mission targets carry TGT.
 				if (!contact.friendly) slot.stroke.Transparency = contact.tone === "required" ? 0.05 : 0.3;
 			}
 			// The TGT tag goes right of the box, else left, else not at all: it never covers a control or leaves the safe area.
-			const tag = contact.friendly || contact.tone === "required" ? TargetBoxes.PlaceTag(contact.x, contact.y, contact.size, bounds, keepouts) : undefined;
+			const tag =
+				contact.friendly || contact.tone === "required"
+					? TargetBoxes.PlaceTag(contact.x, contact.y, contact.size, bounds, keepouts)
+					: undefined;
 			if (tag !== slot.tag) {
 				slot.tag = tag;
 				slot.tagLabel.Visible = tag !== undefined;
 				if (tag === "right") {
-					slot.tagLabel.AnchorPoint = new Vector2(0, 0); slot.tagLabel.Position = new UDim2(1, TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
+					slot.tagLabel.AnchorPoint = new Vector2(0, 0);
+					slot.tagLabel.Position = new UDim2(1, TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
 					slot.tagLabel.TextXAlignment = Enum.TextXAlignment.Left;
 				} else if (tag === "left") {
-					slot.tagLabel.AnchorPoint = new Vector2(1, 0); slot.tagLabel.Position = new UDim2(0, -TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
+					slot.tagLabel.AnchorPoint = new Vector2(1, 0);
+					slot.tagLabel.Position = new UDim2(0, -TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
 					slot.tagLabel.TextXAlignment = Enum.TextXAlignment.Right;
 				}
 			}
 			if (!slot.frame.Visible) slot.frame.Visible = true;
 		}
-		for (let index = count; index < this.slots.size(); index++) if (this.slots[index].frame.Visible) this.slots[index].frame.Visible = false;
+		for (let index = count; index < this.slots.size(); index++)
+			if (this.slots[index].frame.Visible) this.slots[index].frame.Visible = false;
 	}
 
 	private createSlot(gui: ScreenGui, index: number): Slot {
@@ -181,9 +237,18 @@ export class TargetBoxOverlay {
 	private add(child: Instance): void {
 		if (!child.IsA("Model") || this.contacts.has(child)) return;
 		const contact: Contact = {
-			model: child, ground: false, flags: { enemy: undefined, owner: undefined, damageable: undefined, required: undefined },
-			connection: child.AttributeChanged.Connect((name) => { if (WATCHED.has(name)) this.refresh(contact); }),
-			friendly: false, distance: 0, x: 0, y: 0, size: 0, boxed: false,
+			model: child,
+			ground: false,
+			flags: { enemy: undefined, owner: undefined, damageable: undefined, required: undefined },
+			connection: child.AttributeChanged.Connect((name) => {
+				if (WATCHED.has(name)) this.refresh(contact);
+			}),
+			friendly: false,
+			distance: 0,
+			x: 0,
+			y: 0,
+			size: 0,
+			boxed: false,
 		};
 		this.refresh(contact);
 		this.contacts.set(child, contact);
@@ -196,7 +261,8 @@ export class TargetBoxOverlay {
 		this.contacts.delete(child);
 	}
 	private refresh(contact: Contact): void {
-		const model = contact.model, flags = contact.flags;
+		const model = contact.model,
+			flags = contact.flags;
 		flags.friendly = model.GetAttribute("SkybreakFriendly");
 		flags.enemy = model.GetAttribute("SkybreakEnemy");
 		flags.owner = model.GetAttribute("SkybreakOwner");

@@ -9,8 +9,9 @@ const limits = new Map<number, number>();
 export const CountdownDisplay = {
 	Limit(source: CountdownSource): number {
 		if (typeIs(source, "table")) {
-			let limit=MissionCatalog.CountdownSeconds(source);
-			for (const p of MissionCatalog.ExpandedPhases(source)) limit=math.max(limit,p.update?.countdownSeconds ?? 0);
+			let limit = MissionCatalog.CountdownSeconds(source);
+			for (const p of MissionCatalog.ExpandedPhases(source))
+				limit = math.max(limit, p.update?.countdownSeconds ?? 0);
 			return limit;
 		}
 		const id = MissionCatalog.IsValidId(source) ? source : 1;

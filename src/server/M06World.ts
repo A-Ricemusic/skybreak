@@ -15,8 +15,15 @@ import { registerWorldClear } from "./WorldLifecycleRuntime";
  */
 export const M06World = {
 	Build(parent: Instance, seed = 606): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
-  WorldAssets.Preload([...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS]);
-		const built = buildComposition(parent, M06_ENVIRONMENT, checkpoint => buildM06Plan(seed, checkpoint), M06_BUILD_LIMITS.descendants, 14000, 0.25);
+		WorldAssets.Preload([...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS]);
+		const built = buildComposition(
+			parent,
+			M06_ENVIRONMENT,
+			(checkpoint) => buildM06Plan(seed, checkpoint),
+			M06_BUILD_LIMITS.descendants,
+			14000,
+			0.25,
+		);
 		const scene = parent.FindFirstChild(M06_WORLD_KEY);
 		assert(scene !== undefined, "M06 scene folder is missing");
 		const visuals = new Map<string, Model>();
@@ -28,6 +35,8 @@ export const M06World = {
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: built.groundTargets, targetVisuals: visuals };
 	},
-	Clear: (cancelled: () => boolean) => { if (!cancelled()) clearTerrainIfDirty(); },
+	Clear: (cancelled: () => boolean) => {
+		if (!cancelled()) clearTerrainIfDirty();
+	},
 };
 registerWorldClear(M06_WORLD_KEY, M06World.Clear);

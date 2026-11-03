@@ -22,7 +22,13 @@ export class TargetScore {
 
 	/** Records one unique, non-empty target id. Missing/invalid role values award zero points. */
 	public RecordKill(targetId: string, role: string, breakdownRole = role): boolean {
-		if (!typeIs(targetId, "string") || !typeIs(role, "string") || targetId.size() === 0 || this.targetIds.has(targetId)) return false;
+		if (
+			!typeIs(targetId, "string") ||
+			!typeIs(role, "string") ||
+			targetId.size() === 0 ||
+			this.targetIds.has(targetId)
+		)
+			return false;
 		this.targetIds.add(targetId);
 
 		const key = breakdownRole;
@@ -34,9 +40,15 @@ export class TargetScore {
 		return true;
 	}
 
-	public Total(): number { return this.total; }
-	public RoleKills(role: string): number { return this.kills[role] ?? 0; }
-	public RolePoints(role: string): number { return this.points[role] ?? 0; }
+	public Total(): number {
+		return this.total;
+	}
+	public RoleKills(role: string): number {
+		return this.kills[role] ?? 0;
+	}
+	public RolePoints(role: string): number {
+		return this.points[role] ?? 0;
+	}
 
 	/** Returns detached plain tables suitable for result packets and persistence. */
 	public Snapshot(): TargetScoreSnapshot {
@@ -49,7 +61,10 @@ export class TargetScore {
 }
 
 /** Rating sorties omit the field entirely to preserve legacy result packets. */
-export function targetScoreStats(ledger: TargetScore, policy: MissionScoringPolicy): { targetScore?: TargetScoreSnapshot } {
+export function targetScoreStats(
+	ledger: TargetScore,
+	policy: MissionScoringPolicy,
+): { targetScore?: TargetScoreSnapshot } {
 	return policy.basis === "points" ? { targetScore: ledger.Snapshot() } : {};
 }
 
@@ -57,13 +72,25 @@ export function targetScoreStats(ledger: TargetScore, policy: MissionScoringPoli
 export function readTargetScore(value: unknown, expectedTotal?: number): TargetScoreSnapshot | undefined {
 	if (!typeIs(value, "table")) return undefined;
 	const raw = value as Partial<TargetScoreSnapshot>;
-	if (!finiteNonnegative(raw.total) || (expectedTotal !== undefined && raw.total !== expectedTotal)
-		|| !typeIs(raw.kills, "table") || !typeIs(raw.points, "table")) return undefined;
+	if (
+		!finiteNonnegative(raw.total) ||
+		(expectedTotal !== undefined && raw.total !== expectedTotal) ||
+		!typeIs(raw.kills, "table") ||
+		!typeIs(raw.points, "table")
+	)
+		return undefined;
 	const kills: { [role: string]: number } = {};
 	const points: { [role: string]: number } = {};
 	let total = 0;
 	for (const [role, count] of pairs(raw.kills)) {
-		if (!typeIs(role, "string") || role.size() === 0 || role.size() > 32 || !finiteNonnegative(count) || count % 1 !== 0) return undefined;
+		if (
+			!typeIs(role, "string") ||
+			role.size() === 0 ||
+			role.size() > 32 ||
+			!finiteNonnegative(count) ||
+			count % 1 !== 0
+		)
+			return undefined;
 		const awarded = raw.points[role];
 		if (!finiteNonnegative(awarded)) return undefined;
 		kills[role] = count;

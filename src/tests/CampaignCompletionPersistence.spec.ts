@@ -1,11 +1,20 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { CampaignCoordinator, completeMission, normalizeProfile, normalizeSlot, serializeProfile } from "../server/CampaignRepository";
+import {
+	CampaignCoordinator,
+	completeMission,
+	normalizeProfile,
+	normalizeSlot,
+	serializeProfile,
+} from "../server/CampaignRepository";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { TargetScore, TargetScoreSnapshot } from "../shared/TargetScore";
 import { MissionFinished } from "../shared/Types";
 
 function fresh() {
-	const coordinator = new CampaignCoordinator("completion-regression", undefined, { now: () => 1000, defer: () => undefined });
+	const coordinator = new CampaignCoordinator("completion-regression", undefined, {
+		now: () => 1000,
+		defer: () => undefined,
+	});
 	coordinator.load();
 	return coordinator;
 }
@@ -15,56 +24,118 @@ function breakdown(extraEscort = false): TargetScoreSnapshot {
 	if (extraEscort) ledger.RecordKill("escort", "escort");
 	return ledger.Snapshot();
 }
-function finish(c: CampaignCoordinator, missionId: number, score?: TargetScoreSnapshot, notify: (message: MissionFinished) => void = () => undefined) {
+function finish(
+	c: CampaignCoordinator,
+	missionId: number,
+	score?: TargetScoreSnapshot,
+	notify: (message: MissionFinished) => void = () => undefined,
+) {
 	const bp = MissionCatalog.Get(missionId);
-	return completeMission(c, 1, missionId, true, {
-		slot: 1, missionId, kills: MissionCatalog.RequiredAirKills(bp) + MissionCatalog.RequiredGroundKills(bp),
-		groundKills: MissionCatalog.RequiredGroundKills(bp), completedPhases: MissionCatalog.TotalPhases(bp),
-		elapsed: 100, targetScore: score,
-	}, notify, 0);
+	return completeMission(
+		c,
+		1,
+		missionId,
+		true,
+		{
+			slot: 1,
+			missionId,
+			kills: MissionCatalog.RequiredAirKills(bp) + MissionCatalog.RequiredGroundKills(bp),
+			groundKills: MissionCatalog.RequiredGroundKills(bp),
+			completedPhases: MissionCatalog.TotalPhases(bp),
+			elapsed: 100,
+			targetScore: score,
+		},
+		notify,
+		0,
+	);
 }
 function roundTrip(c: CampaignCoordinator) {
 	return normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() })).slots[0];
 }
 
 describe("Campaign completion persistence (offline and Roblox Jest)", () => {
-	for (const missing of [1, 6]) it(`does not substitute ground kills for ${missing} missing mission 1 air kills`, () => {
-		const c = fresh(), bp = MissionCatalog.Get(1);
-		let result: MissionFinished | undefined;
-		completeMission(c, 1, 1, true, {
-			slot: 1, missionId: 1, kills: 6, groundKills: missing,
-			completedPhases: MissionCatalog.TotalPhases(bp), elapsed: 100,
-		}, message => { result = message; }, 0);
-		expect(result?.kind).toBe("Failed");
-		expect(c.getSlots()[0].missions?.[1]?.completed).toBeUndefined();
-		expect(c.getSlots()[0].missions?.[2]).toBeUndefined();
-		expect(roundTrip(c).missions?.[1]).toBeUndefined();
-	});
+	for (const missing of [1, 6])
+		it(`does not substitute ground kills for ${missing} missing mission 1 air kills`, () => {
+			const c = fresh(),
+				bp = MissionCatalog.Get(1);
+			let result: MissionFinished | undefined;
+			completeMission(
+				c,
+				1,
+				1,
+				true,
+				{
+					slot: 1,
+					missionId: 1,
+					kills: 6,
+					groundKills: missing,
+					completedPhases: MissionCatalog.TotalPhases(bp),
+					elapsed: 100,
+				},
+				(message) => {
+					result = message;
+				},
+				0,
+			);
+			expect(result?.kind).toBe("Failed");
+			expect(c.getSlots()[0].missions?.[1]?.completed).toBeUndefined();
+			expect(c.getSlots()[0].missions?.[2]).toBeUndefined();
+			expect(roundTrip(c).missions?.[1]).toBeUndefined();
+		});
 
 	it("accepts all six air kills alongside extra ground kills", () => {
 		const c = fresh();
 		let result: MissionFinished | undefined;
-		completeMission(c, 1, 1, true, {
-			slot: 1, missionId: 1, kills: 9, groundKills: 3,
-			completedPhases: MissionCatalog.TotalPhases(MissionCatalog.Get(1)), elapsed: 100,
-		}, message => { result = message; }, 0);
+		completeMission(
+			c,
+			1,
+			1,
+			true,
+			{
+				slot: 1,
+				missionId: 1,
+				kills: 9,
+				groundKills: 3,
+				completedPhases: MissionCatalog.TotalPhases(MissionCatalog.Get(1)),
+				elapsed: 100,
+			},
+			(message) => {
+				result = message;
+			},
+			0,
+		);
 		expect(result?.kind).toBe("Completed");
 		expect(roundTrip(c).missions?.[1]?.completed).toBe(true);
 	});
 
-	for (const kills of [math.huge, 0 / 0, 0]) it(`rejects inconsistent/nonfinite kill totals (${kills})`, () => {
-		const c = fresh();
-		// Mission 2 has only ground requirements; even there, ground kills cannot exceed the total.
-		finish(c, 1);
-		const bp = MissionCatalog.Get(2);
-		let result: MissionFinished | undefined;
-		completeMission(c, 1, 2, true, {
-			slot: 1, missionId: 2, kills, groundKills: MissionCatalog.RequiredGroundKills(bp),
-			completedPhases: MissionCatalog.TotalPhases(bp), elapsed: 100,
-		}, message => { result = message; }, 0);
-		expect(result?.kind).toBe("Failed");
-		expect(roundTrip(c).missions?.[2]).toBeUndefined();
-	});
+	for (const kills of [math.huge, 0 / 0, 0])
+		it(`rejects inconsistent/nonfinite kill totals (${kills})`, () => {
+			const c = fresh();
+			// Mission 2 has only ground requirements; even there, ground kills cannot exceed the total.
+			finish(c, 1);
+			const bp = MissionCatalog.Get(2);
+			let result: MissionFinished | undefined;
+			completeMission(
+				c,
+				1,
+				2,
+				true,
+				{
+					slot: 1,
+					missionId: 2,
+					kills,
+					groundKills: MissionCatalog.RequiredGroundKills(bp),
+					completedPhases: MissionCatalog.TotalPhases(bp),
+					elapsed: 100,
+				},
+				(message) => {
+					result = message;
+				},
+				0,
+			);
+			expect(result?.kind).toBe("Failed");
+			expect(roundTrip(c).missions?.[2]).toBeUndefined();
+		});
 
 	it("retains mission 1's entire saved record after legitimate mission 2 completion and serialization", () => {
 		const c = fresh();
@@ -72,38 +143,57 @@ describe("Campaign completion persistence (offline and Roblox Jest)", () => {
 		const before = c.getSlots()[0].missions![1];
 		expect(before.bestTargetScore).toEqual(breakdown());
 		let kind: string | undefined;
-		expect(finish(c, 2, undefined, (message) => { kind = message.kind; })).toBe(true);
+		expect(
+			finish(c, 2, undefined, (message) => {
+				kind = message.kind;
+			}),
+		).toBe(true);
 		expect(kind).toBe("Completed");
 		expect(c.getSlots()[0].missions![2].completed).toBe(true);
 		expect(c.getSlots()[0].missions![1]).toEqual(before);
 		expect(roundTrip(c).missions![1]).toEqual(before);
 	});
 
-	for (const improves of [false, true]) it(`mission 1 replay after mission 2 ${improves ? "updates" : "keeps"} its best breakdown`, () => {
-		const c = fresh();
-		finish(c, 1, breakdown());
-		finish(c, 2);
-		const replay = breakdown(improves);
-		let kind: string | undefined;
-		expect(finish(c, 1, replay, (message) => { kind = message.kind; })).toBe(true);
-		expect(kind).toBe("Completed");
-		expect(c.getSlots()[0].missions![1].bestTargetScore).toEqual(replay);
-		expect(c.getSlots()[0].missions![1].bestScore).toBe(replay.total);
-		expect(roundTrip(c).missions![1].bestTargetScore).toEqual(replay);
-	});
+	for (const improves of [false, true])
+		it(`mission 1 replay after mission 2 ${improves ? "updates" : "keeps"} its best breakdown`, () => {
+			const c = fresh();
+			finish(c, 1, breakdown());
+			finish(c, 2);
+			const replay = breakdown(improves);
+			let kind: string | undefined;
+			expect(
+				finish(c, 1, replay, (message) => {
+					kind = message.kind;
+				}),
+			).toBe(true);
+			expect(kind).toBe("Completed");
+			expect(c.getSlots()[0].missions![1].bestTargetScore).toEqual(replay);
+			expect(c.getSlots()[0].missions![1].bestScore).toBe(replay.total);
+			expect(roundTrip(c).missions![1].bestTargetScore).toEqual(replay);
+		});
 
-	for (const completed of [false, true]) it(`normalizes a loaded mission 1 record (completed=${completed}) without losing its bests`, () => {
-		const record = { completed, timeVersion: MissionCatalog.TimeVersion(1), bestTime: 100,
-			firstCompletedAt: 1000, bestScore: 600, bestRank: "B", bestTargetScore: breakdown() };
-		const loaded = normalizeSlot({ missions: { "1": record, "2": { completed: true } } }, 1);
-		expect(loaded.missions![1]).toEqual({ ...record, completed: true });
-		expect(normalizeSlot(loaded, 1).missions![1]).toEqual(loaded.missions![1]);
-	});
+	for (const completed of [false, true])
+		it(`normalizes a loaded mission 1 record (completed=${completed}) without losing its bests`, () => {
+			const record = {
+				completed,
+				timeVersion: MissionCatalog.TimeVersion(1),
+				bestTime: 100,
+				firstCompletedAt: 1000,
+				bestScore: 600,
+				bestRank: "B",
+				bestTargetScore: breakdown(),
+			};
+			const loaded = normalizeSlot({ missions: { "1": record, "2": { completed: true } } }, 1);
+			expect(loaded.missions![1]).toEqual({ ...record, completed: true });
+			expect(normalizeSlot(loaded, 1).missions![1]).toEqual(loaded.missions![1]);
+		});
 
 	it("rejects locked mission 2 and mission 3 results without recording or notifying", () => {
 		const c = fresh();
 		let notifications = 0;
-		const notify = () => { notifications++; };
+		const notify = () => {
+			notifications++;
+		};
 		const before = c.getSlots()[0];
 		expect(finish(c, 2, undefined, notify)).toBe(false);
 		expect(finish(c, 3, undefined, notify)).toBe(false);
@@ -123,7 +213,11 @@ describe("Campaign completion persistence (offline and Roblox Jest)", () => {
 		finish(c, 2);
 		const earlier = { ...c.getSlots()[0].missions! };
 		let kind: string | undefined;
-		expect(finish(c, 3, undefined, (message) => { kind = message.kind; })).toBe(true);
+		expect(
+			finish(c, 3, undefined, (message) => {
+				kind = message.kind;
+			}),
+		).toBe(true);
 		expect(kind).toBe("Completed");
 		expect(c.getSlots()[0].missions![3].completed).toBe(true);
 		expect(c.getSlots()[0].missions![1]).toEqual(earlier[1]);

@@ -87,19 +87,32 @@ function phasePar(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): nu
 	const seconds = phase.seconds ?? 0;
 	const hazards = (phase.hazard?.count ?? 0) * PAR_PER_GROUND;
 	switch (phase.kind) {
-		case "tutorial_move": return 10;
-		case "tutorial_target": return 6;
-		case "tutorial_missile": return 15;
-		case "required_air": return PAR_AIR_APPROACH + count * PAR_PER_BANDIT[act];
-		case "required_ground": return 5 + count * PAR_PER_GROUND;
-		case "ace": return PAR_ACE_BASE + aceHealth * PAR_ACE_PER_HEALTH;
-		case "chase": return 35;
+		case "tutorial_move":
+			return 10;
+		case "tutorial_target":
+			return 6;
+		case "tutorial_missile":
+			return 15;
+		case "required_air":
+			return PAR_AIR_APPROACH + count * PAR_PER_BANDIT[act];
+		case "required_ground":
+			return 5 + count * PAR_PER_GROUND;
+		case "ace":
+			return PAR_ACE_BASE + aceHealth * PAR_ACE_PER_HEALTH;
+		case "chase":
+			return 35;
 		// A score-threshold phase runs to its own clock (m05: strike until 10:00 expires).
-		case "score_threshold": return phase.scoreThreshold?.seconds ?? 0;
-		case "route": return points * PAR_PER_BEACON;
-		case "recon": return points * (seconds * 1.1 + 8);
-		case "escort": case "defend": return seconds * 1.05 + 8 + hazards;
-		default: return seconds * 1.15 + 8 + hazards; // signal: the hold plus drift while fighting and getting on station
+		case "score_threshold":
+			return phase.scoreThreshold?.seconds ?? 0;
+		case "route":
+			return points * PAR_PER_BEACON;
+		case "recon":
+			return points * (seconds * 1.1 + 8);
+		case "escort":
+		case "defend":
+			return seconds * 1.05 + 8 + hazards;
+		default:
+			return seconds * 1.15 + 8 + hazards; // signal: the hold plus drift while fighting and getting on station
 	}
 }
 
@@ -135,7 +148,9 @@ export const MissionScore = {
 		if (policy?.basis === "points") {
 			const score = math.max(0, finite(input.targetPoints ?? 0));
 			if (!input.won) return { score, rank: "D", rating: 0, time, accuracy, survival };
-			const rating = math.floor(WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6);
+			const rating = math.floor(
+				WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6,
+			);
 			return { score, rank: pointsRank(score, policy), rating, time, accuracy, survival };
 		}
 		const killPoints = airKills * AIR_POINTS + groundKills * GROUND_POINTS;
@@ -147,7 +162,10 @@ export const MissionScore = {
 		const rating = math.floor(WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6);
 		let rank: MissionRank = "D";
 		for (const cut of RANK_CUTS) {
-			if (rating >= cut.rating) { rank = cut.rank; break; }
+			if (rating >= cut.rating) {
+				rank = cut.rank;
+				break;
+			}
 		}
 		// An S is earned with the missiles too: a high rating carried by speed alone tops out at A.
 		if (rank === "S" && accuracy < S_ACCURACY) rank = "A";

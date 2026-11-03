@@ -29,7 +29,9 @@ export const AceRules = {
 	RetreatMaxSeconds: RETREAT_MAX_SECONDS,
 	HoldMinSeconds: HOLD_MIN_SECONDS,
 	HoldMaxSeconds: HOLD_MAX_SECONDS,
-	New(): AceStageState { return { stage: 0, mode: "fight", modeTime: 0, invulnerableUntil: 0 }; },
+	New(): AceStageState {
+		return { stage: 0, mode: "fight", modeTime: 0, invulnerableUntil: 0 };
+	},
 	/** Health at which the current stage ends, or -1 in the last stage. */
 	StageLine(maxHealth: number, stage: number): number {
 		if (stage === 0) return maxHealth * (2 / 3);
@@ -55,7 +57,14 @@ export const AceRules = {
 	 * Did a hit from `before` to `after` health cross the current stage line? Advances the stage when it
 	 * did. Only a fighting ace crosses: a retreat or hold in progress is never overwritten.
 	 */
-	Cross(state: AceStageState, maxHealth: number, before: number, after: number, now: number, retreats: boolean): boolean {
+	Cross(
+		state: AceStageState,
+		maxHealth: number,
+		before: number,
+		after: number,
+		now: number,
+		retreats: boolean,
+	): boolean {
 		if (state.mode !== "fight") return false;
 		const line = AceRules.StageLine(maxHealth, state.stage);
 		if (line < 0 || !(before > line && after <= line)) return false;
@@ -69,18 +78,27 @@ export const AceRules = {
 	Step(state: AceStageState, dt: number, separation: number, raidersAlive: number): AceEvent | undefined {
 		state.modeTime += math.max(0, dt);
 		if (state.mode === "retreat" && (separation > RETREAT_RANGE || state.modeTime >= RETREAT_MAX_SECONDS)) {
-			state.mode = "hold"; state.modeTime = 0;
+			state.mode = "hold";
+			state.modeTime = 0;
 			return "called";
 		}
-		if (state.mode === "hold" && ((raidersAlive <= 0 && state.modeTime >= HOLD_MIN_SECONDS) || state.modeTime >= HOLD_MAX_SECONDS)) {
-			state.mode = "fight"; state.modeTime = 0;
+		if (
+			state.mode === "hold" &&
+			((raidersAlive <= 0 && state.modeTime >= HOLD_MIN_SECONDS) || state.modeTime >= HOLD_MAX_SECONDS)
+		) {
+			state.mode = "fight";
+			state.modeTime = 0;
 			return "returned";
 		}
 		return undefined;
 	},
 	/** Only a fighting ace launches missiles or notches locks; a retreating or holding one is running. */
-	Fights(state: AceStageState): boolean { return state.mode === "fight"; },
-	Invulnerable(state: AceStageState, now: number): boolean { return now < state.invulnerableUntil; },
+	Fights(state: AceStageState): boolean {
+		return state.mode === "fight";
+	},
+	Invulnerable(state: AceStageState, now: number): boolean {
+		return now < state.invulnerableUntil;
+	},
 	/**
 	 * Would a hit hurt the ace right now? Not during stage immunity, and not while a retreat or hold
 	 * keeps it at its stage floor (CapHit would take nothing). Above that floor it still takes damage.

@@ -50,7 +50,15 @@ function digits(value: number): number {
 /** Characters (not UTF-8 bytes: "·" is two) in the longest ammo line the game can show with that separator. */
 export function statusMaxChars(tight: boolean): number {
 	const separator = tight ? 1 : 3;
-	return 4 + digits(WeaponRules.MaxMissiles) + separator + STATUS_SPECIAL_CHARS + separator + 4 + digits(EvadeRules.MaxCharges);
+	return (
+		4 +
+		digits(WeaponRules.MaxMissiles) +
+		separator +
+		STATUS_SPECIAL_CHARS +
+		separator +
+		4 +
+		digits(EvadeRules.MaxCharges)
+	);
 }
 
 /** Width in px of `chars` RobotoMono characters at `textSize`. */
@@ -68,8 +76,16 @@ export function statusLine(status: WeaponStatus): StatusCell[] {
 	const charges = math.max(0, math.floor(status.specialCharges));
 	const evades = math.max(0, math.floor(status.evadeCharges));
 	return [
-		{ key: "missile", text: `MSL ${missiles}`, tone: missiles <= 0 ? "danger" : status.missileCooldown > 0 ? "dim" : "normal" },
-		{ key: "special", text: status.specialActive > 0 ? `${status.special} ON` : `${status.special} ${charges}`, tone: status.specialActive > 0 ? "warn" : charges <= 0 || status.specialCooldown > 0 ? "dim" : "normal" },
+		{
+			key: "missile",
+			text: `MSL ${missiles}`,
+			tone: missiles <= 0 ? "danger" : status.missileCooldown > 0 ? "dim" : "normal",
+		},
+		{
+			key: "special",
+			text: status.specialActive > 0 ? `${status.special} ON` : `${status.special} ${charges}`,
+			tone: status.specialActive > 0 ? "warn" : charges <= 0 || status.specialCooldown > 0 ? "dim" : "normal",
+		},
 		{ key: "evade", text: `EVD ${evades}`, tone: evades <= 0 ? "dim" : "normal" },
 	];
 }
@@ -83,7 +99,10 @@ export function armamentStatusLine(status: WeaponStatus, gunRounds?: number): { 
 	const cells = statusLine(status);
 	if (gunRounds === undefined) return { cells, fit: math.floor(status.missiles) > WeaponRules.MaxMissiles };
 	const rounds = math.max(0, math.floor(gunRounds));
-	return { cells: [{ key: "gun", text: `GUN ${rounds}`, tone: rounds <= 0 ? "danger" : "normal" }, ...cells], fit: true };
+	return {
+		cells: [{ key: "gun", text: `GUN ${rounds}`, tone: rounds <= 0 ? "danger" : "normal" }, ...cells],
+		fit: true,
+	};
 }
 
 /** Minutes and seconds, never negative: "04:07". */
@@ -93,10 +112,19 @@ export function formatClock(seconds: number): string {
 }
 
 /** Top-left block: TIME left on the clock, then the phase objective count (or required kills). */
-export function clockLines(timeRemaining: number, objectiveProgress: number | undefined, objectiveTotal: number | undefined, kills: number, total: number): [string, string] {
-	const progress = objectiveTotal !== undefined && objectiveTotal > 0
-		? `TGT ${math.min(objectiveProgress ?? 0, objectiveTotal)}/${objectiveTotal}`
-		: total > 0 ? `KILL ${math.min(kills, total)}/${total}` : `KILL ${kills}`;
+export function clockLines(
+	timeRemaining: number,
+	objectiveProgress: number | undefined,
+	objectiveTotal: number | undefined,
+	kills: number,
+	total: number,
+): [string, string] {
+	const progress =
+		objectiveTotal !== undefined && objectiveTotal > 0
+			? `TGT ${math.min(objectiveProgress ?? 0, objectiveTotal)}/${objectiveTotal}`
+			: total > 0
+				? `KILL ${math.min(kills, total)}/${total}`
+				: `KILL ${kills}`;
 	return [`TIME ${formatClock(timeRemaining)}`, progress];
 }
 

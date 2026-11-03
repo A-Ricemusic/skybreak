@@ -53,7 +53,7 @@ export interface SlotDeletion {
 }
 /** String-keyed dictionaries survive Roblox remote serialization, including practice 0. */
 export type WireSaveSlot = Omit<SaveSlot, "missions"> & {
- missions?: { [missionId: string]: MissionRecord } | SaveSlot["missions"];
+	missions?: { [missionId: string]: MissionRecord } | SaveSlot["missions"];
 };
 export interface CampaignResponse {
 	/** Local acceptance is distinct from durable deletion confirmation. */
@@ -272,11 +272,35 @@ export interface MissionFinished extends MissionStats {
 	bestScore?: number;
 	bestRank?: string;
 }
-export interface LandingStarted { kind: "LandingStarted"; plan: import("./LandingRules").LandingPlan }
+export interface LandingStarted {
+	kind: "LandingStarted";
+	plan: import("./LandingRules").LandingPlan;
+}
 /** The server accepted a landing skip; `elapsed` is its authoritative landing time (the runway hold). */
-export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
+export interface LandingSkipped {
+	kind: "LandingSkipped";
+	elapsed: number;
+}
 /** The launch is queued until the previous world's cleanup completes; the request stays open. */
-export interface MissionQueued { launchId?: number; kind: "Queued"; missionId: number }
-export interface MissionBuilding { launchId?: number; kind: "Building"; missionId: number; folder: Instance }
-export type MissionMessage = MissionBuilding | LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+export interface MissionQueued {
+	launchId?: number;
+	kind: "Queued";
+	missionId: number;
+}
+export interface MissionBuilding {
+	launchId?: number;
+	kind: "Building";
+	missionId: number;
+	folder: Instance;
+}
+export type MissionMessage =
+	| MissionBuilding
+	| LandingStarted
+	| LandingSkipped
+	| MissionQueued
+	| MissionLoading
+	| MissionStarted
+	| FlightControlHandoff
+	| HudState
+	| MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

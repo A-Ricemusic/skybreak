@@ -44,22 +44,37 @@ export const WORLD_LAUNCH_WAIT_LIMIT = WORLD_CLEANUP_LIMIT * 2 + 30;
 /** Seconds a cancelled step gets to stop on its own before it is stopped at its next yield. */
 export const WORLD_CANCEL_GRACE = 5;
 
-interface ActiveCleanup { token: { cancelled: boolean }; coordinator?: IsolatedWork; step?: IsolatedWork; released: boolean }
+interface ActiveCleanup {
+	token: { cancelled: boolean };
+	coordinator?: IsolatedWork;
+	step?: IsolatedWork;
+	released: boolean;
+}
 
 export class WorldLifecycle {
 	private pending = 0;
 	private closing = false;
 	private readonly active: ActiveCleanup[] = [];
-	public constructor(private readonly scheduler: LifecycleScheduler, private readonly limitSeconds = WORLD_CLEANUP_LIMIT) {}
+	public constructor(
+		private readonly scheduler: LifecycleScheduler,
+		private readonly limitSeconds = WORLD_CLEANUP_LIMIT,
+	) {}
 	/** No cleanup is pending: a world may be built now. */
-	public Idle(): boolean { return this.pending === 0; }
-	public Pending(): number { return this.pending; }
-	public Closing(): boolean { return this.closing; }
+	public Idle(): boolean {
+		return this.pending === 0;
+	}
+	public Pending(): number {
+		return this.pending;
+	}
+	public Closing(): boolean {
+		return this.closing;
+	}
 	/** Starts a world's cleanup in its own threads and returns at once. Skipped while the server is closing. */
 	public Cleanup(job: WorldCleanup): void {
 		this.reap();
 		if (this.closing) return;
-		const scheduler = this.scheduler, limit = this.limitSeconds;
+		const scheduler = this.scheduler,
+			limit = this.limitSeconds;
 		const entry: ActiveCleanup = { token: { cancelled: false }, released: false };
 		const cancelled = () => entry.token.cancelled || this.closing;
 		const waitFor = (ended: () => boolean, seconds: number): boolean => {
@@ -121,7 +136,11 @@ export class WorldLifecycle {
 	private reap(): void {
 		for (const entry of [...this.active]) {
 			if (entry.released || entry.coordinator === undefined || !entry.coordinator.ended()) continue;
-			if (entry.step !== undefined && !entry.step.ended()) { entry.token.cancelled = true; entry.step.cancel(); continue; }
+			if (entry.step !== undefined && !entry.step.ended()) {
+				entry.token.cancelled = true;
+				entry.step.cancel();
+				continue;
+			}
 			this.release(entry);
 		}
 	}
@@ -140,10 +159,24 @@ export interface LaunchSlotEnvironment {
  * passed or the player left meanwhile. A refused launch asks for the menu to be rebuilt, because the cleanup
  * it waited on skips the menu while a launch is pending.
  */
-export function awaitLaunchSlot(gate: Pick<WorldLifecycle, "Idle" | "AwaitIdle">, env: LaunchSlotEnvironment, limitSeconds?: number): LaunchSlot {
-	if (!gate.Idle()) { env.queued(); gate.AwaitIdle(limitSeconds); }
-	if (!gate.Idle()) return { kind: "refuse", message: "The previous sortie is still being cleared. Please retry.", restoreMenu: true };
-	if (!env.playerPresent()) return { kind: "refuse", message: "Player is unavailable", restoreMenu: env.sessions() === 0 };
-	if (env.sessions() > 0) return { kind: "refuse", message: "This mission world is single-player", restoreMenu: false };
+export function awaitLaunchSlot(
+	gate: Pick<WorldLifecycle, "Idle" | "AwaitIdle">,
+	env: LaunchSlotEnvironment,
+	limitSeconds?: number,
+): LaunchSlot {
+	if (!gate.Idle()) {
+		env.queued();
+		gate.AwaitIdle(limitSeconds);
+	}
+	if (!gate.Idle())
+		return {
+			kind: "refuse",
+			message: "The previous sortie is still being cleared. Please retry.",
+			restoreMenu: true,
+		};
+	if (!env.playerPresent())
+		return { kind: "refuse", message: "Player is unavailable", restoreMenu: env.sessions() === 0 };
+	if (env.sessions() > 0)
+		return { kind: "refuse", message: "This mission world is single-player", restoreMenu: false };
 	return { kind: "build" };
 }

@@ -1,10 +1,18 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { CoreGuiPolicy, CoreGuiTarget } from "../shared/CoreGuiPolicy";
 
-interface Fake extends CoreGuiTarget { guis: Map<Enum.CoreGuiType, boolean>; cores: Map<string, unknown>; failUntilCall: number; calls: number }
+interface Fake extends CoreGuiTarget {
+	guis: Map<Enum.CoreGuiType, boolean>;
+	cores: Map<string, unknown>;
+	failUntilCall: number;
+	calls: number;
+}
 function fake(failUntilCall = 0): Fake {
 	const target: Fake = {
-		guis: new Map(), cores: new Map(), failUntilCall, calls: 0,
+		guis: new Map(),
+		cores: new Map(),
+		failUntilCall,
+		calls: 0,
 		SetCoreGuiEnabled(kind, enabled) {
 			target.calls++;
 			if (target.calls <= target.failUntilCall) error("CoreGui not ready");
@@ -12,7 +20,8 @@ function fake(failUntilCall = 0): Fake {
 		},
 		SetCore(parameter, value) {
 			target.calls++;
-			if (target.calls <= target.failUntilCall) error(`SetCore: ${parameter} has not been registered by the CoreScripts`);
+			if (target.calls <= target.failUntilCall)
+				error(`SetCore: ${parameter} has not been registered by the CoreScripts`);
 			target.cores.set(parameter, value);
 		},
 	};

@@ -5,7 +5,11 @@ import { AssetSelection } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 let model: Model | undefined;
-afterEach(() => { model?.Destroy(); model = undefined; UploadedAssets.Configure(); });
+afterEach(() => {
+	model?.Destroy();
+	model = undefined;
+	UploadedAssets.Configure();
+});
 describe("BomberFactory fallback visual", () => {
 	it("uses the labelled stand-in when the uploaded bomber ID is unavailable", () => {
 		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
@@ -30,10 +34,13 @@ describe("BomberFactory fallback visual", () => {
 		let engines = 0;
 		for (const p of model.GetChildren()) {
 			if (!p.IsA("BasePart")) continue;
-			expect(p.CanCollide).toBe(false); expect(p.CanTouch).toBe(false); expect(p.CanQuery).toBe(false);
+			expect(p.CanCollide).toBe(false);
+			expect(p.CanTouch).toBe(false);
+			expect(p.CanQuery).toBe(false);
 			if (p.Name === "StandInEngine") engines++;
 			if (p === root) continue;
-			expect(p.Anchored).toBe(false); expect(p.Massless).toBe(true);
+			expect(p.Anchored).toBe(false);
+			expect(p.Massless).toBe(true);
 			expect(p.FindFirstChild("RootWeld")?.IsA("WeldConstraint")).toBe(true);
 		}
 		expect(engines).toBe(4);
@@ -44,14 +51,28 @@ describe("BomberFactory fallback visual", () => {
 describe("Bomber uploaded geometry alignment", () => {
 	it("preserves template-local part poses at a different aircraft root", () => {
 		model = new Instance("Model");
-		const root = new Instance("Part"); root.CFrame = new CFrame(-400, 700, 900); root.Parent = model; model.PrimaryPart = root;
+		const root = new Instance("Part");
+		root.CFrame = new CFrame(-400, 700, 900);
+		root.Parent = model;
+		model.PrimaryPart = root;
 		const template = new Instance("Model");
-		const body = new Instance("Part"); body.Name = "Body"; body.CFrame = new CFrame(100, 200, 300).mul(CFrame.Angles(0, .7, 0)); body.Parent = template; template.PrimaryPart = body;
-		const wing = new Instance("Part"); wing.Name = "Wing"; wing.CFrame = body.CFrame.mul(new CFrame(20, 2, 4)); wing.Parent = template;
+		const body = new Instance("Part");
+		body.Name = "Body";
+		body.CFrame = new CFrame(100, 200, 300).mul(CFrame.Angles(0, 0.7, 0));
+		body.Parent = template;
+		template.PrimaryPart = body;
+		const wing = new Instance("Part");
+		wing.Name = "Wing";
+		wing.CFrame = body.CFrame.mul(new CFrame(20, 2, 4));
+		wing.Parent = template;
 		attachBomberGeometry(model, template);
 		const clone = model.FindFirstChild("Wing") as BasePart;
-		expect(root.CFrame.ToObjectSpace(clone.CFrame).Position.sub(new Vector3(20, 2, 4)).Magnitude).toBeLessThan(.001);
-		expect((model.FindFirstChild("Body") as BasePart).CFrame.LookVector.sub(root.CFrame.LookVector).Magnitude).toBeLessThan(.001);
+		expect(root.CFrame.ToObjectSpace(clone.CFrame).Position.sub(new Vector3(20, 2, 4)).Magnitude).toBeLessThan(
+			0.001,
+		);
+		expect(
+			(model.FindFirstChild("Body") as BasePart).CFrame.LookVector.sub(root.CFrame.LookVector).Magnitude,
+		).toBeLessThan(0.001);
 		template.Destroy();
 	});
 });

@@ -22,7 +22,8 @@ const MAP_CONTENT: Record<SurfaceMap, (appearance: SurfaceAppearance) => Content
 	RoughnessMap: (appearance) => appearance.RoughnessMapContent,
 	MetalnessMap: (appearance) => appearance.MetalnessMapContent,
 };
-const defaultProbe: AppearanceProbe = (appearance, map) => MAP_CONTENT[map](appearance).SourceType !== Enum.ContentSourceType.None;
+const defaultProbe: AppearanceProbe = (appearance, map) =>
+	MAP_CONTENT[map](appearance).SourceType !== Enum.ContentSourceType.None;
 let loader: AssetLoader = defaultLoader;
 let probe: AppearanceProbe = defaultProbe;
 let ids: Partial<Record<UploadedAssetName, number | undefined>> = RobloxAssetIds;
@@ -66,7 +67,13 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 			// Nested parts are cloned separately by the outer loop; retain only one
 			// normalised copy. Keep appearances, but drop scripts and joints too.
 			for (const child of part.GetDescendants()) {
-				if (child.IsA("BasePart") || child.IsA("LuaSourceContainer") || child.IsA("JointInstance") || child.IsA("Constraint")) child.Destroy();
+				if (
+					child.IsA("BasePart") ||
+					child.IsA("LuaSourceContainer") ||
+					child.IsA("JointInstance") ||
+					child.IsA("Constraint")
+				)
+					child.Destroy();
 			}
 			part.Anchored = true;
 			part.CanCollide = false;
@@ -77,14 +84,19 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 			part.Parent = model;
 			seen.push(describe(part));
 		}
-		const required = spec.kind === "aircraft" ? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts, spec.rotors) : [];
+		const required =
+			spec.kind === "aircraft"
+				? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts, spec.rotors)
+				: [];
 		const problem = AssetSelection.AppearanceProblem(seen, required);
 		assert(problem === undefined, problem);
 		const offsets = UploadedAssetOrientation[name];
 		if (offsets !== undefined) {
 			const [bounds] = model.GetBoundingBox();
 			const centre = new CFrame(bounds.Position);
-			const correction = centre.mul(CFrame.Angles(math.rad(offsets.pitch), math.rad(offsets.yaw), math.rad(offsets.roll))).mul(centre.Inverse());
+			const correction = centre
+				.mul(CFrame.Angles(math.rad(offsets.pitch), math.rad(offsets.yaw), math.rad(offsets.roll)))
+				.mul(centre.Inverse());
 			for (const part of model.GetChildren()) if (part.IsA("BasePart")) part.CFrame = correction.mul(part.CFrame);
 		}
 		const [, size] = model.GetBoundingBox();
@@ -128,7 +140,10 @@ export const UploadedAssets = {
 			while (entry.loading) task.wait();
 			if (entry.template !== undefined) return { name: choice.name, template: entry.template };
 			if (failed.has(choice.assetId)) continue;
-			assert(RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()), "Uploaded assets load on the server");
+			assert(
+				RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()),
+				"Uploaded assets load on the server",
+			);
 			entry.loading = true;
 			const [ok, result] = pcall(() => normalise(loader(choice.assetId), choice.name, choice.assetId));
 			entry.loading = false;
@@ -137,7 +152,9 @@ export const UploadedAssets = {
 				return { name: choice.name, template: result };
 			}
 			failed.add(choice.assetId);
-			warn(`Uploaded ${choice.name} (asset ${choice.assetId}) failed to load; using the fallback: ${tostring(result)}`);
+			warn(
+				`Uploaded ${choice.name} (asset ${choice.assetId}) failed to load; using the fallback: ${tostring(result)}`,
+			);
 		}
 	},
 	/**
@@ -181,7 +198,13 @@ export const UploadedAssets = {
 	 * Test hook: swap the ID table, loader and map probe (tests cannot author
 	 * SurfaceAppearance maps), and clear every cache and failure.
 	 */
-	Configure(options: { ids?: Partial<Record<UploadedAssetName, number | undefined>>; loader?: AssetLoader; probe?: AppearanceProbe } = {}): void {
+	Configure(
+		options: {
+			ids?: Partial<Record<UploadedAssetName, number | undefined>>;
+			loader?: AssetLoader;
+			probe?: AppearanceProbe;
+		} = {},
+	): void {
 		ids = options.ids ?? RobloxAssetIds;
 		loader = options.loader ?? defaultLoader;
 		probe = options.probe ?? defaultProbe;

@@ -32,12 +32,20 @@ describe("Staggered waves", () => {
 	});
 	it("staggers a ten-bandit wing so no more than five are up at once when the player keeps pace", () => {
 		const plan = WavePlan.Groups(10, 2);
-		let spawned = plan[0], nextGroup = 1, killed = 0, peak = spawned, sinceLast = 0;
+		let spawned = plan[0],
+			nextGroup = 1,
+			killed = 0,
+			peak = spawned,
+			sinceLast = 0;
 		// One kill every 8 s, checked each second.
 		for (let t = 1; t <= 200 && killed < 10; t++) {
 			sinceLast += 1;
 			if (t % 8 === 0 && killed < spawned) killed += 1;
-			if (WavePlan.Due({ next: nextGroup, plan, sinceLast, stagger: 40, killed })) { spawned += plan[nextGroup]; nextGroup += 1; sinceLast = 0; }
+			if (WavePlan.Due({ next: nextGroup, plan, sinceLast, stagger: 40, killed })) {
+				spawned += plan[nextGroup];
+				nextGroup += 1;
+				sinceLast = 0;
+			}
 			peak = math.max(peak, spawned - killed);
 		}
 		expect(killed).toBe(10);
@@ -57,7 +65,8 @@ describe("Staggered waves", () => {
 	it("sends an authored group at its share of the whole phase, never on the timer or half the last group", () => {
 		// M26: eight in two groups of four; the rear flight comes at 50% of the phase.
 		const plan = WavePlan.Groups(8, 2);
-		const due = (killed: number, sinceLast: number) => WavePlan.Due({ next: 1, plan, sinceLast, stagger: 18, killed, groupAt: [0.5] });
+		const due = (killed: number, sinceLast: number) =>
+			WavePlan.Due({ next: 1, plan, sinceLast, stagger: 18, killed, groupAt: [0.5] });
 		expect(due(0, 999)).toBe(false);
 		expect(due(2, 1)).toBe(false);
 		expect(due(3, 999)).toBe(false);
@@ -95,12 +104,24 @@ describe("Staggered waves", () => {
 	});
 	it("preserves unrestricted route admissions when the opt-in route cap is absent", () => {
 		for (const room of [-1, 0, 1, 2, 7, 8]) {
-			const route = { id: "patrol", route: { speed: 90, waypoints: [{x:0,y:400,z:0},{x:1000,y:400,z:0}] } } as AirRequest["arrival"];
-			const queue = (): AirRequest[] => [{ role:"raider",count:4,behind:false,arrival:route }, {role:"raider",count:4,behind:true}];
-			const legacy=queue(), explicit=queue();
-			expect(WavePlan.Admit(legacy,room)).toEqual(WavePlan.Admit(explicit,room,room));
+			const route = {
+				id: "patrol",
+				route: {
+					speed: 90,
+					waypoints: [
+						{ x: 0, y: 400, z: 0 },
+						{ x: 1000, y: 400, z: 0 },
+					],
+				},
+			} as AirRequest["arrival"];
+			const queue = (): AirRequest[] => [
+				{ role: "raider", count: 4, behind: false, arrival: route },
+				{ role: "raider", count: 4, behind: true },
+			];
+			const legacy = queue(),
+				explicit = queue();
+			expect(WavePlan.Admit(legacy, room)).toEqual(WavePlan.Admit(explicit, room, room));
 			expect(legacy).toEqual(explicit);
 		}
 	});
-
 });

@@ -38,16 +38,26 @@ function normalize(state: FlightState): void {
 	const { qw, qx, qy, qz } = state;
 	const length = math.sqrt(qw * qw + qx * qx + qy * qy + qz * qz);
 	if (length > 1e-6 && length === length && length < math.huge) {
-		state.qw = qw / length; state.qx = qx / length; state.qy = qy / length; state.qz = qz / length;
+		state.qw = qw / length;
+		state.qx = qx / length;
+		state.qy = qy / length;
+		state.qz = qz / length;
 	} else {
-		state.qw = 1; state.qx = 0; state.qy = 0; state.qz = 0;
+		state.qw = 1;
+		state.qx = 0;
+		state.qy = 0;
+		state.qz = 0;
 	}
 }
 /** q = rotation(axis, angle) * q: turn about a world axis (unit). */
 function rotateWorld(state: FlightState, ax: number, ay: number, az: number, angle: number): void {
 	if (angle === 0) return;
-	const half = angle / 2, s = math.sin(half);
-	const bw = math.cos(half), bx = ax * s, by = ay * s, bz = az * s;
+	const half = angle / 2,
+		s = math.sin(half);
+	const bw = math.cos(half),
+		bx = ax * s,
+		by = ay * s,
+		bz = az * s;
 	const { qw, qx, qy, qz } = state;
 	state.qw = bw * qw - bx * qx - by * qy - bz * qz;
 	state.qx = bw * qx + bx * qw + by * qz - bz * qy;
@@ -57,8 +67,12 @@ function rotateWorld(state: FlightState, ax: number, ay: number, az: number, ang
 /** q = q * rotation(axis, angle): turn about an axis fixed to the jet (unit, body coordinates). */
 function rotateBody(state: FlightState, ax: number, ay: number, az: number, angle: number): void {
 	if (angle === 0) return;
-	const half = angle / 2, s = math.sin(half);
-	const bw = math.cos(half), bx = ax * s, by = ay * s, bz = az * s;
+	const half = angle / 2,
+		s = math.sin(half);
+	const bw = math.cos(half),
+		bx = ax * s,
+		by = ay * s,
+		bz = az * s;
 	const { qw, qx, qy, qz } = state;
 	state.qw = qw * bw - qx * bx - qy * by - qz * bz;
 	state.qx = qw * bx + qx * bw + qy * bz - qz * by;
@@ -75,12 +89,19 @@ function pitchTowardGround(state: FlightState, sign: number, angle: number): voi
 	if (sign === 0 || angle <= 0) return;
 	const [fx, fy, fz] = FlightMath.ForwardOf(state);
 	// forward x down (scaled by the nose's horizontal length): rotating about it lowers the nose.
-	let ax = fz * sign, az = -fx * sign, ay = 0;
+	let ax = fz * sign,
+		az = -fx * sign,
+		ay = 0;
 	const length = math.sqrt(ax * ax + az * az);
 	if (length < 1e-3) {
 		const [rx, ry, rz] = FlightMath.RightOf(state);
-		ax = -rx * sign; ay = -ry * sign; az = -rz * sign;
-	} else { ax /= length; az /= length; }
+		ax = -rx * sign;
+		ay = -ry * sign;
+		az = -rz * sign;
+	} else {
+		ax /= length;
+		az /= length;
+	}
 	// Never overshoot straight down (or up).
 	const remaining = math.acos(math.clamp(-fy * sign, -1, 1));
 	rotateWorld(state, ax, ay, az, math.min(angle, remaining));
@@ -124,7 +145,7 @@ export const FlightMath = {
 		return 1 - math.exp(-rate * math.max(dt, 0));
 	},
 	WrapAngle(angle: number): number {
-		return (angle + math.pi) % (2 * math.pi) - math.pi;
+		return ((angle + math.pi) % (2 * math.pi)) - math.pi;
 	},
 	ApproachAngle(angle: number, target: number, maxStep: number): number {
 		return FlightMath.WrapAngle(angle + math.clamp(FlightMath.WrapAngle(target - angle), -maxStep, maxStep));
@@ -151,7 +172,9 @@ export const FlightMath = {
 	},
 	/** Drawn orientation (attitude plus lean) as CFrame quaternion components: qx, qy, qz, qw. */
 	Visual(state: FlightState): LuaTuple<[number, number, number, number]> {
-		const half = state.lean / 2, s = math.sin(half), c = math.cos(half);
+		const half = state.lean / 2,
+			s = math.sin(half),
+			c = math.cos(half);
 		const { qw, qx, qy, qz } = state;
 		// q * rotation about body +Z by lean (CFrame.Angles(0, 0, lean)).
 		return $tuple(qx * c + qy * s, qy * c - qx * s, qz * c + qw * s, qw * c - qz * s);
@@ -169,7 +192,10 @@ export const FlightMath = {
 	},
 	/** Sets the attitude from a heading, climb angle and bank (YXZ, as CFrame.fromEulerAnglesYXZ). */
 	SetAttitude(state: FlightState, yaw: number, pitch: number, roll = 0): FlightState {
-		state.qw = 1; state.qx = 0; state.qy = 0; state.qz = 0;
+		state.qw = 1;
+		state.qx = 0;
+		state.qy = 0;
+		state.qz = 0;
 		rotateBody(state, 0, 1, 0, yaw);
 		rotateBody(state, 1, 0, 0, pitch);
 		rotateBody(state, 0, 0, 1, roll);
@@ -180,31 +206,70 @@ export const FlightMath = {
 	 * Sets the attitude from an orthonormal basis (a CFrame's RightVector,
 	 * UpVector and -LookVector, i.e. its rotation matrix columns).
 	 */
-	SetBasis(state: FlightState, rx: number, ry: number, rz: number, ux: number, uy: number, uz: number, bx: number, by: number, bz: number): FlightState {
+	SetBasis(
+		state: FlightState,
+		rx: number,
+		ry: number,
+		rz: number,
+		ux: number,
+		uy: number,
+		uz: number,
+		bx: number,
+		by: number,
+		bz: number,
+	): FlightState {
 		const trace = rx + uy + bz;
 		if (trace > 0) {
 			const s = math.sqrt(trace + 1) * 2;
-			state.qw = s / 4; state.qx = (uz - by) / s; state.qy = (bx - rz) / s; state.qz = (ry - ux) / s;
+			state.qw = s / 4;
+			state.qx = (uz - by) / s;
+			state.qy = (bx - rz) / s;
+			state.qz = (ry - ux) / s;
 		} else if (rx > uy && rx > bz) {
 			const s = math.sqrt(1 + rx - uy - bz) * 2;
-			state.qw = (uz - by) / s; state.qx = s / 4; state.qy = (ux + ry) / s; state.qz = (bx + rz) / s;
+			state.qw = (uz - by) / s;
+			state.qx = s / 4;
+			state.qy = (ux + ry) / s;
+			state.qz = (bx + rz) / s;
 		} else if (uy > bz) {
 			const s = math.sqrt(1 + uy - rx - bz) * 2;
-			state.qw = (bx - rz) / s; state.qx = (ux + ry) / s; state.qy = s / 4; state.qz = (by + uz) / s;
+			state.qw = (bx - rz) / s;
+			state.qx = (ux + ry) / s;
+			state.qy = s / 4;
+			state.qz = (by + uz) / s;
 		} else {
 			const s = math.sqrt(1 + bz - rx - uy) * 2;
-			state.qw = (ry - ux) / s; state.qx = (bx + rz) / s; state.qy = (by + uz) / s; state.qz = s / 4;
+			state.qw = (ry - ux) / s;
+			state.qx = (bx + rz) / s;
+			state.qy = (by + uz) / s;
+			state.qz = s / 4;
 		}
 		normalize(state);
 		return FlightMath.Sync(state);
 	},
 	NewState(): FlightState {
-		return FlightMath.Sync({ x: 0, y: 250, z: 500, qw: 1, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: FlightMath.CruiseSpeed });
+		return FlightMath.Sync({
+			x: 0,
+			y: 250,
+			z: 500,
+			qw: 1,
+			qx: 0,
+			qy: 0,
+			qz: 0,
+			lean: 0,
+			yaw: 0,
+			pitch: 0,
+			roll: 0,
+			speed: FlightMath.CruiseSpeed,
+		});
 	},
 	/** A state at a position flying a heading and climb angle at `speed` (simulations and tests). */
 	FromPose(x: number, y: number, z: number, yaw: number, pitch: number, speed: number, roll = 0): FlightState {
 		const state = FlightMath.NewState();
-		state.x = x; state.y = y; state.z = z; state.speed = speed;
+		state.x = x;
+		state.y = y;
+		state.z = z;
+		state.speed = speed;
 		return FlightMath.SetAttitude(state, yaw, pitch, roll);
 	},
 	/** Normalizes the quaternion (after blending corrections into it) and re-derives the angles. */
@@ -217,30 +282,40 @@ export const FlightMath = {
 	},
 	ThrottleAxis(value: number): number {
 		const axis = FlightMath.ClampInput(value);
-		return math.abs(axis) <= 0.18 ? 0 : math.sign(axis) * (math.abs(axis) - 0.18) / 0.82;
+		return math.abs(axis) <= 0.18 ? 0 : (math.sign(axis) * (math.abs(axis) - 0.18)) / 0.82;
 	},
 	/** Deliberately compressed game scale: mph -> studs/s, not a real-world stud length. */
 	StudsPerMph: 0.2,
-	ToMph(speed: number): number { return speed / FlightMath.StudsPerMph; },
-	FromMph(mph: number): number { return mph * FlightMath.StudsPerMph; },
+	ToMph(speed: number): number {
+		return speed / FlightMath.StudsPerMph;
+	},
+	FromMph(mph: number): number {
+		return mph * FlightMath.StudsPerMph;
+	},
 	/** Absolute chosen speed carried on the wire, with cruise at the legacy 0.65 anchor. */
 	SpeedForThrottle(throttle: number): number {
 		const t = FlightMath.IsFinite(throttle) ? math.clamp(throttle, 0, 1) : FlightMath.CruiseThrottle;
 		return t <= FlightMath.CruiseThrottle
-			? FlightMath.MinSpeed + (FlightMath.CruiseSpeed - FlightMath.MinSpeed) * t / FlightMath.CruiseThrottle
-			: FlightMath.CruiseSpeed + (FlightMath.MaxSpeed - FlightMath.CruiseSpeed) * (t - FlightMath.CruiseThrottle) / (1 - FlightMath.CruiseThrottle);
+			? FlightMath.MinSpeed + ((FlightMath.CruiseSpeed - FlightMath.MinSpeed) * t) / FlightMath.CruiseThrottle
+			: FlightMath.CruiseSpeed +
+					((FlightMath.MaxSpeed - FlightMath.CruiseSpeed) * (t - FlightMath.CruiseThrottle)) /
+						(1 - FlightMath.CruiseThrottle);
 	},
 	ThrottleForSpeed(speed: number): number {
 		const v = math.clamp(speed, FlightMath.MinSpeed, FlightMath.MaxSpeed);
 		return v <= FlightMath.CruiseSpeed
-			? (v - FlightMath.MinSpeed) / (FlightMath.CruiseSpeed - FlightMath.MinSpeed) * FlightMath.CruiseThrottle
-			: FlightMath.CruiseThrottle + (v - FlightMath.CruiseSpeed) / (FlightMath.MaxSpeed - FlightMath.CruiseSpeed) * (1 - FlightMath.CruiseThrottle);
+			? ((v - FlightMath.MinSpeed) / (FlightMath.CruiseSpeed - FlightMath.MinSpeed)) * FlightMath.CruiseThrottle
+			: FlightMath.CruiseThrottle +
+					((v - FlightMath.CruiseSpeed) / (FlightMath.MaxSpeed - FlightMath.CruiseSpeed)) *
+						(1 - FlightMath.CruiseThrottle);
 	},
 	/** Held axis changes selection at +180/-250 mph/s. Neutral/cancel retains it exactly. */
 	AdjustThrottle(throttle: number, axis: number, dt: number): number {
 		const command = FlightMath.ThrottleAxis(axis);
 		if (command === 0) return throttle;
-		return FlightMath.ThrottleForSpeed(FlightMath.SpeedForThrottle(throttle) + command * (command < 0 ? 50 : 36) * math.clamp(dt, 0, 0.1));
+		return FlightMath.ThrottleForSpeed(
+			FlightMath.SpeedForThrottle(throttle) + command * (command < 0 ? 50 : 36) * math.clamp(dt, 0, 0.1),
+		);
 	},
 	/**
 	 * How much of the turn stick becomes heading change, signed so the nose
@@ -266,7 +341,9 @@ export const FlightMath = {
 		dt = math.clamp(dt, 0, 0.1);
 		const x = FlightMath.ClampInput(input.x);
 		const y = FlightMath.ClampInput(input.y);
-		const throttle = FlightMath.IsFinite(input.throttle) ? math.clamp(input.throttle, 0, 1) : FlightMath.CruiseThrottle;
+		const throttle = FlightMath.IsFinite(input.throttle)
+			? math.clamp(input.throttle, 0, 1)
+			: FlightMath.CruiseThrottle;
 		const targetSpeed = FlightMath.SpeedForThrottle(throttle);
 		// Gentle energy exchange: at vertical, +/-20 mph/s; at 30 degrees, +/-10.
 		// Engine holds the selection, with a small sustained climb/dive offset (8 mph max).
@@ -296,7 +373,17 @@ export const FlightMath = {
 			if (fx * fx + fz * fz > 1e-4) {
 				const recovery = math.clamp((edge - soft) / 250, 0, 1);
 				const heading = math.atan2(-fx, -fz);
-				rotateWorld(state, 0, 1, 0, math.clamp(FlightMath.WrapAngle(math.atan2(state.x, state.z) - heading), -recovery * 2.4 * dt, recovery * 2.4 * dt));
+				rotateWorld(
+					state,
+					0,
+					1,
+					0,
+					math.clamp(
+						FlightMath.WrapAngle(math.atan2(state.x, state.z) - heading),
+						-recovery * 2.4 * dt,
+						recovery * 2.4 * dt,
+					),
+				);
 			}
 		}
 		normalize(state);
@@ -305,7 +392,14 @@ export const FlightMath = {
 		state.x = math.clamp(state.x + dx * state.speed * dt, -hard, hard);
 		// Ease outward vertical travel to zero over 600 studs. Never rotate the pilot's
 		// attitude; a loop or dive immediately travels back into the airspace.
-		const ceilingScale = dy > 0 ? math.clamp((FlightMath.MaxAltitude - state.y) / (FlightMath.MaxAltitude - FlightMath.SoftAltitude), 0, 1) : 1;
+		const ceilingScale =
+			dy > 0
+				? math.clamp(
+						(FlightMath.MaxAltitude - state.y) / (FlightMath.MaxAltitude - FlightMath.SoftAltitude),
+						0,
+						1,
+					)
+				: 1;
 		state.y += (dy * state.speed * ceilingScale - stall * 65) * dt;
 		state.z = math.clamp(state.z + dz * state.speed * dt, -hard, hard);
 		return FlightMath.Sync(state);

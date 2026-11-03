@@ -44,12 +44,18 @@ export const CharacterPolicy = {
 		const watch = (player: CharacterPolicyPlayer) => {
 			if (player.Character) CharacterPolicy.Remove(player, player.Character);
 			perPlayer.get(player)?.Disconnect();
-			perPlayer.set(player, player.CharacterAdded.Connect((character) => CharacterPolicy.Remove(player, character)));
+			perPlayer.set(
+				player,
+				player.CharacterAdded.Connect((character) => CharacterPolicy.Remove(player, character)),
+			);
 		};
 		for (const player of players.GetPlayers()) watch(player);
 		return [
 			players.PlayerAdded.Connect(watch),
-			players.PlayerRemoving.Connect((player) => { perPlayer.get(player)?.Disconnect(); perPlayer.delete(player); }),
+			players.PlayerRemoving.Connect((player) => {
+				perPlayer.get(player)?.Disconnect();
+				perPlayer.delete(player);
+			}),
 		];
 	},
 	/** Remove an unexpected character and clear the player's reference to it. */

@@ -21,7 +21,13 @@ describe("typed ground target models", () => {
 		model.Destroy();
 	});
 	it("labels every mission 2 fallback with its HUD name and keeps a stationary aim centre", () => {
-		const labels: { [k: string]: string } = { parked_bomber: "BOMBER", hangar: "HANGAR", aa_gun: "AA GUN", control_tower: "CTRL TOWER", substation: "SUBSTATION" };
+		const labels: { [k: string]: string } = {
+			parked_bomber: "BOMBER",
+			hangar: "HANGAR",
+			aa_gun: "AA GUN",
+			control_tower: "CTRL TOWER",
+			substation: "SUBSTATION",
+		};
 		for (const spec of targets) {
 			const model = createGroundTarget(spec);
 			expect(model.Name).toBe(labels[spec.type]);
@@ -31,7 +37,10 @@ describe("typed ground target models", () => {
 	});
 	it("adopts a world-drawn visual with an invisible, non-queryable aim at its centre", () => {
 		const model = new Instance("Model");
-		const part = new Instance("Part"); part.Size = new Vector3(40, 20, 60); part.Position = new Vector3(100, 46, -200); part.Parent = model;
+		const part = new Instance("Part");
+		part.Size = new Vector3(40, 20, 60);
+		part.Position = new Vector3(100, 46, -200);
+		part.Parent = model;
 		adoptGroundTarget(model, "m02_hangar_12", "hangar");
 		const aim = model.PrimaryPart!;
 		expect(aim.Name).toBe("Aim");

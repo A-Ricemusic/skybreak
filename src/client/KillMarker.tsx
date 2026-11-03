@@ -32,11 +32,23 @@ function KillMarkerImpl({ flash, rectangle, visible }: { flash?: KillFlash; rect
 	const strokeRef = useRef<UIStroke>();
 	const serial = flash?.serial ?? 0;
 	useEffect(() => {
-		const label = labelRef.current, scale = scaleRef.current, bracket = bracketRef.current, stroke = strokeRef.current;
+		const label = labelRef.current,
+			scale = scaleRef.current,
+			bracket = bracketRef.current,
+			stroke = strokeRef.current;
 		if (serial === 0 || !label || !scale) return;
 		const tweens: Tween[] = [];
-		const play = (instance: Instance, seconds: number, goal: object, style: Enum.EasingStyle = Enum.EasingStyle.Quad) => {
-			const tween = TweenService.Create(instance, new TweenInfo(seconds, style, Enum.EasingDirection.Out), goal as never);
+		const play = (
+			instance: Instance,
+			seconds: number,
+			goal: object,
+			style: Enum.EasingStyle = Enum.EasingStyle.Quad,
+		) => {
+			const tween = TweenService.Create(
+				instance,
+				new TweenInfo(seconds, style, Enum.EasingDirection.Out),
+				goal as never,
+			);
 			tweens.push(tween);
 			tween.Play();
 		};

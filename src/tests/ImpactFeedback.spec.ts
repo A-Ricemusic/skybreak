@@ -59,7 +59,8 @@ describe("camera shake", () => {
 	it("keeps light hits subtle and heavy hits firmer, never full", () => {
 		expect(ImpactFeedback.DamageTrauma(0)).toBe(0);
 		expect(ImpactFeedback.DamageTrauma(-5)).toBe(0);
-		const light = ImpactFeedback.DamageTrauma(10), heavy = ImpactFeedback.DamageTrauma(ImpactFeedback.HeavyHit);
+		const light = ImpactFeedback.DamageTrauma(10),
+			heavy = ImpactFeedback.DamageTrauma(ImpactFeedback.HeavyHit);
 		expect(light > 0 && light < 0.35).toBe(true);
 		expect(heavy > light + 0.15).toBe(true);
 		expect(ImpactFeedback.DamageTrauma(100) <= 0.65).toBe(true);
@@ -67,7 +68,9 @@ describe("camera shake", () => {
 		expect(ImpactFeedback.Intensity(light) < 0.1).toBe(true);
 	});
 	it("falls off with distance and grows with explosion scale", () => {
-		const near = ImpactFeedback.ExplosionTrauma(50), mid = ImpactFeedback.ExplosionTrauma(300), far = ImpactFeedback.ExplosionTrauma(2000);
+		const near = ImpactFeedback.ExplosionTrauma(50),
+			mid = ImpactFeedback.ExplosionTrauma(300),
+			far = ImpactFeedback.ExplosionTrauma(2000);
 		expect(near > mid).toBe(true);
 		expect(mid > 0).toBe(true);
 		expect(far).toBe(0);
@@ -81,7 +84,9 @@ describe("camera shake", () => {
 		for (let t = 0; t < 2; t += 0.037) {
 			const o = ImpactFeedback.Offset(1, t);
 			expect(math.abs(o.pitch) <= math.rad(2.4) + 1e-9 && math.abs(o.yaw) <= math.rad(2.4) + 1e-9).toBe(true);
-			expect(math.abs(o.roll) <= math.rad(3) + 1e-9 && math.abs(o.x) <= 1.1 + 1e-9 && math.abs(o.y) <= 1.1 + 1e-9).toBe(true);
+			expect(
+				math.abs(o.roll) <= math.rad(3) + 1e-9 && math.abs(o.x) <= 1.1 + 1e-9 && math.abs(o.y) <= 1.1 + 1e-9,
+			).toBe(true);
 		}
 	});
 });

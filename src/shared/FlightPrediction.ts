@@ -64,7 +64,9 @@ export interface Predictor {
 	last: "none" | "ignore" | "blend" | "snap";
 }
 
-function zero(): FlightState { return { x: 0, y: 0, z: 0, qw: 0, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 }; }
+function zero(): FlightState {
+	return { x: 0, y: 0, z: 0, qw: 0, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 };
+}
 // Scratch tables reused by Reconcile so a server packet allocates nothing.
 const scratchMatch = zero();
 const scratchError = zero();
@@ -97,11 +99,27 @@ export const FlightPrediction = {
 	New(initial: FlightState, limits?: MissionAirspacePolicy): Predictor {
 		const raw: FlightState[] = [];
 		const times: number[] = [];
-		for (let index = 0; index < HISTORY; index++) { raw.push(zero()); times.push(0); }
+		for (let index = 0; index < HISTORY; index++) {
+			raw.push(zero());
+			times.push(0);
+		}
 		const state = zero();
 		copyInto(state, initial);
 		FlightMath.Sync(state);
-		return { airspace: resolveAirspace(limits), state, display: zero(), accumulator: 0, pending: zero(), applied: zero(), times, raw, head: 0, count: 0, sequence: -1, last: "none" };
+		return {
+			airspace: resolveAirspace(limits),
+			state,
+			display: zero(),
+			accumulator: 0,
+			pending: zero(),
+			applied: zero(),
+			times,
+			raw,
+			head: 0,
+			count: 0,
+			sequence: -1,
+			last: "none",
+		};
 	},
 
 	/** Blend `from` toward `to` by `alpha`, always across the short side of the ±pi seam (HUD angles). */
@@ -138,7 +156,8 @@ export const FlightPrediction = {
 			FlightPrediction.Record(predictor, now - predictor.accumulator);
 		}
 		copyInto(predictor.display, predictor.state);
-		if (predictor.accumulator > 0) FlightMath.Step(predictor.display, input, predictor.accumulator, predictor.airspace);
+		if (predictor.accumulator > 0)
+			FlightMath.Step(predictor.display, input, predictor.accumulator, predictor.airspace);
 		return predictor.display;
 	},
 
@@ -154,10 +173,19 @@ export const FlightPrediction = {
 	/** Reliable launch handoff: preserve the displayed pose and blend every remaining authoritative gap. */
 	Handoff(predictor: Predictor, server: FlightState, sequence: number): void {
 		predictor.sequence = math.max(predictor.sequence, sequence);
-		const hemisphere = server.qw * predictor.state.qw + server.qx * predictor.state.qx + server.qy * predictor.state.qy + server.qz * predictor.state.qz < 0 ? -1 : 1;
+		const hemisphere =
+			server.qw * predictor.state.qw +
+				server.qx * predictor.state.qx +
+				server.qy * predictor.state.qy +
+				server.qz * predictor.state.qz <
+			0
+				? -1
+				: 1;
 		let changed = false;
 		for (const key of KEYS) {
-			const target = QUATERNION.includes(key as typeof QUATERNION[number]) ? server[key] * hemisphere : server[key];
+			const target = QUATERNION.includes(key as (typeof QUATERNION)[number])
+				? server[key] * hemisphere
+				: server[key];
 			predictor.pending[key] = target - predictor.state[key];
 			changed = changed || predictor.pending[key] !== 0;
 		}
@@ -185,8 +213,10 @@ export const FlightPrediction = {
 			if (predictor.times[index] <= t) break;
 			newer = index;
 		}
-		const a = predictor.raw[older], b = predictor.raw[newer];
-		const ta = predictor.times[older], tb = predictor.times[newer];
+		const a = predictor.raw[older],
+			b = predictor.raw[newer];
+		const ta = predictor.times[older],
+			tb = predictor.times[newer];
 		const f = tb > ta ? math.clamp((t - ta) / (tb - ta), 0, 1) : 0;
 		// The two neighbours are 1/30 s apart, so their quaternions share a hemisphere.
 		for (const key of KEYS) out[key] = a[key] + (b[key] - a[key]) * f + predictor.applied[key];
@@ -196,7 +226,13 @@ export const FlightPrediction = {
 
 	/** Folds an echoed input time into the round-trip estimate. `hold` is how long the server sat on that input. */
 	ObserveRoundTrip(predictor: Predictor, now: number, echoedClientTime: number, hold: number): void {
-		if (!FlightMath.IsFinite(now) || !FlightMath.IsFinite(echoedClientTime) || !FlightMath.IsFinite(hold) || echoedClientTime <= 0) return;
+		if (
+			!FlightMath.IsFinite(now) ||
+			!FlightMath.IsFinite(echoedClientTime) ||
+			!FlightMath.IsFinite(hold) ||
+			echoedClientTime <= 0
+		)
+			return;
 		const sample = now - echoedClientTime - math.max(0, hold);
 		if (sample < 0 || sample > 1.5) return;
 		predictor.rtt = predictor.rtt === undefined ? sample : predictor.rtt + (sample - predictor.rtt) * 0.1;
@@ -208,7 +244,13 @@ export const FlightPrediction = {
 	 * Returns which branch ran: "ignore" (< IgnoreDistance and tiny angles),
 	 * "blend" (corrected over the next frames) or "snap" (applied at once).
 	 */
-	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number, matchTime?: number): Predictor["last"] {
+	Reconcile(
+		predictor: Predictor,
+		server: FlightState,
+		now: number,
+		sequence: number,
+		matchTime?: number,
+	): Predictor["last"] {
 		if (sequence <= predictor.sequence) return "none"; // stale or duplicate unreliable packet
 		predictor.sequence = sequence;
 		const match = scratchMatch;
@@ -223,7 +265,8 @@ export const FlightPrediction = {
 		}
 		const diff = scratchError;
 		// q and -q are the same attitude: correct toward whichever is nearer.
-		const hemisphere = server.qw * match.qw + server.qx * match.qx + server.qy * match.qy + server.qz * match.qz < 0 ? -1 : 1;
+		const hemisphere =
+			server.qw * match.qw + server.qx * match.qx + server.qy * match.qy + server.qz * match.qz < 0 ? -1 : 1;
 		for (const key of KEYS) diff[key] = server[key] - match[key];
 		for (const key of QUATERNION) diff[key] = server[key] * hemisphere - match[key];
 		const distance = math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
@@ -253,8 +296,28 @@ export const FlightPrediction = {
 	},
 
 	/** Server packet layout shared by both ends of the FlightState remote. */
-	Encode(sequence: number, state: FlightState, evadeRemaining: number, echoedClientTime: number, hold: number): FlightStatePacket {
-		return [sequence, state.x, state.y, state.z, state.qw, state.qx, state.qy, state.qz, state.lean, state.speed, evadeRemaining, echoedClientTime, hold];
+	Encode(
+		sequence: number,
+		state: FlightState,
+		evadeRemaining: number,
+		echoedClientTime: number,
+		hold: number,
+	): FlightStatePacket {
+		return [
+			sequence,
+			state.x,
+			state.y,
+			state.z,
+			state.qw,
+			state.qx,
+			state.qy,
+			state.qz,
+			state.lean,
+			state.speed,
+			evadeRemaining,
+			echoedClientTime,
+			hold,
+		];
 	},
 	/** Validates a received packet and normalizes its attitude; returns undefined for anything malformed. */
 	Decode(packet: unknown): DecodedFlightState | undefined {
@@ -265,13 +328,40 @@ export const FlightPrediction = {
 		// Reject degenerate attitudes and overflow even when every component is finite.
 		const lengthSquared = n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7];
 		if (!FlightMath.IsFinite(lengthSquared) || lengthSquared < 0.5) return undefined;
-		const state = FlightMath.Normalize({ x: n[1], y: n[2], z: n[3], qw: n[4], qx: n[5], qy: n[6], qz: n[7], lean: n[8], yaw: 0, pitch: 0, roll: 0, speed: n[9] });
+		const state = FlightMath.Normalize({
+			x: n[1],
+			y: n[2],
+			z: n[3],
+			qw: n[4],
+			qx: n[5],
+			qy: n[6],
+			qz: n[7],
+			lean: n[8],
+			yaw: 0,
+			pitch: 0,
+			roll: 0,
+			speed: n[9],
+		});
 		return { sequence: n[0], state, evadeRemaining: n[10], echoedClientTime: n[11], hold: n[12] };
 	},
 };
 
 /** [sequence, x, y, z, qw, qx, qy, qz, lean, speed, evadeRemaining, echoedClientTime, hold] — ~120 bytes. */
-export type FlightStatePacket = [number, number, number, number, number, number, number, number, number, number, number, number, number];
+export type FlightStatePacket = [
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+	number,
+];
 export interface DecodedFlightState {
 	sequence: number;
 	state: FlightState;

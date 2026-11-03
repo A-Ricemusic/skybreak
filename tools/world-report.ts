@@ -3,14 +3,18 @@
 //   bun tools/world-report.ts             rewrite the generated block
 //   bun tools/world-report.ts --check     fail when the block is stale
 //   bun tools/world-report.ts --problems  print every audit problem (debugging)
-import {resolve} from "node:path";
-import {requireLuauBin} from "./luau-bin";
-const root=resolve(import.meta.dir,".."),dir=resolve(root,"build/offline-relay"),doc=resolve(root,"docs/world-realism.md");
-const BEGIN="<!-- world-counts:begin (bun tools/world-report.ts) -->",END="<!-- world-counts:end -->";
-if(!(await Bun.file(resolve(dir,"WorldPlan.luau")).exists()))throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
-const executable=requireLuauBin();
-const problems=process.argv.includes("--problems");
-const generator=String.raw`
+import { resolve } from "node:path";
+import { requireLuauBin } from "./luau-bin";
+const root = resolve(import.meta.dir, ".."),
+	dir = resolve(root, "build/offline-relay"),
+	doc = resolve(root, "docs/world-realism.md");
+const BEGIN = "<!-- world-counts:begin (bun tools/world-report.ts) -->",
+	END = "<!-- world-counts:end -->";
+if (!(await Bun.file(resolve(dir, "WorldPlan.luau")).exists()))
+	throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
+const executable = requireLuauBin();
+const problems = process.argv.includes("--problems");
+const generator = String.raw`
 local W=require("./WorldPlan")
 local A=require("./WorldAudit")
 local C=require("./MissionCatalog").MissionCatalog
@@ -30,20 +34,34 @@ print("@@BEGIN")
 print(table.concat(rows,"\n"))
 print("@@END")
 `;
-const script=resolve(dir,"world-report.luau");
-await Bun.write(script,generator);
-const proc=Bun.spawn([executable,script],{cwd:root,stdout:"pipe",stderr:"pipe"});
-const [stdout,stderr,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
-if(code!==0){console.error(stdout+stderr);process.exit(code);}
-const [before,rest]=stdout.split("@@BEGIN\n");
-if(before.trim())console.log(before.trim());
-if(problems)process.exit(0);
-const table=rest.split("\n@@END")[0];
-const current=await Bun.file(doc).exists() ? await Bun.file(doc).text() : "";
-const start=current.indexOf(BEGIN),end=current.indexOf(END);
-if(start<0||end<0)throw new Error(`docs/world-realism.md needs the ${BEGIN} ... ${END} markers`);
-const next=current.slice(0,start+BEGIN.length)+"\n"+table+"\n"+current.slice(end);
-if(process.argv.includes("--check")){
-	if(next!==current){console.error("docs/world-realism.md world counts are stale: run bun tools/world-report.ts");process.exit(1);}
+const script = resolve(dir, "world-report.luau");
+await Bun.write(script, generator);
+const proc = Bun.spawn([executable, script], { cwd: root, stdout: "pipe", stderr: "pipe" });
+const [stdout, stderr, code] = await Promise.all([
+	new Response(proc.stdout).text(),
+	new Response(proc.stderr).text(),
+	proc.exited,
+]);
+if (code !== 0) {
+	console.error(stdout + stderr);
+	process.exit(code);
+}
+const [before, rest] = stdout.split("@@BEGIN\n");
+if (before.trim()) console.log(before.trim());
+if (problems) process.exit(0);
+const table = rest.split("\n@@END")[0];
+const current = (await Bun.file(doc).exists()) ? await Bun.file(doc).text() : "";
+const start = current.indexOf(BEGIN),
+	end = current.indexOf(END);
+if (start < 0 || end < 0) throw new Error(`docs/world-realism.md needs the ${BEGIN} ... ${END} markers`);
+const next = current.slice(0, start + BEGIN.length) + "\n" + table + "\n" + current.slice(end);
+if (process.argv.includes("--check")) {
+	if (next !== current) {
+		console.error("docs/world-realism.md world counts are stale: run bun tools/world-report.ts");
+		process.exit(1);
+	}
 	console.log("world counts up to date");
-}else{await Bun.write(doc,next);console.log("wrote docs/world-realism.md");}
+} else {
+	await Bun.write(doc, next);
+	console.log("wrote docs/world-realism.md");
+}

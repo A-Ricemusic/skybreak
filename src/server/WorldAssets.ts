@@ -43,29 +43,72 @@ interface FallbackPart {
 
 const grey = Color3.fromRGB(139, 147, 154);
 const concrete = Color3.fromRGB(160, 158, 150);
-const block = (name: string, color: Color3, material: Enum.Material = Enum.Material.Concrete) => (spec: Vector3): FallbackPart[] => [
-	{ name, size: spec, offset: new Vector3(0, spec.Y / 2, 0), color, material },
-];
+const block =
+	(name: string, color: Color3, material: Enum.Material = Enum.Material.Concrete) =>
+	(spec: Vector3): FallbackPart[] => [{ name, size: spec, offset: new Vector3(0, spec.Y / 2, 0), color, material }];
 
 const FALLBACKS: Partial<Record<WorldAssetName, (size: Vector3) => FallbackPart[]>> = {
 	Frigate: () => [
-		{ name: "Hull", size: new Vector3(52, 42, 400), offset: new Vector3(0, 5, 0), color: grey, material: Enum.Material.Metal },
-		{ name: "Superstructure", size: new Vector3(36, 26, 190), offset: new Vector3(0, 39, 30), color: grey, material: Enum.Material.Metal },
-		{ name: "Mast", size: new Vector3(12, 50, 16), offset: new Vector3(0, 74, -29), color: grey, material: Enum.Material.Metal },
+		{
+			name: "Hull",
+			size: new Vector3(52, 42, 400),
+			offset: new Vector3(0, 5, 0),
+			color: grey,
+			material: Enum.Material.Metal,
+		},
+		{
+			name: "Superstructure",
+			size: new Vector3(36, 26, 190),
+			offset: new Vector3(0, 39, 30),
+			color: grey,
+			material: Enum.Material.Metal,
+		},
+		{
+			name: "Mast",
+			size: new Vector3(12, 50, 16),
+			offset: new Vector3(0, 74, -29),
+			color: grey,
+			material: Enum.Material.Metal,
+		},
 	],
 	OilPlatform: () => {
 		const legs: FallbackPart[] = [];
-		for (const x of [-80, 80]) for (const z of [-64, 64]) {
-			legs.push({ name: "Leg", size: new Vector3(7, 125, 7), offset: new Vector3(x, 2.5, z), color: Color3.fromRGB(201, 178, 60), material: Enum.Material.Metal });
-		}
+		for (const x of [-80, 80])
+			for (const z of [-64, 64]) {
+				legs.push({
+					name: "Leg",
+					size: new Vector3(7, 125, 7),
+					offset: new Vector3(x, 2.5, z),
+					color: Color3.fromRGB(201, 178, 60),
+					material: Enum.Material.Metal,
+				});
+			}
 		return [
 			...legs,
-			{ name: "Deck", size: new Vector3(220, 34, 180), offset: new Vector3(0, 79, 0), color: Color3.fromRGB(93, 98, 102), material: Enum.Material.DiamondPlate },
-			{ name: "Derrick", size: new Vector3(24, 120, 24), offset: new Vector3(45, 156, -20), color: Color3.fromRGB(181, 69, 46), material: Enum.Material.Metal },
+			{
+				name: "Deck",
+				size: new Vector3(220, 34, 180),
+				offset: new Vector3(0, 79, 0),
+				color: Color3.fromRGB(93, 98, 102),
+				material: Enum.Material.DiamondPlate,
+			},
+			{
+				name: "Derrick",
+				size: new Vector3(24, 120, 24),
+				offset: new Vector3(45, 156, -20),
+				color: Color3.fromRGB(181, 69, 46),
+				material: Enum.Material.Metal,
+			},
 		];
 	},
 	HarbourQuay: () => [
-		{ name: "Quay", size: new Vector3(240, 52, 70), offset: new Vector3(0, -14, 0), color: concrete, material: Enum.Material.Concrete },
+		{
+			name: "Quay",
+			size: new Vector3(240, 52, 70),
+			offset: new Vector3(0, -14, 0),
+			color: concrete,
+			material: Enum.Material.Concrete,
+		},
 	],
 	ContainerStack: block("Containers", Color3.fromRGB(140, 58, 43), Enum.Material.CorrodedMetal),
 	Hangar: block("Hangar", concrete),
@@ -149,14 +192,18 @@ export const WorldAssets = {
 		const endTrace = worldTraceScope("asset-preload");
 		try {
 			return UploadedAssets.Preload(names, preloadTimeout) as WorldAssetName[];
-		} finally { endTrace(); }
+		} finally {
+			endTrace();
+		}
 	},
 	/** Starts every template load without waiting (shared with Preload, so nothing loads twice). */
 	Start(names: WorldAssetName[]): void {
 		const endTrace = worldTraceScope("asset-preload-start");
 		try {
 			UploadedAssets.Preload(names, 0);
-		} finally { endTrace(); }
+		} finally {
+			endTrace();
+		}
 	},
 	/** Test hook: shorten (or restore, with no argument) the preload deadline. */
 	SetPreloadTimeout(seconds = PRELOAD_TIMEOUT): void {

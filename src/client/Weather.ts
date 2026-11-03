@@ -1,6 +1,13 @@
 import { Lighting, TweenService, UserInputService, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import { WEATHER_VOLUME, lightningGap, weatherPlan, type DriftSpec, type RainSpec, type WeatherPlan } from "../shared/WeatherRules";
+import {
+	WEATHER_VOLUME,
+	lightningGap,
+	weatherPlan,
+	type DriftSpec,
+	type RainSpec,
+	type WeatherPlan,
+} from "../shared/WeatherRules";
 import { MotionPreference } from "./MotionPreference";
 
 // Client-only weather for the mission presets (shared/WeatherRules decides
@@ -22,7 +29,11 @@ function rainEmitter(parent: BasePart, spec: RainSpec): void {
 	e.Color = new ColorSequence(Color3.fromRGB(200, 214, 228));
 	e.LightEmission = 0.2;
 	e.LightInfluence = 0.6;
-	e.Transparency = new NumberSequence([new NumberSequenceKeypoint(0, 1), new NumberSequenceKeypoint(0.15, spec.transparency), new NumberSequenceKeypoint(1, spec.transparency + 0.2)]);
+	e.Transparency = new NumberSequence([
+		new NumberSequenceKeypoint(0, 1),
+		new NumberSequenceKeypoint(0.15, spec.transparency),
+		new NumberSequenceKeypoint(1, spec.transparency + 0.2),
+	]);
 	e.Size = new NumberSequence(spec.size);
 	// Tall, thin streaks aligned with their (world-space) fall.
 	e.Squash = new NumberSequence(2.6);
@@ -44,7 +55,11 @@ function driftEmitter(parent: BasePart, spec: DriftSpec): void {
 	e.Texture = SMOKE;
 	e.Color = new ColorSequence(rgb(spec.color));
 	e.LightInfluence = 1;
-	e.Transparency = new NumberSequence([new NumberSequenceKeypoint(0, 1), new NumberSequenceKeypoint(0.3, spec.transparency), new NumberSequenceKeypoint(1, 1)]);
+	e.Transparency = new NumberSequence([
+		new NumberSequenceKeypoint(0, 1),
+		new NumberSequenceKeypoint(0.3, spec.transparency),
+		new NumberSequenceKeypoint(1, 1),
+	]);
 	e.Size = new NumberSequence(spec.size[0], spec.size[1]);
 	e.Speed = new NumberRange(0, 8);
 	e.Acceleration = new Vector3(spec.wind[0], spec.wind[1], spec.wind[2]);
@@ -102,7 +117,11 @@ function aurora(plan: WeatherPlan): Folder | undefined {
 			pin.Transparency = 1;
 			pin.Size = Vector3.one;
 			// High over the northern horizon, each band a little further and higher than the last.
-			pin.CFrame = new CFrame(side * random.NextNumber(2600, 3600), 1900 + i * 260 + random.NextNumber(-80, 80), -3400 - i * 380);
+			pin.CFrame = new CFrame(
+				side * random.NextNumber(2600, 3600),
+				1900 + i * 260 + random.NextNumber(-80, 80),
+				-3400 - i * 380,
+			);
 			pin.Parent = folder;
 			const a = new Instance("Attachment");
 			a.Parent = pin;
@@ -111,9 +130,20 @@ function aurora(plan: WeatherPlan): Folder | undefined {
 		const beam = new Instance("Beam");
 		beam.Attachment0 = anchors[0];
 		beam.Attachment1 = anchors[1];
-		const c0 = rgb(spec.colors[i % spec.colors.size()] as [number, number, number]), c1 = rgb(spec.colors[(i + 1) % spec.colors.size()] as [number, number, number]);
-		beam.Color = new ColorSequence([new ColorSequenceKeypoint(0, c0), new ColorSequenceKeypoint(0.5, c1), new ColorSequenceKeypoint(1, c0)]);
-		beam.Transparency = new NumberSequence([new NumberSequenceKeypoint(0, 1), new NumberSequenceKeypoint(0.2, 0.55), new NumberSequenceKeypoint(0.5, 0.35), new NumberSequenceKeypoint(0.8, 0.6), new NumberSequenceKeypoint(1, 1)]);
+		const c0 = rgb(spec.colors[i % spec.colors.size()] as [number, number, number]),
+			c1 = rgb(spec.colors[(i + 1) % spec.colors.size()] as [number, number, number]);
+		beam.Color = new ColorSequence([
+			new ColorSequenceKeypoint(0, c0),
+			new ColorSequenceKeypoint(0.5, c1),
+			new ColorSequenceKeypoint(1, c0),
+		]);
+		beam.Transparency = new NumberSequence([
+			new NumberSequenceKeypoint(0, 1),
+			new NumberSequenceKeypoint(0.2, 0.55),
+			new NumberSequenceKeypoint(0.5, 0.35),
+			new NumberSequenceKeypoint(0.8, 0.6),
+			new NumberSequenceKeypoint(1, 1),
+		]);
 		beam.Width0 = random.NextNumber(500, 800);
 		beam.Width1 = random.NextNumber(400, 700);
 		beam.CurveSize0 = random.NextNumber(600, 1400) * (i % 2 === 0 ? 1 : -1);
@@ -150,23 +180,34 @@ export const Weather = {
 			const camera = Workspace.CurrentCamera;
 			if (spec === undefined || camera === undefined) return;
 			// A brief grade flash (one or two flickers), then the bolt somewhere ahead in the murk.
-			for (let k = 0; k < spec.flickers; k++) task.delay(k * 0.11, () => {
-				flash.Brightness = spec.flash;
-				TweenService.Create(flash, new TweenInfo(0.09, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness: 0 }).Play();
-			});
+			for (let k = 0; k < spec.flickers; k++)
+				task.delay(k * 0.11, () => {
+					flash.Brightness = spec.flash;
+					TweenService.Create(flash, new TweenInfo(0.09, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+						Brightness: 0,
+					}).Play();
+				});
 			if (!spec.bolt) return;
 			const random = new Random();
-			const look = camera.CFrame.LookVector, level = new Vector3(look.X, 0, look.Z);
+			const look = camera.CFrame.LookVector,
+				level = new Vector3(look.X, 0, look.Z);
 			const flat = level.Magnitude > 0.01 ? level.Unit : new Vector3(0, 0, -1);
-			const angle = random.NextNumber(-0.9, 0.9), distance = random.NextNumber(1400, 2600);
+			const angle = random.NextNumber(-0.9, 0.9),
+				distance = random.NextNumber(1400, 2600);
 			const dir = CFrame.Angles(0, angle, 0).VectorToWorldSpace(flat);
-			let point = camera.CFrame.Position.mul(new Vector3(1, 0, 1)).add(dir.mul(distance)).add(new Vector3(0, 900, 0));
+			let point = camera.CFrame.Position.mul(new Vector3(1, 0, 1))
+				.add(dir.mul(distance))
+				.add(new Vector3(0, 900, 0));
 			const bolt = new Instance("Folder");
 			bolt.Name = "LightningBolt";
 			for (let s = 0; s < 6; s++) {
 				const tip = point.add(new Vector3(random.NextNumber(-70, 70), -150, random.NextNumber(-70, 70)));
 				const seg = new Instance("Part");
-				seg.Anchored = true; seg.CanCollide = false; seg.CanQuery = false; seg.CanTouch = false; seg.CastShadow = false;
+				seg.Anchored = true;
+				seg.CanCollide = false;
+				seg.CanQuery = false;
+				seg.CanTouch = false;
+				seg.CastShadow = false;
 				seg.Material = Enum.Material.Neon;
 				seg.Color = Color3.fromRGB(220, 230, 255);
 				seg.Size = new Vector3(3, 3, tip.sub(point).Magnitude);
@@ -188,9 +229,15 @@ export const Weather = {
 		};
 		const apply = () => {
 			generation += 1;
-			plan = weatherPlan(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as string | undefined, phone, MotionPreference.reduced);
-			volume?.Destroy(); volume = undefined;
-			sky?.Destroy(); sky = aurora(plan);
+			plan = weatherPlan(
+				Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as string | undefined,
+				phone,
+				MotionPreference.reduced,
+			);
+			volume?.Destroy();
+			volume = undefined;
+			sky?.Destroy();
+			sky = aurora(plan);
 			flash.Brightness = 0;
 			const visual = Workspace.FindFirstChild(VISUAL);
 			if (visual) attachTo(visual);

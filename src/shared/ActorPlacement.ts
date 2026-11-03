@@ -14,6 +14,8 @@ export const ActorPlacement = {
 	},
 	/** Whether a raycast hit is water: terrain water, or the authored sea/river/shallows sheets. */
 	IsWater(material: string, instanceName: string): boolean {
-		return material === "Water" || instanceName === "Sea" || instanceName === "River" || instanceName === "Shallows";
+		return (
+			material === "Water" || instanceName === "Sea" || instanceName === "River" || instanceName === "Shallows"
+		);
 	},
 };

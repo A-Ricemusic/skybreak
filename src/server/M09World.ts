@@ -11,8 +11,15 @@ import { registerWorldClear } from "./WorldLifecycleRuntime";
 /** D-340: adopt the 55 world-drawn beach contacts by stable id, with no duplicate combat geometry. */
 export const M09World = {
 	Build(parent: Instance, seed = 909): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
-  WorldAssets.Preload([...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS]);
-		const built = buildComposition(parent, M09_ENVIRONMENT, checkpoint => buildM09Plan(seed, checkpoint), M09_BUILD_LIMITS.descendants, 14000, 0.25);
+		WorldAssets.Preload([...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS]);
+		const built = buildComposition(
+			parent,
+			M09_ENVIRONMENT,
+			(checkpoint) => buildM09Plan(seed, checkpoint),
+			M09_BUILD_LIMITS.descendants,
+			14000,
+			0.25,
+		);
 		const scene = parent.FindFirstChild(M09_WORLD_KEY);
 		assert(scene !== undefined, "M09 scene folder is missing");
 		const visuals = new Map<string, Model>();
@@ -24,6 +31,8 @@ export const M09World = {
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: built.groundTargets, targetVisuals: visuals };
 	},
-	Clear: (cancelled: () => boolean) => { if (!cancelled()) clearTerrainIfDirty(); },
+	Clear: (cancelled: () => boolean) => {
+		if (!cancelled()) clearTerrainIfDirty();
+	},
 };
 registerWorldClear(M09_WORLD_KEY, M09World.Clear);

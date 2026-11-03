@@ -18,17 +18,25 @@ export function buildNightLighting(parent: Instance, plan: NightLighting, paused
 		p.Parent = parent;
 		return p;
 	};
-	for (const f of plan.fields) for (let i = 0; i < f.rows * f.columns; i++) {
-		const p = part("Industrial light", new Vector3(f.origin.x + (i % f.columns) * f.spacing, f.origin.y, f.origin.z + math.floor(i / f.columns) * f.spacing));
-		if (i < f.realLights) {
-			const light = new Instance("PointLight");
-			light.Range = 40;
-			light.Brightness = 1;
-			light.Shadows = false;
-			light.Parent = p;
+	for (const f of plan.fields)
+		for (let i = 0; i < f.rows * f.columns; i++) {
+			const p = part(
+				"Industrial light",
+				new Vector3(
+					f.origin.x + (i % f.columns) * f.spacing,
+					f.origin.y,
+					f.origin.z + math.floor(i / f.columns) * f.spacing,
+				),
+			);
+			if (i < f.realLights) {
+				const light = new Instance("PointLight");
+				light.Range = 40;
+				light.Brightness = 1;
+				light.Shadows = false;
+				light.Parent = p;
+			}
 		}
-	}
-	const sweep = plan.searchlights.map(s => {
+	const sweep = plan.searchlights.map((s) => {
 		const p = part("Searchlight", new Vector3(s.position.x, s.position.y, s.position.z));
 		const light = new Instance("SpotLight");
 		light.Angle = 25;
@@ -38,7 +46,8 @@ export function buildNightLighting(parent: Instance, plan: NightLighting, paused
 		light.Brightness = 3;
 		light.Shadows = false;
 		light.Parent = p;
-		const a = new Instance("Attachment"), b = new Instance("Attachment");
+		const a = new Instance("Attachment"),
+			b = new Instance("Attachment");
 		a.Parent = p;
 		b.Position = new Vector3(0, 0, -s.length);
 		b.Parent = p;
@@ -52,16 +61,18 @@ export function buildNightLighting(parent: Instance, plan: NightLighting, paused
 		beam.Parent = p;
 		return { p, s };
 	});
-	let elapsed = 0, update = 0;
-	const connection = RunService.Heartbeat.Connect(dt => {
+	let elapsed = 0,
+		update = 0;
+	const connection = RunService.Heartbeat.Connect((dt) => {
 		if (paused()) return;
 		elapsed += dt;
 		update += dt;
 		if (update < 0.1) return;
 		update = 0;
-		for (const { p, s } of sweep) p.CFrame = new CFrame(s.position.x, s.position.y, s.position.z)
-			.mul(CFrame.Angles(0, math.rad(searchlightHeading(s, elapsed)), 0))
-			.mul(CFrame.Angles(math.rad(55), 0, 0));
+		for (const { p, s } of sweep)
+			p.CFrame = new CFrame(s.position.x, s.position.y, s.position.z)
+				.mul(CFrame.Angles(0, math.rad(searchlightHeading(s, elapsed)), 0))
+				.mul(CFrame.Angles(math.rad(55), 0, 0));
 	});
 	parent.Destroying.Once(() => connection.Disconnect());
 }

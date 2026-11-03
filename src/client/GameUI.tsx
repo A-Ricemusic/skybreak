@@ -17,7 +17,17 @@ import { SettingsStore, useSettings } from "./SettingsStore";
 import type { FlightTrend } from "./FlightController";
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
-import type { CampaignResponse, MissionFinished, MissionLoading, MissionMessage, MissionStarted, Persistence, Remotes, SaveSlot, Telemetry } from "../shared/Types";
+import type {
+	CampaignResponse,
+	MissionFinished,
+	MissionLoading,
+	MissionMessage,
+	MissionStarted,
+	Persistence,
+	Remotes,
+	SaveSlot,
+	Telemetry,
+} from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionScore } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
@@ -33,7 +43,18 @@ import { LAUNCH_REQUEST_TIMEOUT, LaunchLoading, type LaunchPhase } from "../shar
 import { LoadingScreen } from "../shared/LoadingScreen";
 import { MotionPreference } from "./MotionPreference";
 import { preloadMission } from "./MissionPreload";
-import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
+import {
+	getMenuHintsLayout,
+	getMenuLayout,
+	getToastLayout,
+	inputModeFromInputType,
+	JOYSTICK_SIZE,
+	type HudOptions,
+	shouldAcceptInputModeChange,
+	type ControlHint,
+	type InputMode,
+	type Rectangle,
+} from "../shared/UILayout";
 import { BriefingScreen } from "./screens/BriefingScreen";
 import { CampaignScreen } from "./screens/CampaignScreen";
 import { MenuBackdrop, setMenuCamera } from "./screens/MenuBackdrop";
@@ -41,16 +62,39 @@ import { MissionHud, type Callout } from "./screens/MissionHud";
 import { SortieOverlay } from "./SortieOverlay";
 import { OutcomeScreen, type OutcomeState } from "./screens/OutcomeScreen";
 import { HintRow } from "./screens/Primitives";
-import { finite, killedTargetPoint, killSnapshot, normalizePersistence, normalizeSlots, RADIO_SECONDS, resumeMission, safeString, sanitizeTelemetry, scaleRectangle } from "./screens/UIFormat";
+import {
+	finite,
+	killedTargetPoint,
+	killSnapshot,
+	normalizePersistence,
+	normalizeSlots,
+	RADIO_SECONDS,
+	resumeMission,
+	safeString,
+	sanitizeTelemetry,
+	scaleRectangle,
+} from "./screens/UIFormat";
 import { glyphCache, readInputMode } from "./screens/UIInput";
 import { TitleScreen } from "./screens/TitleScreen";
 import { StatusToast } from "./screens/StatusToast";
-import { FIRE_DENIED_SECONDS, FIRE_DENIED_TEXT, LOADING_CLIENT_TIMEOUT, MENU_SCREEN_FRAMES, MISSION_END_HOLD, NO_MENU_CAMERA, type GameUIProps, type KillNotice, type RadioNotice, type Screen, type ToastState } from "./screens/UIState";
+import {
+	FIRE_DENIED_SECONDS,
+	FIRE_DENIED_TEXT,
+	LOADING_CLIENT_TIMEOUT,
+	MENU_SCREEN_FRAMES,
+	MISSION_END_HOLD,
+	NO_MENU_CAMERA,
+	type GameUIProps,
+	type KillNotice,
+	type RadioNotice,
+	type Screen,
+	type ToastState,
+} from "./screens/UIState";
 import { InputModeContext } from "./Highlight";
 export function GameUI({ remotes, controller }: GameUIProps) {
-	const [cinematicId,setCinematicId]=useState(0);
-	const cinematicNext=useRef<()=>void>(()=>undefined);
-	const cinematicReturn=useRef<"briefing" | "outcome">("briefing");
+	const [cinematicId, setCinematicId] = useState(0);
+	const cinematicNext = useRef<() => void>(() => undefined);
+	const cinematicReturn = useRef<"briefing" | "outcome">("briefing");
 	const [screen, setScreen] = useState<Screen>("title");
 	const [viewport, setViewport] = useState(new Vector2(568, 320));
 	const [slots, setSlots] = useState<SaveSlot[] | undefined>();
@@ -63,9 +107,25 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [toast, setToast] = useState<ToastState | undefined>();
 	const [telemetry, setTelemetry] = useState(() => initialTelemetry(1));
 	const [outcome, setOutcome] = useState<OutcomeState>(() => ({
-		won: true, missionId: 1, airKills: 0, optionalKills: 0, groundKills: 0, elapsed: 0, par: MissionScore.ParSeconds(MissionCatalog.Get(1)),
-		completedPhases: 0, missilesFired: 0, missileHits: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
-		score: 0, rank: "D", newBestScore: false, newBestRank: false, saveText: "", saveColor: C.Muted,
+		won: true,
+		missionId: 1,
+		airKills: 0,
+		optionalKills: 0,
+		groundKills: 0,
+		elapsed: 0,
+		par: MissionScore.ParSeconds(MissionCatalog.Get(1)),
+		completedPhases: 0,
+		missilesFired: 0,
+		missileHits: 0,
+		damageTaken: 0,
+		lowestHealth: 100,
+		evades: 0,
+		score: 0,
+		rank: "D",
+		newBestScore: false,
+		newBestRank: false,
+		saveText: "",
+		saveColor: C.Muted,
 	}));
 	const [inputMode, setInputMode] = useState<InputMode>(readInputMode);
 	const [hintUntil, setHintUntil] = useState(0);
@@ -95,7 +155,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const hudScale = effectiveHudScale(settings.hudScale, inputMode === "touch", viewport.X, viewport.Y);
 	hudScaleRef.current = hudScale;
 	// The layout knows its UIScale so it can keep every HUD label at MIN_PHYSICAL_TEXT px or larger.
-	const hudOptions = useMemo<HudOptions>(() => ({ stickSize: JOYSTICK_SIZE * settings.stickScale, scale: hudScale }), [settings.stickScale, hudScale]);
+	const hudOptions = useMemo<HudOptions>(
+		() => ({ stickSize: JOYSTICK_SIZE * settings.stickScale, scale: hudScale }),
+		[settings.stickScale, hudScale],
+	);
 	const [damageUntil, setDamageUntil] = useState(0);
 	const [killFlash, setKillFlash] = useState<KillFlash | undefined>();
 	const killSerialRef = useRef(0);
@@ -139,7 +202,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		deletionObservation.cancel();
 		screenRef.current = destination;
 		inMissionRef.current = destination === "mission";
-		if (destination !== "mission" && pausedRef.current) { pausedRef.current = false; setPausedState(false); }
+		if (destination !== "mission" && pausedRef.current) {
+			pausedRef.current = false;
+			setPausedState(false);
+		}
 		setScreen(destination);
 	}, []);
 	const releaseJoystick = useCallback(() => {
@@ -151,16 +217,19 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
 		controller.SetInput(0, 0);
 	}, [controller]);
-	const applyInputMode = useCallback((nextMode: InputMode) => {
-		const current = inputModeRef.current;
-		if (!shouldAcceptInputModeChange(current, nextMode, touches.Held())) return;
-		if (current === "touch") releaseJoystick();
-		inputModeRef.current = nextMode;
-		glyphCache.clear();
-		if (!mountedRef.current) return;
-		setInputMode(nextMode);
-		setHintUntil(os.clock() + 6);
-	}, [releaseJoystick]);
+	const applyInputMode = useCallback(
+		(nextMode: InputMode) => {
+			const current = inputModeRef.current;
+			if (!shouldAcceptInputModeChange(current, nextMode, touches.Held())) return;
+			if (current === "touch") releaseJoystick();
+			inputModeRef.current = nextMode;
+			glyphCache.clear();
+			if (!mountedRef.current) return;
+			setInputMode(nextMode);
+			setHintUntil(os.clock() + 6);
+		},
+		[releaseJoystick],
+	);
 	const endJoystickTouch = useCallback(() => {
 		releaseJoystick();
 		applyInputMode(readInputMode());
@@ -180,11 +249,17 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const current = screenRef.current;
 		const selected = GuiService.SelectedObject;
 		// Overlays (pause card, settings sheet) take gamepad focus over whatever screen is under them.
-		if (inputModeRef.current === "gamepad" && (settingsOpenRef.current || (current === "mission" && pausedRef.current))) {
+		if (
+			inputModeRef.current === "gamepad" &&
+			(settingsOpenRef.current || (current === "mission" && pausedRef.current))
+		) {
 			const overlay = root.FindFirstChild(settingsOpenRef.current ? "SettingsSheet" : "PauseOverlay", true);
 			if (!overlay) return;
 			if (selected && selected.IsDescendantOf(overlay)) return;
-			const first = overlay.FindFirstChild(settingsOpenRef.current ? "SettinginvertYToggle" : "PauseResumeButton", true);
+			const first = overlay.FindFirstChild(
+				settingsOpenRef.current ? "SettinginvertYToggle" : "PauseResumeButton",
+				true,
+			);
 			if (first?.IsA("GuiObject")) GuiService.SelectedObject = first;
 			return;
 		}
@@ -197,19 +272,35 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const screenFrame = root.FindFirstChild(MENU_SCREEN_FRAMES[current]);
 		if (!screenFrame) return;
 		if (selected && selected.IsDescendantOf(screenFrame)) return;
-		const defaultName = current === "cinematic" ? "CinematicSkipButton" : current === "title"
-			? "CampaignButton"
-			: current === "slots"
-				? confirmSlotRef.current !== undefined ? "KeepButton" : `Slot${slotFocusRef.current ?? selectedSlotRef.current}Button`
-				: current === "briefing"
-					? "LaunchButton"
-					: outcomeWonRef.current && outcomeMissionRef.current < MISSION_COUNT && MissionCatalog.Available(outcomeMissionRef.current+1) ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
+		const defaultName =
+			current === "cinematic"
+				? "CinematicSkipButton"
+				: current === "title"
+					? "CampaignButton"
+					: current === "slots"
+						? confirmSlotRef.current !== undefined
+							? "KeepButton"
+							: `Slot${slotFocusRef.current ?? selectedSlotRef.current}Button`
+						: current === "briefing"
+							? "LaunchButton"
+							: outcomeWonRef.current &&
+								  outcomeMissionRef.current < MISSION_COUNT &&
+								  MissionCatalog.Available(outcomeMissionRef.current + 1)
+								? "Mission1NextMissionButton"
+								: outcomeWonRef.current
+									? "ReturnToMenuButton"
+									: "RetryButton";
 		const target = screenFrame.FindFirstChild(defaultName, true);
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
 	selectDefaultRef.current = selectDefault;
 	const goBack = useCallback(() => {
-		if (settingsOpenRef.current) { settingsOpenRef.current = false; setSettingsOpenState(false); task.defer(() => selectDefaultRef.current()); return; }
+		if (settingsOpenRef.current) {
+			settingsOpenRef.current = false;
+			setSettingsOpenState(false);
+			task.defer(() => selectDefaultRef.current());
+			return;
+		}
 		if (busyRef.current) return;
 		if (screenRef.current === "slots" && confirmSlotRef.current !== undefined) setDeleteConfirm(undefined);
 		else if (screenRef.current === "slots") changeScreen("title");
@@ -235,35 +326,43 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setPersistence(responsePersistence);
 		return true;
 	}, []);
-	const invoke = useCallback((action: string, payload?: unknown): LuaTuple<[CampaignResponse | undefined, string | undefined]> => {
-		const [ok, raw] = pcall(() => remotes.CampaignRequest.InvokeServer(action, payload));
-		if (!ok) return $tuple(undefined, "Command link interrupted. Try again.");
-		if (!typeIs(raw, "table")) return $tuple(undefined, "Command rejected the request.");
-		const response = raw as CampaignResponse;
-		if (response.ok !== true) return $tuple(undefined, safeString(response.error, "Command rejected the request."));
-		return $tuple(response, undefined);
-	}, [remotes]);
-	const beginRequest = useCallback((work: (requestId: number) => void) => {
-		if (busyRef.current || !mountedRef.current) return;
-		busyRef.current = true;
-		setBusy(true);
-		const requestId = ++requestRef.current;
-		task.spawn(() => {
-			const [ok, problem] = pcall(() => work(requestId));
-			if (!ok && mountedRef.current && requestRef.current === requestId) {
-				warn("SKYBREAK UI request failed:", problem);
-				if (launchLoading.Pending()) {
-					launchLoading.Fail(); loadingSerialRef.current++;
-					changeScreen(launchLoading.Screen());
+	const invoke = useCallback(
+		(action: string, payload?: unknown): LuaTuple<[CampaignResponse | undefined, string | undefined]> => {
+			const [ok, raw] = pcall(() => remotes.CampaignRequest.InvokeServer(action, payload));
+			if (!ok) return $tuple(undefined, "Command link interrupted. Try again.");
+			if (!typeIs(raw, "table")) return $tuple(undefined, "Command rejected the request.");
+			const response = raw as CampaignResponse;
+			if (response.ok !== true)
+				return $tuple(undefined, safeString(response.error, "Command rejected the request."));
+			return $tuple(response, undefined);
+		},
+		[remotes],
+	);
+	const beginRequest = useCallback(
+		(work: (requestId: number) => void) => {
+			if (busyRef.current || !mountedRef.current) return;
+			busyRef.current = true;
+			setBusy(true);
+			const requestId = ++requestRef.current;
+			task.spawn(() => {
+				const [ok, problem] = pcall(() => work(requestId));
+				if (!ok && mountedRef.current && requestRef.current === requestId) {
+					warn("SKYBREAK UI request failed:", problem);
+					if (launchLoading.Pending()) {
+						launchLoading.Fail();
+						loadingSerialRef.current++;
+						changeScreen(launchLoading.Screen());
+					}
+					showToast("Command link error. Try again.", true);
 				}
-				showToast("Command link error. Try again.", true);
-			}
-			if (mountedRef.current && requestRef.current === requestId) {
-				busyRef.current = false;
-				setBusy(false);
-			}
-		});
-	}, [changeScreen, launchLoading, showToast]);
+				if (mountedRef.current && requestRef.current === requestId) {
+					busyRef.current = false;
+					setBusy(false);
+				}
+			});
+		},
+		[changeScreen, launchLoading, showToast],
+	);
 	const cancelRequests = useCallback(() => {
 		requestRef.current++;
 		busyRef.current = false;
@@ -284,48 +383,81 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
-	const launchMission = useCallback((missionId = selectedMissionRef.current, fromResult = false, playedChapter?: number) => {
-		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
-		selectedMissionRef.current = missionId;
-		setSelectedMission(missionId);
-		const generation = launchLoading.Generation();
-		task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
-			if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
-			loadingSerialRef.current++;
-			cancelRequests();
-			changeScreen(fromResult ? "outcome" : launchLoading.Screen());
-			showToast("World preparation timed out. Request another launch.", true);
-			// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
-			task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
-		});
-		// Cover the world before the yielding RPC can destroy the menu or write terrain.
-		setLaunchPhase(launchLoading.Phase());
-		setBuildFolder(undefined);
-		setLoadingProgress(0);
-		toastRef.current++; setToast(undefined);
-		changeScreen(launchLoading.Screen());
-		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId, playedChapter, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
-			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
-			if (!response) {
-				launchLoading.Fail();
+	const launchMission = useCallback(
+		(missionId = selectedMissionRef.current, fromResult = false, playedChapter?: number) => {
+			if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
+			selectedMissionRef.current = missionId;
+			setSelectedMission(missionId);
+			const generation = launchLoading.Generation();
+			task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
+				if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
 				loadingSerialRef.current++;
+				cancelRequests();
 				changeScreen(fromResult ? "outcome" : launchLoading.Screen());
-				showToast(problem ?? "Command rejected the request.", true);
-			} else if (response.slots) applyResponseSlots(response);
-		});
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedSlot, showToast]);
-	const startWithChapter = useCallback((missionId: number, fromResult: boolean = false) => {
-		if (busyRef.current || launchLoading.Pending() || screenRef.current === "cinematic") return;
-		selectedMissionRef.current = missionId; setSelectedMission(missionId);
-		cinematicReturn.current = fromResult ? "outcome" : "briefing";
-		const slot = slotsRef.current?.[selectedSlotRef.current - 1];
-		launchWithChapter(missionId, slot?.cutscenesSeen, slot?.missions?.[missionId]?.completed === true,
-			!fromResult && fromMissionMenuRef.current,
-			(playedChapter) => launchMission(missionId, fromResult, playedChapter),
-			(chapter, finish) => { cinematicNext.current = finish; setCinematicId(chapter); changeScreen("cinematic"); });
-	}, [launchMission, launchLoading, changeScreen]);
-	const startMission=useCallback(()=>{
+				showToast("World preparation timed out. Request another launch.", true);
+				// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
+				task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
+			});
+			// Cover the world before the yielding RPC can destroy the menu or write terrain.
+			setLaunchPhase(launchLoading.Phase());
+			setBuildFolder(undefined);
+			setLoadingProgress(0);
+			toastRef.current++;
+			setToast(undefined);
+			changeScreen(launchLoading.Screen());
+			beginRequest((requestId) => {
+				const [response, problem] = invoke("StartMission", {
+					launchId: generation,
+					slot: selectedSlot,
+					missionId,
+					playedChapter,
+					special: selectedSpecialRef.current,
+					difficulty: selectedDifficultyRef.current,
+				});
+				if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation))
+					return;
+				if (!response) {
+					launchLoading.Fail();
+					loadingSerialRef.current++;
+					changeScreen(fromResult ? "outcome" : launchLoading.Screen());
+					showToast(problem ?? "Command rejected the request.", true);
+				} else if (response.slots) applyResponseSlots(response);
+			});
+		},
+		[
+			applyResponseSlots,
+			beginRequest,
+			cancelRequests,
+			changeScreen,
+			invoke,
+			launchLoading,
+			selectedSlot,
+			showToast,
+		],
+	);
+	const startWithChapter = useCallback(
+		(missionId: number, fromResult: boolean = false) => {
+			if (busyRef.current || launchLoading.Pending() || screenRef.current === "cinematic") return;
+			selectedMissionRef.current = missionId;
+			setSelectedMission(missionId);
+			cinematicReturn.current = fromResult ? "outcome" : "briefing";
+			const slot = slotsRef.current?.[selectedSlotRef.current - 1];
+			launchWithChapter(
+				missionId,
+				slot?.cutscenesSeen,
+				slot?.missions?.[missionId]?.completed === true,
+				!fromResult && fromMissionMenuRef.current,
+				(playedChapter) => launchMission(missionId, fromResult, playedChapter),
+				(chapter, finish) => {
+					cinematicNext.current = finish;
+					setCinematicId(chapter);
+					changeScreen("cinematic");
+				},
+			);
+		},
+		[launchMission, launchLoading, changeScreen],
+	);
+	const startMission = useCallback(() => {
 		if (!canLaunchMission(selectedMissionRef.current, slotsRef.current?.[selectedSlotRef.current - 1])) return;
 		startWithChapter(selectedMissionRef.current);
 	}, [startWithChapter]);
@@ -341,86 +473,156 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (!response) showToast(problem ?? "Command link interrupted. Try again.", true);
 			else if (response.slots) applyResponseSlots(response);
 		});
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, showToast]);
-	const restartMission = useCallback((missionId: number) => {
-		beginRequest((requestId) => {
-			const [returned, returnError] = invoke("ReturnToMenu");
-			if (!mountedRef.current || requestRef.current !== requestId) return;
-			if (!returned) {
-				showToast(returnError ?? "Command link interrupted. Try again.", true);
-				return;
-			}
-			if (returned.slots) applyResponseSlots(returned);
-			task.wait(0.16);
-			if (!mountedRef.current || requestRef.current !== requestId) return;
-			fromMissionMenuRef.current = false;
-			selectedMissionRef.current = missionId;
-			setSelectedMission(missionId);
-			changeScreen("briefing");
-		});
-	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
+	}, [
+		applyResponseSlots,
+		beginRequest,
+		cancelRequests,
+		changeScreen,
+		controller,
+		invoke,
+		releaseJoystick,
+		showToast,
+	]);
+	const restartMission = useCallback(
+		(missionId: number) => {
+			beginRequest((requestId) => {
+				const [returned, returnError] = invoke("ReturnToMenu");
+				if (!mountedRef.current || requestRef.current !== requestId) return;
+				if (!returned) {
+					showToast(returnError ?? "Command link interrupted. Try again.", true);
+					return;
+				}
+				if (returned.slots) applyResponseSlots(returned);
+				task.wait(0.16);
+				if (!mountedRef.current || requestRef.current !== requestId) return;
+				fromMissionMenuRef.current = false;
+				selectedMissionRef.current = missionId;
+				setSelectedMission(missionId);
+				changeScreen("briefing");
+			});
+		},
+		[applyResponseSlots, beginRequest, changeScreen, invoke, showToast],
+	);
 	const retryMission = useCallback(() => restartMission(outcomeMissionRef.current), [restartMission]);
 	const nextMission = useCallback(() => {
 		activateResultNext(outcomeWonRef.current, outcomeMissionRef.current, (id) => startWithChapter(id, true));
 	}, [startWithChapter]);
 	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
-	const openCampaign = useCallback(() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }, [changeScreen, loadSlots]);
-	const chooseSlot = useCallback((slot: number) => {
-		const current = slotsRef.current;
-		if (busyRef.current || !current?.[slot - 1]) return;
-		const missionId = highestUnlocked(current[slot - 1]);
+	const openCampaign = useCallback(() => {
+		if (!busyRef.current) {
+			changeScreen("slots");
+			loadSlots();
+		}
+	}, [changeScreen, loadSlots]);
+	const chooseSlot = useCallback(
+		(slot: number) => {
+			const current = slotsRef.current;
+			if (busyRef.current || !current?.[slot - 1]) return;
+			const missionId = highestUnlocked(current[slot - 1]);
+			fromMissionMenuRef.current = true;
+			selectedSlotRef.current = slot;
+			selectedMissionRef.current = missionId;
+			setSelectedSlot(slot);
+			setSelectedMission(missionId);
+			// The slot remembers its last loadout; a fresh slot starts on the default special.
+			const remembered = current[slot - 1].special;
+			const special: SpecialKind = SpecialWeapons.IsKind(remembered) ? remembered : SpecialWeapons.Default;
+			selectedSpecialRef.current = special;
+			setSelectedSpecial(special);
+			const rememberedDifficulty = current[slot - 1].difficulty;
+			const difficulty: DifficultyKind = Difficulty.IsKind(rememberedDifficulty)
+				? rememberedDifficulty
+				: Difficulty.Default;
+			selectedDifficultyRef.current = difficulty;
+			setSelectedDifficulty(difficulty);
+			changeScreen("briefing");
+		},
+		[changeScreen],
+	);
+	const deleteSlot = useCallback(
+		(slot: number) => {
+			deletionObservation.cancel();
+			const observationToken = deletionObservation.capture();
+			setDeleteConfirm(undefined);
+			beginRequest((requestId) => {
+				const [response, problem] = invoke("DeleteSlot", { slot });
+				if (
+					!mountedRef.current ||
+					requestRef.current !== requestId ||
+					!deletionObservation.current(observationToken)
+				)
+					return;
+				if (!response) showToast(problem ?? "Command rejected the request.", true);
+				else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
+				else {
+					const deletion = response.deletions?.find((entry) => entry.slot === slot);
+					const report = (status?: string) => {
+						const name = `Save ${string.format("%02d", slot)}`;
+						if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
+						else if (status === "session-only")
+							showToast(`${name} deleted for this session only. Cloud saves are disabled.`, true);
+						else if (status === "failed")
+							showToast(
+								`${name} deleted here; cloud deletion is unconfirmed after saving. It may return next session.`,
+								true,
+							);
+						else
+							showToast(
+								`${name} deleted here; cloud confirmation pending. It may return next session.`,
+								true,
+							);
+					};
+					report(deletion?.status);
+					if (deletion?.status === "pending")
+						task.spawn(() => {
+							// Observe the original generation. Never resend a destructive command.
+							for (let attempt = 0; attempt < 10; attempt++) {
+								task.wait(3);
+								if (
+									!mountedRef.current ||
+									requestRef.current !== requestId ||
+									!deletionObservation.current(observationToken)
+								)
+									return;
+								let finished = false;
+								deletionObservation.read(
+									observationToken,
+									() => mountedRef.current && requestRef.current === requestId,
+									() => {
+										const [latest] = invoke("DeletionStatus");
+										return { latest };
+									},
+									({ latest }) => {
+										const current = latest?.deletions?.find(
+											(entry) => entry.slot === slot && entry.generation === deletion.generation,
+										);
+										if (current && current.status !== "pending") {
+											report(current.status);
+											finished = true;
+										}
+									},
+								);
+								if (finished) return;
+							}
+						});
+				}
+			});
+		},
+		[applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast],
+	);
+	const chooseMission = useCallback((missionId: number) => {
 		fromMissionMenuRef.current = true;
-		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
-		setSelectedSlot(slot); setSelectedMission(missionId);
-		// The slot remembers its last loadout; a fresh slot starts on the default special.
-		const remembered = current[slot - 1].special;
-		const special: SpecialKind = SpecialWeapons.IsKind(remembered) ? remembered : SpecialWeapons.Default;
-		selectedSpecialRef.current = special; setSelectedSpecial(special);
-		const rememberedDifficulty = current[slot - 1].difficulty;
-		const difficulty: DifficultyKind = Difficulty.IsKind(rememberedDifficulty) ? rememberedDifficulty : Difficulty.Default;
-		selectedDifficultyRef.current = difficulty; setSelectedDifficulty(difficulty);
-		changeScreen("briefing");
-	}, [changeScreen]);
-	const deleteSlot = useCallback((slot: number) => {
-		deletionObservation.cancel();
-		const observationToken = deletionObservation.capture();
-		setDeleteConfirm(undefined);
-		beginRequest((requestId) => {
-			const [response, problem] = invoke("DeleteSlot", { slot });
-			if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
-			if (!response) showToast(problem ?? "Command rejected the request.", true);
-			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
-			else {
-				const deletion = response.deletions?.find((entry) => entry.slot === slot);
-				const report = (status?: string) => {
-					const name = `Save ${string.format("%02d", slot)}`;
-					if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
-					else if (status === "session-only") showToast(`${name} deleted for this session only. Cloud saves are disabled.`, true);
-					else if (status === "failed") showToast(`${name} deleted here; cloud deletion is unconfirmed after saving. It may return next session.`, true);
-					else showToast(`${name} deleted here; cloud confirmation pending. It may return next session.`, true);
-				};
-				report(deletion?.status);
-				if (deletion?.status === "pending") task.spawn(() => {
-					// Observe the original generation. Never resend a destructive command.
-					for (let attempt = 0; attempt < 10; attempt++) {
-						task.wait(3);
-						if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
-						let finished = false;
-						deletionObservation.read(observationToken,
-							() => mountedRef.current && requestRef.current === requestId,
-							() => { const [latest] = invoke("DeletionStatus"); return { latest }; }, ({ latest }) => {
-								const current = latest?.deletions?.find((entry) => entry.slot === slot && entry.generation === deletion.generation);
-								if (current && current.status !== "pending") { report(current.status); finished = true; }
-							});
-						if (finished) return;
-					}
-				});
-			}
-		});
-	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
-	const chooseMission = useCallback((missionId: number) => { fromMissionMenuRef.current = true; selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
-	const chooseSpecial = useCallback((kind: SpecialKind) => { selectedSpecialRef.current = kind; setSelectedSpecial(kind); }, []);
-	const chooseDifficulty = useCallback((kind: DifficultyKind) => { selectedDifficultyRef.current = kind; setSelectedDifficulty(kind); }, []);
+		selectedMissionRef.current = missionId;
+		setSelectedMission(missionId);
+	}, []);
+	const chooseSpecial = useCallback((kind: SpecialKind) => {
+		selectedSpecialRef.current = kind;
+		setSelectedSpecial(kind);
+	}, []);
+	const chooseDifficulty = useCallback((kind: DifficultyKind) => {
+		selectedDifficultyRef.current = kind;
+		setSelectedDifficulty(kind);
+	}, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
 	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
@@ -452,8 +654,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setSettingsOpen(false);
 		controller.SetPaused(false);
 	}, [controller, setSettingsOpen]);
-	const changeSetting = useCallback(<K extends SettingKey>(key: K, value: PlayerSettings[K]) => SettingsStore.Set(key, value), []);
-	const openSettings = useCallback(() => { if (!busyRef.current) setSettingsOpen(true); }, [setSettingsOpen]);
+	const changeSetting = useCallback(
+		<K extends SettingKey>(key: K, value: PlayerSettings[K]) => SettingsStore.Set(key, value),
+		[],
+	);
+	const openSettings = useCallback(() => {
+		if (!busyRef.current) setSettingsOpen(true);
+	}, [setSettingsOpen]);
 	// Settings that live outside React: pitch inversion and level assist in the controller (shake is read by CameraShake).
 	useEffect(() => controller.SetInvertY(settings.invertY), [controller, settings.invertY]);
 	useEffect(() => controller.SetLevelAssist(settings.levelAssist), [controller, settings.levelAssist]);
@@ -463,75 +670,149 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		// Studio playtests (scripted pilots) lose window focus constantly; there, focus-loss pausing
 		// is opt-in with Workspace attribute SkybreakAutoPause = true. Live clients always pause.
 		const focusLost = UserInputService.WindowFocusReleased.Connect(() => {
-			if (!RunService.IsStudio() || Workspace.GetAttribute("SkybreakAutoPause") === true) { focusLostRef.current = true; pauseSortie(); }
+			if (!RunService.IsStudio() || Workspace.GetAttribute("SkybreakAutoPause") === true) {
+				focusLostRef.current = true;
+				pauseSortie();
+			}
 		});
-		const focusGained = UserInputService.WindowFocused.Connect(() => { focusLostRef.current = false; });
+		const focusGained = UserInputService.WindowFocused.Connect(() => {
+			focusLostRef.current = false;
+		});
 		// P pauses and resumes on a keyboard (a deliberate press, like the RESUME button).
 		const key = UserInputService.InputBegan.Connect((input, processed) => {
-			if (processed || input.KeyCode !== Enum.KeyCode.P || screenRef.current !== "mission" || UserInputService.GetFocusedTextBox()) return;
-			if (pausedRef.current) { if (!settingsOpenRef.current) resumeSortie(); } else pauseSortie();
+			if (
+				processed ||
+				input.KeyCode !== Enum.KeyCode.P ||
+				screenRef.current !== "mission" ||
+				UserInputService.GetFocusedTextBox()
+			)
+				return;
+			if (pausedRef.current) {
+				if (!settingsOpenRef.current) resumeSortie();
+			} else pauseSortie();
 		});
-		return () => { menuOpened.Disconnect(); focusLost.Disconnect(); focusGained.Disconnect(); key.Disconnect(); };
+		return () => {
+			menuOpened.Disconnect();
+			focusLost.Disconnect();
+			focusGained.Disconnect();
+			key.Disconnect();
+		};
 	}, [pauseSortie, resumeSortie]);
-	const moveJoystick = useCallback((input: InputObject) => {
-		const joystick = joystickRef.current;
-		const knob = knobRef.current;
-		if (!joystick || !knob || !inMissionRef.current) return;
-		const stick = stickVector(input.Position.X, input.Position.Y, joystick.AbsolutePosition.X, joystick.AbsolutePosition.Y, joystick.AbsoluteSize.X);
-		// The knob sits inside the (possibly HUD-scaled) frame: convert screen pixels back to its units.
-		const unit = joystick.AbsoluteSize.X / math.max(1, joystick.Size.X.Offset);
-		knob.Position = new UDim2(0.5, stick.offsetX / unit, 0.5, stick.offsetY / unit);
-		controller.SetInput(stick.x, stick.y);
-	}, [controller]);
-	const releaseTouch = useCallback((input: InputObject) => {
-		if (touches.steering === input) {
-			controller.SetInput(0, 0);
-			if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-		}
-		if (touches.throttle === input) {
-			controller.SetTouchThrottleAxis(0);
-			if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-		}
-		touchEndConnections.get(input)?.Disconnect();
-		touchEndConnections.delete(input);
-		touches.End(input);
-		applyInputMode(readInputMode());
-	}, [controller, touches, applyInputMode]);
-	const trackTouchEnd = useCallback((input: InputObject) => {
-		touchEndConnections.set(input, input.GetPropertyChangedSignal("UserInputState").Connect(() => {
-			if (input.UserInputState === Enum.UserInputState.End || input.UserInputState === Enum.UserInputState.Cancel) releaseTouch(input);
-		}));
-	}, [releaseTouch, touchEndConnections]);
-	const joystickBegan = useCallback((input: InputObject) => {
-		if (!inMissionRef.current || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox() || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
-		if (!touches.Begin("steering", input)) return;
-		trackTouchEnd(input);
-		moveJoystick(input);
-	}, [moveJoystick, trackTouchEnd]);
+	const moveJoystick = useCallback(
+		(input: InputObject) => {
+			const joystick = joystickRef.current;
+			const knob = knobRef.current;
+			if (!joystick || !knob || !inMissionRef.current) return;
+			const stick = stickVector(
+				input.Position.X,
+				input.Position.Y,
+				joystick.AbsolutePosition.X,
+				joystick.AbsolutePosition.Y,
+				joystick.AbsoluteSize.X,
+			);
+			// The knob sits inside the (possibly HUD-scaled) frame: convert screen pixels back to its units.
+			const unit = joystick.AbsoluteSize.X / math.max(1, joystick.Size.X.Offset);
+			knob.Position = new UDim2(0.5, stick.offsetX / unit, 0.5, stick.offsetY / unit);
+			controller.SetInput(stick.x, stick.y);
+		},
+		[controller],
+	);
+	const releaseTouch = useCallback(
+		(input: InputObject) => {
+			if (touches.steering === input) {
+				controller.SetInput(0, 0);
+				if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
+			}
+			if (touches.throttle === input) {
+				controller.SetTouchThrottleAxis(0);
+				if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
+			}
+			touchEndConnections.get(input)?.Disconnect();
+			touchEndConnections.delete(input);
+			touches.End(input);
+			applyInputMode(readInputMode());
+		},
+		[controller, touches, applyInputMode],
+	);
+	const trackTouchEnd = useCallback(
+		(input: InputObject) => {
+			touchEndConnections.set(
+				input,
+				input.GetPropertyChangedSignal("UserInputState").Connect(() => {
+					if (
+						input.UserInputState === Enum.UserInputState.End ||
+						input.UserInputState === Enum.UserInputState.Cancel
+					)
+						releaseTouch(input);
+				}),
+			);
+		},
+		[releaseTouch, touchEndConnections],
+	);
+	const joystickBegan = useCallback(
+		(input: InputObject) => {
+			if (
+				!inMissionRef.current ||
+				GuiService.MenuIsOpen ||
+				UserInputService.GetFocusedTextBox() ||
+				inputModeRef.current !== "touch" ||
+				input.UserInputType !== Enum.UserInputType.Touch
+			)
+				return;
+			if (!touches.Begin("steering", input)) return;
+			trackTouchEnd(input);
+			moveJoystick(input);
+		},
+		[moveJoystick, trackTouchEnd],
+	);
 	// The stick's InputBegan only covers its own frame. World boxes need the unconsumed screen touches too.
 	useEffect(() => {
 		const began = UserInputService.TouchStarted.Connect((input, processed) => {
-			if (processed || !inMissionRef.current || inputModeRef.current !== "touch" || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox()) return;
+			if (
+				processed ||
+				!inMissionRef.current ||
+				inputModeRef.current !== "touch" ||
+				GuiService.MenuIsOpen ||
+				UserInputService.GetFocusedTextBox()
+			)
+				return;
 			controller.TryTapTarget(input.Position);
 		});
 		return () => began.Disconnect();
 	}, [controller]);
-	const moveThrottle = useCallback((input: InputObject) => {
-		const stick = throttleJoystickRef.current;
-		const knob = throttleKnobRef.current;
-		if (!stick || !knob || !inMissionRef.current) return;
-		const radius = math.max(1, stick.AbsoluteSize.Y * 0.34);
-		const offset = math.clamp(input.Position.Y - stick.AbsolutePosition.Y - stick.AbsoluteSize.Y / 2, -radius, radius);
-		const unit = stick.AbsoluteSize.Y / math.max(1, stick.Size.Y.Offset);
-		knob.Position = new UDim2(0.5, 0, 0.5, offset / unit);
-		controller.SetTouchThrottleAxis(-offset / radius);
-	}, [controller]);
-	const throttleBegan = useCallback((input: InputObject) => {
-		if (!inMissionRef.current || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox() || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
-		if (!touches.Begin("throttle", input)) return;
-		trackTouchEnd(input);
-		moveThrottle(input);
-	}, [moveThrottle, trackTouchEnd]);
+	const moveThrottle = useCallback(
+		(input: InputObject) => {
+			const stick = throttleJoystickRef.current;
+			const knob = throttleKnobRef.current;
+			if (!stick || !knob || !inMissionRef.current) return;
+			const radius = math.max(1, stick.AbsoluteSize.Y * 0.34);
+			const offset = math.clamp(
+				input.Position.Y - stick.AbsolutePosition.Y - stick.AbsoluteSize.Y / 2,
+				-radius,
+				radius,
+			);
+			const unit = stick.AbsoluteSize.Y / math.max(1, stick.Size.Y.Offset);
+			knob.Position = new UDim2(0.5, 0, 0.5, offset / unit);
+			controller.SetTouchThrottleAxis(-offset / radius);
+		},
+		[controller],
+	);
+	const throttleBegan = useCallback(
+		(input: InputObject) => {
+			if (
+				!inMissionRef.current ||
+				GuiService.MenuIsOpen ||
+				UserInputService.GetFocusedTextBox() ||
+				inputModeRef.current !== "touch" ||
+				input.UserInputType !== Enum.UserInputType.Touch
+			)
+				return;
+			if (!touches.Begin("throttle", input)) return;
+			trackTouchEnd(input);
+			moveThrottle(input);
+		},
+		[moveThrottle, trackTouchEnd],
+	);
 	useEffect(() => {
 		mountedRef.current = true;
 		return () => {
@@ -559,7 +840,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	useEffect(() => {
 		const changed = UserInputService.InputChanged.Connect((input) => {
 			const active = touches.steering;
-			if (input.UserInputState === Enum.UserInputState.Cancel || input.UserInputState === Enum.UserInputState.End) { releaseTouch(input); return; }
+			if (
+				input.UserInputState === Enum.UserInputState.Cancel ||
+				input.UserInputState === Enum.UserInputState.End
+			) {
+				releaseTouch(input);
+				return;
+			}
 			if (active && input === active) moveJoystick(input);
 			if (input === touches.throttle) moveThrottle(input);
 		});
@@ -570,7 +857,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		return () => {
 			changed.Disconnect();
 			ended.Disconnect();
-			focus.Disconnect(); menu.Disconnect(); textFocus.Disconnect();
+			focus.Disconnect();
+			menu.Disconnect();
+			textFocus.Disconnect();
 		};
 	}, [endJoystickTouch, moveJoystick, moveThrottle, releaseTouch]);
 	useEffect(() => {
@@ -605,7 +894,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
-			if ((payload.kind === "Queued" || payload.kind === "Building" || payload.kind === "Loading" || payload.kind === "Started") && !launchLoading.Current(payload.launchId)) return;
+			if (
+				(payload.kind === "Queued" ||
+					payload.kind === "Building" ||
+					payload.kind === "Loading" ||
+					payload.kind === "Started") &&
+				!launchLoading.Current(payload.launchId)
+			)
+				return;
 			if (payload.kind === "Queued") {
 				launchLoading.Queued();
 				setLaunchPhase(launchLoading.Phase());
@@ -624,16 +920,22 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const loading = payload as MissionLoading;
 				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(loading.missionId) ? loading.missionId : 1;
-				selectedSlotRef.current = slot; setSelectedSlot(slot);
-				selectedMissionRef.current = missionId; setSelectedMission(missionId);
-				toastRef.current++; setToast(undefined);
+				selectedSlotRef.current = slot;
+				setSelectedSlot(slot);
+				selectedMissionRef.current = missionId;
+				setSelectedMission(missionId);
+				toastRef.current++;
+				setToast(undefined);
 				setLoadingProgress(0);
 				changeScreen("loading");
 				const serial = ++loadingSerialRef.current;
-				const alive = () => mountedRef.current && loadingSerialRef.current === serial && screenRef.current === "loading";
+				const alive = () =>
+					mountedRef.current && loadingSerialRef.current === serial && screenRef.current === "loading";
 				task.spawn(() => {
 					const expected = finite(loading.expectedParts, 0) > 0 ? loading.expectedParts : undefined;
-					const ready = preloadMission(loading.aircraft, expected, alive, (fraction) => { if (alive()) setLoadingProgress(fraction); });
+					const ready = preloadMission(loading.aircraft, expected, alive, (fraction) => {
+						if (alive()) setLoadingProgress(fraction);
+					});
 					if (ready) remotes.CombatAction.FireServer({ action: "Ready" });
 				});
 				task.delay(LOADING_CLIENT_TIMEOUT, () => {
@@ -683,7 +985,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				}
 				changeScreen(launchLoading.Screen());
 				// A menu opened or focus lost during loading/cutscene fires no new event once flight starts: pause now.
-				task.defer(() => { if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current(); });
+				task.defer(() => {
+					if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current();
+				});
 				const [ok, initial] = pcall(() => controller.GetTelemetry());
 				if (ok && typeIs(initial, "table")) {
 					const sanitized = sanitizeTelemetry(initial as Telemetry, telemetryRef.current);
@@ -695,7 +999,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!held) {
 					// Hold the flight view so the last kill callout, the ace hit-stop or the player's own explosion plays out first.
 					const serial = loadingSerialRef.current;
-					task.delay(MISSION_END_HOLD, () => { if (loadingSerialRef.current === serial) onMissionState(raw, true); });
+					task.delay(MISSION_END_HOLD, () => {
+						if (loadingSerialRef.current === serial) onMissionState(raw, true);
+					});
 					return;
 				}
 				const finished = payload as MissionFinished;
@@ -705,49 +1011,79 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
 				controller.ResultAudio(won);
-				const missionId = MissionCatalog.IsValidId(finished.missionId) ? finished.missionId : current.missionId ?? 1;
+				const missionId = MissionCatalog.IsValidId(finished.missionId)
+					? finished.missionId
+					: (current.missionId ?? 1);
 				selectedMissionRef.current = missionId;
 				setSelectedMission(missionId);
 				outcomeWonRef.current = won;
 				outcomeMissionRef.current = missionId;
-				if(won && missionId===MISSION_COUNT) {
-					cinematicReturn.current="outcome";setCinematicId(MISSION_COUNT);cinematicNext.current=()=>{
+				if (won && missionId === MISSION_COUNT) {
+					cinematicReturn.current = "outcome";
+					setCinematicId(MISSION_COUNT);
+					cinematicNext.current = () => {
 						changeScreen("outcome");
 						beginRequest((requestId) => {
 							const [response, problem] = invoke("FinishFinale", { slot: selectedSlotRef.current });
 							if (!mountedRef.current || requestRef.current !== requestId) return;
-							if (response) applyResponseSlots(response); else showToast(problem ?? "Chapter acknowledgement failed.", true);
+							if (response) applyResponseSlots(response);
+							else showToast(problem ?? "Chapter acknowledgement failed.", true);
 						});
-					};changeScreen("cinematic");
+					};
+					changeScreen("cinematic");
 				} else changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
-				const saveText = won && finished.saved === true && resultPersistence === "cloud"
-					? "FLIGHT RECORD SAVED TO CLOUD"
-					: resultPersistence === "session"
-						? "RESULT HELD FOR THIS SESSION ONLY"
-						: resultPersistence === "unavailable"
-							? "SAVE SERVICE UNAVAILABLE — RESULT MAY NOT PERSIST"
-							: won ? "RESULT RECEIVED — SAVE NOT CONFIRMED" : "";
+				const saveText =
+					won && finished.saved === true && resultPersistence === "cloud"
+						? "FLIGHT RECORD SAVED TO CLOUD"
+						: resultPersistence === "session"
+							? "RESULT HELD FOR THIS SESSION ONLY"
+							: resultPersistence === "unavailable"
+								? "SAVE SERVICE UNAVAILABLE — RESULT MAY NOT PERSIST"
+								: won
+									? "RESULT RECEIVED — SAVE NOT CONFIRMED"
+									: "";
 				const count = (value: unknown, fallback = 0) => math.max(0, math.floor(finite(value, fallback)));
 				const kills = count(finished.kills, current.kills);
 				const groundKills = math.min(kills, count(finished.groundKills, current.groundKills ?? 0));
 				const elapsed = math.max(0, finite(finished.elapsed, current.elapsed));
-				const par = finite(finished.par, 0) > 0 ? finished.par! : MissionScore.ParSeconds(MissionCatalog.Get(missionId));
+				const par =
+					finite(finished.par, 0) > 0
+						? finished.par!
+						: MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 				const missilesFired = count(finished.missilesFired);
 				const missileHits = math.min(missilesFired, count(finished.missileHits));
 				const damageTaken = math.clamp(finite(finished.damageTaken, 100 - current.health), 0, 100);
 				// The server scores the run; an older or fallback message is scored here for display only.
-				const fallback = MissionScore.Compute({ won, airKills: kills - groundKills, groundKills, elapsed, par, missilesFired, missileHits, damageTaken, difficulty: finished.difficulty, targetPoints: finished.targetScore?.total }, MissionCatalog.Scoring(missionId));
+				const fallback = MissionScore.Compute(
+					{
+						won,
+						airKills: kills - groundKills,
+						groundKills,
+						elapsed,
+						par,
+						missilesFired,
+						missileHits,
+						damageTaken,
+						difficulty: finished.difficulty,
+						targetPoints: finished.targetScore?.total,
+					},
+					MissionCatalog.Scoring(missionId),
+				);
 				setOutcome({
 					won,
 					missionId,
-					targetScore: MissionCatalog.Scoring(missionId).basis === "points" ? finished.targetScore : undefined,
+					targetScore:
+						MissionCatalog.Scoring(missionId).basis === "points" ? finished.targetScore : undefined,
 					airKills: kills - groundKills,
 					optionalKills: count(finished.optionalKills),
 					groundKills,
 					elapsed,
 					par,
-					completedPhases: count(finished.completedPhases, won ? MissionCatalog.TotalPhases(MissionCatalog.Get(missionId)) : 0),
+					completedPhases: count(
+						finished.completedPhases,
+						won ? MissionCatalog.TotalPhases(MissionCatalog.Get(missionId)) : 0,
+					),
 					missilesFired,
 					missileHits,
 					damageTaken,
@@ -762,7 +1098,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					reason: isMissionReason(finished.reason) ? finished.reason : undefined,
 					difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
 					saveText,
-					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
+					saveColor:
+						won && finished.saved === true && resultPersistence === "cloud"
+							? C.Accent
+							: resultPersistence === "cloud"
+								? C.Muted
+								: C.Orange,
 				});
 			}
 		};
@@ -781,16 +1122,39 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 			const previous = telemetryRef.current;
 			const sanitized = sanitizeTelemetry(merged, previous);
-			if (sanitized.pauseRemaining === 0 && previous.pauseRemaining !== 0) setFireNotice({ text: "PAUSE SPENT · FLIGHT CONTINUES", until: os.clock() + 5 });
-			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
-			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) {
+			if (sanitized.pauseRemaining === 0 && previous.pauseRemaining !== 0)
+				setFireNotice({ text: "PAUSE SPENT · FLIGHT CONTINUES", until: os.clock() + 5 });
+			if (sanitized.kills > previous.kills)
+				setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
+			if (
+				sanitized.radio !== undefined &&
+				sanitized.radioSerial !== undefined &&
+				sanitized.radioSerial !== previous.radioSerial
+			) {
 				// Voiced lines are matched by exact catalog text (table generated at build time) and hold until the voice ends.
-				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, radioNow(), Voice.Radio(sanitized.radio)?.seconds, sanitized.radioPriority);
+				radioQueue.Push(
+					sanitized.radio,
+					sanitized.radioSeconds ?? RADIO_SECONDS,
+					radioNow(),
+					Voice.Radio(sanitized.radio)?.seconds,
+					sanitized.radioPriority,
+				);
 				// Cut even a loading voice immediately; Stop disconnects its pending playback heartbeat.
-				if (sanitized.radioPriority) { radioVoiceRef.current?.Stop(); radioVoiceRef.current = undefined; }
+				if (sanitized.radioPriority) {
+					radioVoiceRef.current?.Stop();
+					radioVoiceRef.current = undefined;
+				}
 				setRadioSerial(sanitized.radioSerial);
 			}
-			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
+			if (
+				sanitized.fireDenied !== undefined &&
+				sanitized.fireDeniedSerial !== undefined &&
+				sanitized.fireDeniedSerial !== previous.fireDeniedSerial
+			)
+				setFireNotice({
+					text: FIRE_DENIED_TEXT[sanitized.fireDenied],
+					until: os.clock() + FIRE_DENIED_SECONDS,
+				});
 			if (sanitized.health < previous.health) {
 				setDamageUntil(os.clock() + 0.45);
 				CameraShake.Damage(previous.health - sanitized.health);
@@ -798,19 +1162,40 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const kill = ImpactFeedback.DetectKill(killSnapshot(previous), killSnapshot(sanitized));
 			if (kill) {
 				killSerialRef.current += 1;
-				const killed = previous.target && previous.target.Parent === undefined ? previous.target : priorTargetRef.current;
+				const killed =
+					previous.target && previous.target.Parent === undefined ? previous.target : priorTargetRef.current;
 				priorTargetRef.current = undefined;
 				const point = killedTargetPoint(killed, rootFrameRef.current);
 				// The kill marker lives in the HUD-scaled frame.
-				setKillFlash({ serial: killSerialRef.current, kind: kill.kind, text: kill.text, bracket: point ? point.div(hudScaleRef.current) : undefined });
+				setKillFlash({
+					serial: killSerialRef.current,
+					kind: kill.kind,
+					text: kill.text,
+					bracket: point ? point.div(hudScaleRef.current) : undefined,
+				});
 				if (kill.kind === "ace") CameraShake.HitStop();
 			}
-			if (previous.target !== sanitized.target && previous.target !== undefined) priorTargetRef.current = previous.target;
+			if (previous.target !== sanitized.target && previous.target !== undefined)
+				priorTargetRef.current = previous.target;
 			telemetryRef.current = sanitized;
 			setTelemetry(sanitized);
 		});
-		return () => { connection.Disconnect(); unsubscribe(); };
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, launchLoading, releaseJoystick, remotes, showToast]);
+		return () => {
+			connection.Disconnect();
+			unsubscribe();
+		};
+	}, [
+		applyResponseSlots,
+		beginRequest,
+		cancelRequests,
+		changeScreen,
+		controller,
+		invoke,
+		launchLoading,
+		releaseJoystick,
+		remotes,
+		showToast,
+	]);
 	useEffect(() => {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
@@ -829,7 +1214,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (shownLine !== radioVoiceLineRef.current) {
 				radioVoiceLineRef.current = shownLine;
 				radioVoiceRef.current?.Stop(0.15);
-				radioVoiceRef.current = shownLine?.voice !== undefined ? VoicePlayer.Play(Voice.Radio(shownLine.text), "radio") : undefined;
+				radioVoiceRef.current =
+					shownLine?.voice !== undefined ? VoicePlayer.Play(Voice.Radio(shownLine.text), "radio") : undefined;
 				if (pausedRef.current) radioVoiceRef.current?.Pause();
 			}
 			if (!NO_MENU_CAMERA.has(screenRef.current)) setMenuCamera();
@@ -851,8 +1237,24 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					// Stall trend and terrain probe: re-render only when the fresh trend changes the warning the HUD shows.
 					const flight = controller.GetFlightTrend();
 					const warningsEnabled = controller.FlightWarningsEnabled();
-					const shown = flightWarning({ ...telemetryRef.current, acceleration: trendRef.current.acceleration, terrainSeconds: trendRef.current.terrainSeconds }, false, warningsEnabled);
-					const implied = flightWarning({ ...telemetryRef.current, acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds }, false, warningsEnabled);
+					const shown = flightWarning(
+						{
+							...telemetryRef.current,
+							acceleration: trendRef.current.acceleration,
+							terrainSeconds: trendRef.current.terrainSeconds,
+						},
+						false,
+						warningsEnabled,
+					);
+					const implied = flightWarning(
+						{
+							...telemetryRef.current,
+							acceleration: flight.acceleration,
+							terrainSeconds: flight.terrainSeconds,
+						},
+						false,
+						warningsEnabled,
+					);
 					if (implied !== shown) {
 						trendRef.current = { acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds };
 						setTrend(trendRef.current);
@@ -874,20 +1276,39 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, []);
 	const menu = useMemo(() => getMenuLayout(viewport.X, viewport.Y), [viewport]);
 	const selectedSave = slots?.[selectedSlot - 1];
-	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
+	const rootChange = useMemo(
+		() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }),
+		[],
+	);
 	const now = os.clock();
 	let callout: Callout | undefined;
 	const radioLine = screen === "mission" ? radioQueue.Current(radioNow()) : undefined;
 	if (killNotice && now < killNotice.until) {
 		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
 		const total = telemetry.objectiveTotal ?? 0;
-		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: HUD.White };
+		callout = {
+			text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down",
+			color: HUD.White,
+		};
 	}
 	// In a mission the toast follows the HUD's own (scaled) layout for this input mode.
 	const inMission = screen === "mission";
-	const toastRectangle = useMemo(() => inMission
-		? scaleRectangle(getToastLayout(math.floor(viewport.X / hudScale), math.floor(viewport.Y / hudScale), undefined, inputMode, hudOptions), hudScale)
-		: getToastLayout(viewport.X, viewport.Y, menu), [inMission, viewport, hudScale, inputMode, hudOptions, menu]);
+	const toastRectangle = useMemo(
+		() =>
+			inMission
+				? scaleRectangle(
+						getToastLayout(
+							math.floor(viewport.X / hudScale),
+							math.floor(viewport.Y / hudScale),
+							undefined,
+							inputMode,
+							hudOptions,
+						),
+						hudScale,
+					)
+				: getToastLayout(viewport.X, viewport.Y, menu),
+		[inMission, viewport, hudScale, inputMode, hudOptions, menu],
+	);
 	const activeFireNotice = fireNotice && now < fireNotice.until ? fireNotice.text : undefined;
 	const menuHints = useMemo(() => {
 		const hints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
@@ -899,18 +1320,89 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const closeSettings = useCallback(() => setSettingsOpen(false), [setSettingsOpen]);
 	return (
 		<InputModeContext.Provider value={inputMode}>
-			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
+			<screengui
+				key="SkybreakBackdrop"
+				DisplayOrder={19}
+				IgnoreGuiInset={true}
+				ResetOnSpawn={false}
+				ScreenInsets={Enum.ScreenInsets.None}
+			>
 				<MenuBackdrop visible={!NO_MENU_CAMERA.has(screen)} menu={menu} viewport={viewport} />
 			</screengui>
 			{/* Its own full-bleed ScreenGuis above the menus: covers the top bar and notches (D-200). */}
-			<LoadingScreen visible={screen === "loading"} launched={screen === "mission"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} inputMode={inputMode} motion={!MotionPreference.reduced} />
-			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
-				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
-					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicReturn.current);continueStory();}} onCancel={()=>changeScreen(cinematicReturn.current)}/>}
+			<LoadingScreen
+				visible={screen === "loading"}
+				launched={screen === "mission"}
+				missionId={selectedMission}
+				progress={loadingProgress}
+				phase={launchPhase}
+				buildFolder={buildFolder}
+				viewport={viewport}
+				inputMode={inputMode}
+				motion={!MotionPreference.reduced}
+			/>
+			<screengui
+				key="SkybreakUI"
+				DisplayOrder={20}
+				IgnoreGuiInset={false}
+				ResetOnSpawn={false}
+				ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets}
+				ZIndexBehavior={Enum.ZIndexBehavior.Sibling}
+			>
+				<frame
+					ref={rootFrameRef}
+					key="Root"
+					BackgroundTransparency={1}
+					Size={UDim2.fromScale(1, 1)}
+					Change={rootChange}
+				>
+					{screen === "cinematic" && (
+						<RelayCinematic
+							id={cinematicId}
+							viewport={viewport}
+							onFinish={() => {
+								const continueStory = cinematicNext.current;
+								changeScreen(cinematicReturn.current);
+								continueStory();
+							}}
+							onCancel={() => changeScreen(cinematicReturn.current)}
+						/>
+					)}
 					<VoiceDisclosureNotice />
-					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
-					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
+					<TitleScreen
+						visible={screen === "title"}
+						menu={menu}
+						onCampaign={openCampaign}
+						onSettings={openSettings}
+					/>
+					<CampaignScreen
+						visible={screen === "slots"}
+						menu={menu}
+						slots={slots}
+						busy={busy}
+						persistence={persistence}
+						onBack={goBack}
+						onSlot={chooseSlot}
+						confirmSlot={confirmSlot}
+						onAskDelete={askDelete}
+						onCancelDelete={cancelDelete}
+						onDeleteSlot={deleteSlot}
+					/>
+					<BriefingScreen
+						visible={screen === "briefing"}
+						menu={menu}
+						selectedSlot={selectedSlot}
+						selectedMission={selectedMission}
+						slot={selectedSave}
+						busy={busy}
+						special={selectedSpecial}
+						difficulty={selectedDifficulty}
+						onBack={goBack}
+						onLaunch={startMission}
+						onMission={chooseMission}
+						onSpecial={chooseSpecial}
+						onDifficulty={chooseDifficulty}
+					/>
 					<MissionHud
 						visible={screen === "mission" && controller.CutInStatus() === undefined}
 						viewport={viewport}
@@ -938,17 +1430,47 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onEvade={evadeNow}
 						onPause={pauseSortie}
 					/>
-					{screen === "mission" && <SortieOverlay controller={controller} telemetry={telemetry} viewport={viewport} inputMode={inputMode} />}
-					{screen === "mission" && paused && !settingsOpen && (
-						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={openPauseSettings} onMenu={returnToMenu} />
+					{screen === "mission" && (
+						<SortieOverlay
+							controller={controller}
+							telemetry={telemetry}
+							viewport={viewport}
+							inputMode={inputMode}
+						/>
 					)}
-					{settingsOpen && <SettingsSheet viewport={viewport} settings={settings} onChange={changeSetting} onClose={closeSettings} />}
-					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
+					{screen === "mission" && paused && !settingsOpen && (
+						<PauseOverlay
+							remaining={telemetry.pauseRemaining}
+							viewport={viewport}
+							onResume={resumeSortie}
+							onSettings={openPauseSettings}
+							onMenu={returnToMenu}
+						/>
+					)}
+					{settingsOpen && (
+						<SettingsSheet
+							viewport={viewport}
+							settings={settings}
+							onChange={changeSetting}
+							onClose={closeSettings}
+						/>
+					)}
+					<OutcomeScreen
+						visible={screen === "outcome"}
+						menu={menu}
+						outcome={outcome}
+						busy={busy}
+						onRetry={retryMission}
+						onReturn={returnToMenu}
+						onNext={nextMission}
+					/>
 					<HintRow
 						name="MenuHints"
 						hints={menuHints}
 						rectangle={menuHintsRectangle}
-						alignment={menu.mode === "side" ? Enum.HorizontalAlignment.Right : Enum.HorizontalAlignment.Left}
+						alignment={
+							menu.mode === "side" ? Enum.HorizontalAlignment.Right : Enum.HorizontalAlignment.Left
+						}
 						visible={inputMode === "gamepad" && !NO_MENU_CAMERA.has(screen)}
 					/>
 					<StatusToast toast={toast} toastRectangle={toastRectangle} />

@@ -6,13 +6,18 @@ import { TELEMETRY_FIELDS, TelemetryCodec } from "../shared/TelemetryCodec";
 import { Telemetry } from "../shared/Types";
 
 const CRUISE = { x: 0, y: 0, throttle: 0.65 };
-function copy(state: FlightState): FlightState { return { ...state }; }
+function copy(state: FlightState): FlightState {
+	return { ...state };
+}
 /** Predictor with `seconds` of 60 Hz history ending at t = seconds. */
 function flown(seconds: number, input = CRUISE) {
 	const predictor = FlightPrediction.New(FlightMath.NewState());
 	predictor.rtt = 0; // reconcile against "now" so tests control the matching time exactly
 	let now = 0;
-	for (let frame = 0; frame < seconds * 60; frame++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+	for (let frame = 0; frame < seconds * 60; frame++) {
+		now += 1 / 60;
+		FlightPrediction.Step(predictor, input, 1 / 60, now);
+	}
 	return $tuple(predictor, now);
 }
 
@@ -22,8 +27,12 @@ describe("client flight prediction and reconciliation", () => {
 		const server = copy(predictor.state);
 		server.x += 30;
 		FlightPrediction.Reconcile(predictor, server, now, 1);
-		const state = copy(predictor.state), pending = copy(predictor.pending), applied = copy(predictor.applied);
-		const accumulator = predictor.accumulator, count = predictor.count, head = predictor.head;
+		const state = copy(predictor.state),
+			pending = copy(predictor.pending),
+			applied = copy(predictor.applied);
+		const accumulator = predictor.accumulator,
+			count = predictor.count,
+			head = predictor.head;
 		for (const dt of [0 / 0, math.huge, -math.huge]) {
 			FlightPrediction.Step(predictor, CRUISE, dt, now);
 			expect(predictor.state).toEqual(state);
@@ -40,7 +49,11 @@ describe("client flight prediction and reconciliation", () => {
 	it("is deterministic: the predictor and the server step are the same pure function", () => {
 		const server = FlightMath.NewState();
 		const predictor = FlightPrediction.New(FlightMath.NewState());
-		const inputs = [{ x: 0.6, y: 0.3, throttle: 1 }, { x: -1, y: -0.2, throttle: 0.2 }, { x: 0, y: 1, throttle: 0.65 }];
+		const inputs = [
+			{ x: 0.6, y: 0.3, throttle: 1 },
+			{ x: -1, y: -0.2, throttle: 0.2 },
+			{ x: 0, y: 1, throttle: 0.65 },
+		];
 		let now = 0;
 		for (let step = 0; step < 90; step++) {
 			const input = inputs[math.floor(step / 30)];
@@ -53,15 +66,21 @@ describe("client flight prediction and reconciliation", () => {
 	it("predicts selected speeds throughout the full range after accelerator release", () => {
 		for (const mph of [75, 800, 1700, 3000]) {
 			const initial = FlightMath.FromPose(0, 1500, 0, 0, 0, FlightMath.FromMph(mph));
-			const server = copy(initial), predictor = FlightPrediction.New(initial);
-			const input = {x: 0, y: 0, throttle: FlightMath.ThrottleForSpeed(initial.speed)};
+			const server = copy(initial),
+				predictor = FlightPrediction.New(initial);
+			const input = { x: 0, y: 0, throttle: FlightMath.ThrottleForSpeed(initial.speed) };
 			let now = 0;
 			for (let i = 0; i < 60; i++) {
 				FlightMath.Step(server, input, 1 / 30);
-				for (let j = 0; j < 2; j++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+				for (let j = 0; j < 2; j++) {
+					now += 1 / 60;
+					FlightPrediction.Step(predictor, input, 1 / 60, now);
+				}
 			}
 			expect(predictor.state).toEqual(server);
-			expect(FlightPrediction.Decode(FlightPrediction.Encode(1, server, 0, now, 0))?.state.speed).toBe(server.speed);
+			expect(FlightPrediction.Decode(FlightPrediction.Encode(1, server, 0, now, 0))?.state.speed).toBe(
+				server.speed,
+			);
 		}
 	});
 	it("stays inside the ignore deadzone when a 60 fps client tracks the 30 Hz server", () => {
@@ -74,12 +93,17 @@ describe("client flight prediction and reconciliation", () => {
 		let worst = 0;
 		for (let step = 0; step < 60; step++) {
 			FlightMath.Step(server, input, 1 / 30);
-			for (let half = 0; half < 2; half++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+			for (let half = 0; half < 2; half++) {
+				now += 1 / 60;
+				FlightPrediction.Step(predictor, input, 1 / 60, now);
+			}
 			if (step % 2 === 1) {
 				sequence += 1;
 				const before = copy(predictor.state);
 				FlightPrediction.Reconcile(predictor, server, now, sequence);
-				const dx = server.x - before.x, dy = server.y - before.y, dz = server.z - before.z;
+				const dx = server.x - before.x,
+					dy = server.y - before.y,
+					dz = server.z - before.z;
 				worst = math.max(worst, math.sqrt(dx * dx + dy * dy + dz * dz));
 			}
 		}
@@ -119,7 +143,8 @@ describe("client flight prediction and reconciliation", () => {
 		expect(previousGap).toBeLessThan(30 * 0.01);
 		// A single frame moves only a small fraction: no visible pop.
 		const [fresh, t] = flown(0.5);
-		const target = copy(fresh.state); target.x += 30;
+		const target = copy(fresh.state);
+		target.x += 30;
 		FlightPrediction.Reconcile(fresh, target, t, 1);
 		const x0 = fresh.state.x;
 		const ref = FlightPrediction.New(copy(fresh.state));
@@ -139,7 +164,8 @@ describe("client flight prediction and reconciliation", () => {
 	it("snaps straight to the server state when it has no history yet", () => {
 		const predictor = FlightPrediction.New(FlightMath.NewState());
 		const server = FlightMath.NewState();
-		server.x = 400; server.speed = 300;
+		server.x = 400;
+		server.speed = 300;
 		expect(FlightPrediction.Reconcile(predictor, server, 1, 1)).toBe("snap");
 		expect(predictor.state).toEqual(server);
 	});
@@ -174,7 +200,8 @@ describe("client flight prediction and reconciliation", () => {
 		// 0.04 rad away across the seam, not 6.24 rad.
 		const server = FlightMath.SetAttitude(copy(start), -math.pi + 0.02, 0);
 		expect(FlightPrediction.Reconcile(predictor, server, 0, 1)).toBe("blend");
-		for (let frame = 1; frame <= 120; frame++) FlightPrediction.Step(predictor, { x: 0, y: 0, throttle: 0.65 }, 1 / 60, frame / 60);
+		for (let frame = 1; frame <= 120; frame++)
+			FlightPrediction.Step(predictor, { x: 0, y: 0, throttle: 0.65 }, 1 / 60, frame / 60);
 		expect(math.abs(FlightMath.WrapAngle(predictor.state.yaw - server.yaw))).toBeLessThan(0.002);
 		expect(predictor.state.yaw).toBeGreaterThanOrEqual(-math.pi);
 		expect(predictor.state.yaw).toBeLessThan(math.pi);
@@ -182,7 +209,10 @@ describe("client flight prediction and reconciliation", () => {
 	it("treats q and -q as the same attitude and ignores the yaw flip at the top of a loop", () => {
 		const [predictor, now] = flown(0.5);
 		const server = copy(predictor.state);
-		server.qw = -server.qw; server.qx = -server.qx; server.qy = -server.qy; server.qz = -server.qz;
+		server.qw = -server.qw;
+		server.qx = -server.qx;
+		server.qy = -server.qy;
+		server.qz = -server.qz;
 		expect(FlightPrediction.Reconcile(predictor, server, now, 1)).toBe("ignore");
 		// Straight up, a hair either side of the vertical, the derived yaw differs by pi but the jet does not.
 		const before = FlightMath.FromPose(0, 400, 0, 0, math.pi / 2 - 1e-4, 230);
@@ -202,7 +232,10 @@ describe("client flight prediction and reconciliation", () => {
 		let now = 0;
 		for (let step = 1; step <= 180; step++) {
 			FlightMath.Step(server, input, 1 / 30);
-			for (let half = 0; half < 2; half++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+			for (let half = 0; half < 2; half++) {
+				now += 1 / 60;
+				FlightPrediction.Step(predictor, input, 1 / 60, now);
+			}
 			if (step % 3 === 0) expect(FlightPrediction.Reconcile(predictor, server, now, step)).toBe("ignore");
 		}
 	});
@@ -222,7 +255,7 @@ describe("client flight prediction and reconciliation", () => {
 		// jet has flown ~50 studs since.
 		const past = FlightMath.NewState();
 		expect(FlightPrediction.Sample(predictor, now - 0.2, past)).toBe(true);
-		expect(math.abs(predictor.state.z - past.z)).toBeCloseTo(FlightMath.CruiseSpeed * .2, 5);
+		expect(math.abs(predictor.state.z - past.z)).toBeCloseTo(FlightMath.CruiseSpeed * 0.2, 5);
 		expect(FlightPrediction.Reconcile(predictor, past, now, 1)).toBe("ignore");
 		// With an echo the packet names the exact predicted time instead.
 		const exact = FlightMath.NewState();
@@ -238,35 +271,76 @@ describe("client flight prediction and reconciliation", () => {
 		// (it sends "Started" and its clock runs while that travels), so the first
 		// packets correct that one-time along-track offset; after that, and through
 		// the whole turn, every correction must stay inside the deadzone.
-		for (const [UP, DOWN] of [[2, 3], [4, 1], [6, 6]]) {
+		for (const [UP, DOWN] of [
+			[2, 3],
+			[4, 1],
+			[6, 6],
+		]) {
 			const dt = 1 / 30;
 			const predictor = FlightPrediction.New(FlightMath.NewState());
 			const server = FlightMath.NewState();
 			const serverInput = { x: 0, y: 0, throttle: 0.65 };
-			let serverStamp = 0, serverSteps = 0, fresh = false, sequence = 0;
+			let serverStamp = 0,
+				serverSteps = 0,
+				fresh = false,
+				sequence = 0;
 			const inputs: Array<{ x: number; y: number; throttle: number; t: number }> = [];
-			const inFlight: Array<{ arrive: number; state: FlightState; stamp: number; hold: number; sequence: number }> = [];
+			const inFlight: Array<{
+				arrive: number;
+				state: FlightState;
+				stamp: number;
+				hold: number;
+				sequence: number;
+			}> = [];
 			// Server lead: it has already flown UP + DOWN steps when the client starts.
 			for (let lead = 0; lead < UP + DOWN; lead++) FlightMath.Step(server, serverInput, dt);
 			const outcomes: string[] = [];
 			for (let frame = 1; frame <= 150; frame++) {
 				const now = frame * dt;
 				// Straight for 2 s, full right stick with climb for 1.5 s, full left, then straight.
-				const input = frame <= 60 ? { x: 0, y: 0, throttle: 0.65 } : frame <= 105 ? { x: 1, y: 0.6, throttle: 1 } : frame <= 130 ? { x: -1, y: -0.3, throttle: 0.4 } : { x: 0, y: 0, throttle: 0.65 };
+				const input =
+					frame <= 60
+						? { x: 0, y: 0, throttle: 0.65 }
+						: frame <= 105
+							? { x: 1, y: 0.6, throttle: 1 }
+							: frame <= 130
+								? { x: -1, y: -0.3, throttle: 0.4 }
+								: { x: 0, y: 0, throttle: 0.65 };
 				const stamp = FlightPrediction.InputStamp(predictor, now - dt);
 				FlightPrediction.Step(predictor, input, dt, now);
 				inputs.push({ ...input, t: stamp });
 				// Server step for the same tick: newest input that has arrived (UP steps late).
 				const arrived = inputs[frame - 1 - UP];
-				if (arrived) { serverInput.x = arrived.x; serverInput.y = arrived.y; serverInput.throttle = arrived.throttle; serverStamp = arrived.t; fresh = true; }
-				if (fresh) { fresh = false; serverSteps = 0; }
+				if (arrived) {
+					serverInput.x = arrived.x;
+					serverInput.y = arrived.y;
+					serverInput.throttle = arrived.throttle;
+					serverStamp = arrived.t;
+					fresh = true;
+				}
+				if (fresh) {
+					fresh = false;
+					serverSteps = 0;
+				}
 				FlightMath.Step(server, serverInput, dt);
 				serverSteps += 1;
 				sequence += 1;
-				inFlight.push({ arrive: frame + DOWN, state: { ...server }, stamp: serverStamp, hold: serverSteps * dt, sequence });
+				inFlight.push({
+					arrive: frame + DOWN,
+					state: { ...server },
+					stamp: serverStamp,
+					hold: serverSteps * dt,
+					sequence,
+				});
 				for (const packet of inFlight) {
 					if (packet.arrive !== frame || packet.stamp <= 0) continue;
-					const result = FlightPrediction.Reconcile(predictor, packet.state, now, packet.sequence, packet.stamp + packet.hold);
+					const result = FlightPrediction.Reconcile(
+						predictor,
+						packet.state,
+						now,
+						packet.sequence,
+						packet.stamp + packet.hold,
+					);
 					if (frame > 45) outcomes.push(result);
 				}
 			}
@@ -294,7 +368,13 @@ describe("client flight prediction and reconciliation", () => {
 	});
 	it("round-trips the flight state packet and rejects malformed ones", () => {
 		// Upright, inverted at the top of a loop, and leaning into a turn.
-		for (const state of [FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MinSpeed), FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MaxSpeed), FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0), FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi), FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250)]) {
+		for (const state of [
+			FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MinSpeed),
+			FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MaxSpeed),
+			FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0),
+			FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi),
+			FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250),
+		]) {
 			state.lean = -0.4;
 			FlightMath.Sync(state);
 			const packet = FlightPrediction.Encode(7, state, 0.4, 12.5, 0.02);
@@ -303,7 +383,20 @@ describe("client flight prediction and reconciliation", () => {
 			expect(decoded?.sequence).toBe(7);
 			expect(decoded).toBeDefined();
 			if (decoded) {
-				for (const key of ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "yaw", "pitch", "roll", "speed"] as const) {
+				for (const key of [
+					"x",
+					"y",
+					"z",
+					"qw",
+					"qx",
+					"qy",
+					"qz",
+					"lean",
+					"yaw",
+					"pitch",
+					"roll",
+					"speed",
+				] as const) {
 					expect(decoded.state[key]).toBeCloseTo(state[key], 10);
 				}
 			}
@@ -323,7 +416,10 @@ describe("client flight prediction and reconciliation", () => {
 		FlightMath.Sync(state);
 		for (const scale of [0.8, 2, -2]) {
 			const scaled = copy(state);
-			scaled.qw *= scale; scaled.qx *= scale; scaled.qy *= scale; scaled.qz *= scale;
+			scaled.qw *= scale;
+			scaled.qx *= scale;
+			scaled.qy *= scale;
+			scaled.qz *= scale;
 			const decoded = FlightPrediction.Decode(FlightPrediction.Encode(7, scaled, 0.4, 12.5, 0.02));
 			expect(decoded).toBeDefined();
 			if (!decoded) continue;
@@ -337,18 +433,59 @@ describe("client flight prediction and reconciliation", () => {
 	it("rejects packet attitudes whose finite components overflow their squared length", () => {
 		for (const component of [1e200, -1e200]) {
 			const state = FlightMath.NewState();
-			state.qw = component; state.qx = component;
+			state.qw = component;
+			state.qx = component;
 			expect(FlightPrediction.Decode(FlightPrediction.Encode(1, state, 0, 1, 0))).toBeUndefined();
 		}
 	});
 	it("packs HUD numbers into a compact array and decodes them in place", () => {
-		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
+		const into = {
+			kind: "Telemetry",
+			health: 0,
+			speed: 0,
+			altitude: 0,
+			kills: 0,
+			total: 0,
+			missiles: 0,
+			missileCooldown: 0,
+			evadeCooldown: 0,
+			targetName: "",
+			lockProgress: 0,
+			incoming: false,
+			elapsed: 0,
+		} as Telemetry;
 		const packet = TelemetryCodec.Encode(3, {
-			health: 80, speed: 255, altitude: 300, kills: 2, total: 4, missiles: 6, missileCooldown: 0.5, evadeCooldown: 0,
-			lockProgress: 0.4, incoming: true, lockWarning: false, boundaryWarning: true, elapsed: 12, timeRemaining: 500,
-			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
-			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
-			evadeCharges: 2, optionalKills: 3, incomingDistance: 420, turnObserved: 3, pitchObserved: 1.25, evadeThreat: true, paused: true, pauseAck: 7,
+			health: 80,
+			speed: 255,
+			altitude: 300,
+			kills: 2,
+			total: 4,
+			missiles: 6,
+			missileCooldown: 0.5,
+			evadeCooldown: 0,
+			lockProgress: 0.4,
+			incoming: true,
+			lockWarning: false,
+			boundaryWarning: true,
+			elapsed: 12,
+			timeRemaining: 500,
+			objectiveProgress: 1,
+			objectiveTotal: 3,
+			groundKills: 1,
+			targetDistance: 900,
+			targetHealth: undefined,
+			protectedHealth: 70,
+			specialCharges: 2,
+			specialCooldown: 1.5,
+			specialActive: 12,
+			evadeCharges: 2,
+			optionalKills: 3,
+			incomingDistance: 420,
+			turnObserved: 3,
+			pitchObserved: 1.25,
+			evadeThreat: true,
+			paused: true,
+			pauseAck: 7,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
 		expect(packet.size()).toBe(29);
@@ -370,11 +507,14 @@ describe("client flight prediction and reconciliation", () => {
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.turnObserved).toBe(3);
 		expect(into.pitchObserved).toBe(1.25);
-		packet[27] = 0 / 0; packet[28] = -1;
+		packet[27] = 0 / 0;
+		packet[28] = -1;
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.turnObserved).toBeUndefined();
 		expect(into.pitchObserved).toBeUndefined();
-		packet.remove(28); packet.remove(27); packet.remove(26);
+		packet.remove(28);
+		packet.remove(27);
+		packet.remove(26);
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.turnObserved).toBeUndefined();
 		expect(into.pitchObserved).toBeUndefined();
@@ -394,9 +534,26 @@ describe("client flight prediction and reconciliation", () => {
 		expect(into.targetDamageable).toBeUndefined();
 		for (const damageable of [true, false]) {
 			const flagged = TelemetryCodec.Encode(4, {
-				health: 80, speed: 255, altitude: 300, kills: 2, total: 4, missiles: 6, missileCooldown: 0, evadeCooldown: 0,
-				lockProgress: 0, incoming: false, lockWarning: true, boundaryWarning: false, elapsed: 12, timeRemaining: 500,
-				objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: 0.5, targetDamageable: damageable,
+				health: 80,
+				speed: 255,
+				altitude: 300,
+				kills: 2,
+				total: 4,
+				missiles: 6,
+				missileCooldown: 0,
+				evadeCooldown: 0,
+				lockProgress: 0,
+				incoming: false,
+				lockWarning: true,
+				boundaryWarning: false,
+				elapsed: 12,
+				timeRemaining: 500,
+				objectiveProgress: 1,
+				objectiveTotal: 3,
+				groundKills: 1,
+				targetDistance: 900,
+				targetHealth: 0.5,
+				targetDamageable: damageable,
 			});
 			expect(TelemetryCodec.Decode(flagged, into)).toBe(4);
 			expect(into.targetDamageable).toBe(damageable);
@@ -411,35 +568,100 @@ describe("client flight prediction and reconciliation", () => {
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});
 	it("carries the ace-killed flag without disturbing the other flags", () => {
-		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
-		for (const aceKilled of [true, false]) for (const damageable of [true, false, undefined]) {
-			const packet = TelemetryCodec.Encode(5, {
-				health: 60, speed: 240, altitude: 300, kills: 5, total: 5, missiles: 3, missileCooldown: 0, evadeCooldown: 0,
-				lockProgress: 0, incoming: true, lockWarning: true, boundaryWarning: true, elapsed: 30, timeRemaining: 400,
-				objectiveProgress: 1, objectiveTotal: 1, groundKills: 0, targetDistance: 0, targetDamageable: damageable, aceKilled,
-			});
-			expect(TelemetryCodec.Decode(packet, into)).toBe(5);
-			expect(into.aceKilled).toBe(aceKilled);
-			expect(into.targetDamageable).toBe(damageable);
-			expect(into.incoming).toBe(true);
-			expect(into.lockWarning).toBe(true);
-			expect(into.boundaryWarning).toBe(true);
-		}
+		const into = {
+			kind: "Telemetry",
+			health: 0,
+			speed: 0,
+			altitude: 0,
+			kills: 0,
+			total: 0,
+			missiles: 0,
+			missileCooldown: 0,
+			evadeCooldown: 0,
+			targetName: "",
+			lockProgress: 0,
+			incoming: false,
+			elapsed: 0,
+		} as Telemetry;
+		for (const aceKilled of [true, false])
+			for (const damageable of [true, false, undefined]) {
+				const packet = TelemetryCodec.Encode(5, {
+					health: 60,
+					speed: 240,
+					altitude: 300,
+					kills: 5,
+					total: 5,
+					missiles: 3,
+					missileCooldown: 0,
+					evadeCooldown: 0,
+					lockProgress: 0,
+					incoming: true,
+					lockWarning: true,
+					boundaryWarning: true,
+					elapsed: 30,
+					timeRemaining: 400,
+					objectiveProgress: 1,
+					objectiveTotal: 1,
+					groundKills: 0,
+					targetDistance: 0,
+					targetDamageable: damageable,
+					aceKilled,
+				});
+				expect(TelemetryCodec.Decode(packet, into)).toBe(5);
+				expect(into.aceKilled).toBe(aceKilled);
+				expect(into.targetDamageable).toBe(damageable);
+				expect(into.incoming).toBe(true);
+				expect(into.lockWarning).toBe(true);
+				expect(into.boundaryWarning).toBe(true);
+			}
 	});
 	it("carries the server's pause state and the acknowledged pause serial", () => {
-		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
-		for (const paused of [true, false]) for (const aceKilled of [true, false]) {
-			const packet = TelemetryCodec.Encode(6, {
-				health: 60, speed: 240, altitude: 300, kills: 5, total: 5, missiles: 3, missileCooldown: 0, evadeCooldown: 0,
-				lockProgress: 0, incoming: true, lockWarning: false, boundaryWarning: false, elapsed: 30, timeRemaining: 400,
-				objectiveProgress: 1, objectiveTotal: 1, groundKills: 0, targetDistance: 0, aceKilled, paused, pauseAck: 7,
-			});
-			expect(packet.size()).toBe(TELEMETRY_FIELDS);
-			expect(TelemetryCodec.Decode(packet, into)).toBe(6);
-			expect(into.paused).toBe(paused);
-			expect(into.aceKilled).toBe(aceKilled);
-			expect(into.incoming).toBe(true);
-			expect(into.pauseAck).toBe(7);
-		}
+		const into = {
+			kind: "Telemetry",
+			health: 0,
+			speed: 0,
+			altitude: 0,
+			kills: 0,
+			total: 0,
+			missiles: 0,
+			missileCooldown: 0,
+			evadeCooldown: 0,
+			targetName: "",
+			lockProgress: 0,
+			incoming: false,
+			elapsed: 0,
+		} as Telemetry;
+		for (const paused of [true, false])
+			for (const aceKilled of [true, false]) {
+				const packet = TelemetryCodec.Encode(6, {
+					health: 60,
+					speed: 240,
+					altitude: 300,
+					kills: 5,
+					total: 5,
+					missiles: 3,
+					missileCooldown: 0,
+					evadeCooldown: 0,
+					lockProgress: 0,
+					incoming: true,
+					lockWarning: false,
+					boundaryWarning: false,
+					elapsed: 30,
+					timeRemaining: 400,
+					objectiveProgress: 1,
+					objectiveTotal: 1,
+					groundKills: 0,
+					targetDistance: 0,
+					aceKilled,
+					paused,
+					pauseAck: 7,
+				});
+				expect(packet.size()).toBe(TELEMETRY_FIELDS);
+				expect(TelemetryCodec.Decode(packet, into)).toBe(6);
+				expect(into.paused).toBe(paused);
+				expect(into.aceKilled).toBe(aceKilled);
+				expect(into.incoming).toBe(true);
+				expect(into.pauseAck).toBe(7);
+			}
 	});
 });

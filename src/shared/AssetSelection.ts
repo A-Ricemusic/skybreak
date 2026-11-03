@@ -4,7 +4,16 @@
 // No Roblox services here, so the offline Luau runner can execute it.
 
 export type AceLivery = "Vulture" | "Rusk" | "Elite";
-export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "VantaV2Elite";
+export type AircraftAssetName =
+	| "Kestrel"
+	| "Vanta"
+	| "VantaVulture"
+	| "VantaRusk"
+	| "KestrelV2"
+	| "VantaV2"
+	| "VantaV2Vulture"
+	| "VantaV2Rusk"
+	| "VantaV2Elite";
 
 /**
  * Part Transparency for glass parts (the v2 Canopy) so the cockpit shows through.
@@ -108,7 +117,11 @@ export const AssetSelection = {
 	 * The first candidate with a usable ID that has not already failed to load,
 	 * or undefined to use the procedural path.
 	 */
-	Resolve<K extends string>(ids: Partial<Record<K, number | undefined>>, candidates: K[], failed: ReadonlySet<number>): { name: K; assetId: number } | undefined {
+	Resolve<K extends string>(
+		ids: Partial<Record<K, number | undefined>>,
+		candidates: K[],
+		failed: ReadonlySet<number>,
+	): { name: K; assetId: number } | undefined {
 		for (const name of candidates) {
 			const assetId = ids[name];
 			if (AssetSelection.IsAssetId(assetId) && !failed.has(assetId)) return { name, assetId };
@@ -138,7 +151,8 @@ export const AssetSelection = {
 		const resolvedName = aceName ?? blueprintAceName;
 		if (resolvedName === undefined) return undefined;
 		const upper = resolvedName.upper();
-		if (upper.find("RUSK", 1, true)[0] !== undefined || upper.find("MARSHAL", 1, true)[0] !== undefined) return "Rusk";
+		if (upper.find("RUSK", 1, true)[0] !== undefined || upper.find("MARSHAL", 1, true)[0] !== undefined)
+			return "Rusk";
 		if (upper.find("VULTURE", 1, true)[0] !== undefined) return "Vulture";
 		return undefined;
 	},
@@ -181,8 +195,17 @@ export const AssetSelection = {
 	 * control surface and every glass part (the v2 Canopy). The bounds check cannot
 	 * catch a lost canopy (it sits inside the body's bounds), so names are checked.
 	 */
-	RequiredAircraftParts(surfaces: Record<string, unknown> | undefined, glassParts: readonly string[] | undefined, rotors?: Record<string, unknown>): string[] {
-		return ["Body", ...AssetSelection.ControlSurfaceNames(surfaces), ...(glassParts ?? []), ...AssetSelection.ControlSurfaceNames(rotors)];
+	RequiredAircraftParts(
+		surfaces: Record<string, unknown> | undefined,
+		glassParts: readonly string[] | undefined,
+		rotors?: Record<string, unknown>,
+	): string[] {
+		return [
+			"Body",
+			...AssetSelection.ControlSurfaceNames(surfaces),
+			...(glassParts ?? []),
+			...AssetSelection.ControlSurfaceNames(rotors),
+		];
 	},
 	/**
 	 * Whether an imported model's parts carry the textures the FBX embedded. The

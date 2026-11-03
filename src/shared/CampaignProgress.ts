@@ -13,5 +13,5 @@ export function highestUnlocked(slot?: SaveSlot): number {
 
 /** Shared release/progression guard, including the optional always-open practice. */
 export function canLaunchMission(id: unknown, slot?: SaveSlot): boolean {
- return MissionCatalog.IsValidId(id) && MissionCatalog.Available(id) && (id === 0 || id <= highestUnlocked(slot));
+	return MissionCatalog.IsValidId(id) && MissionCatalog.Available(id) && (id === 0 || id <= highestUnlocked(slot));
 }

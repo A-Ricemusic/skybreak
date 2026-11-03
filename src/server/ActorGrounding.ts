@@ -2,7 +2,10 @@ import { Workspace } from "@rbxts/services";
 import { ActorPlacement } from "../shared/ActorPlacement";
 
 /** How a protected actor sits: its pivot's height above its bounds' bottom, and whether it floats. */
-export interface ActorFooting { pivotAboveBottom: number; boat: boolean }
+export interface ActorFooting {
+	pivotAboveBottom: number;
+	boat: boolean;
+}
 const PROBE_TOP = 1500;
 const PROBE_DEPTH = 1700;
 

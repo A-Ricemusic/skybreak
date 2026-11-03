@@ -12,13 +12,24 @@ import {
 	SettingKey,
 	stepSetting,
 } from "../shared/PlayerSettings";
-import { RADAR_GLYPHS, RADAR_LAYER, RADAR_NEAR_RANGE, RADAR_RIM_INSET, radarProject, radarRange, type RadarContactKind } from "../shared/RadarMath";
+import {
+	RADAR_GLYPHS,
+	RADAR_LAYER,
+	RADAR_NEAR_RANGE,
+	RADAR_RIM_INSET,
+	radarProject,
+	radarRange,
+	type RadarContactKind,
+} from "../shared/RadarMath";
 import type { Telemetry } from "../shared/Types";
 import { getPauseLayout, getSettingsLayout, type Rectangle } from "../shared/UILayout";
 import type { FlightController } from "./FlightController";
 import { C, HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
 
-const at = (rectangle: Rectangle) => ({ Position: UDim2.fromOffset(rectangle.x, rectangle.y), Size: UDim2.fromOffset(rectangle.width, rectangle.height) });
+const at = (rectangle: Rectangle) => ({
+	Position: UDim2.fromOffset(rectangle.x, rectangle.y),
+	Size: UDim2.fromOffset(rectangle.width, rectangle.height),
+});
 
 /** Ring that lights from the bottom up as the recharging charge returns (UIGradient on the stroke). */
 function ringSequence(fraction: number): NumberSequence {
@@ -38,12 +49,23 @@ let gunTouchSerial = 0;
  * Round touch GUN (batch D1, only when the sortie fits a gun): fires while held. Each touch is its own
  * trigger source and releases when that input ends anywhere, so a finger sliding off never sticks the gun on.
  */
-export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectangle; rounds: number; onTrigger: (source: string, held: boolean) => void }) {
+export function GunButton({
+	rectangle,
+	rounds,
+	onTrigger,
+}: {
+	rectangle: Rectangle;
+	rounds: number;
+	onTrigger: (source: string, held: boolean) => void;
+}) {
 	const heldInputs = useRef(new Map<string, () => void>());
-	useEffect(() => () => {
-		// Input mode/layout changes can unmount the button before the finger lifts.
-		for (const [, release] of heldInputs.current) release();
-	}, []);
+	useEffect(
+		() => () => {
+			// Input mode/layout changes can unmount the button before the finger lifts.
+			for (const [, release] of heldInputs.current) release();
+		},
+		[],
+	);
 	const empty = rounds <= 0;
 	return (
 		<textbutton
@@ -65,7 +87,11 @@ export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectang
 			Event={{
 				InputBegan: (_rbx, input) => {
 					if (input.UserInputState !== Enum.UserInputState.Begin) return;
-					if (input.UserInputType !== Enum.UserInputType.Touch && input.UserInputType !== Enum.UserInputType.MouseButton1) return;
+					if (
+						input.UserInputType !== Enum.UserInputType.Touch &&
+						input.UserInputType !== Enum.UserInputType.MouseButton1
+					)
+						return;
 					gunTouchSerial += 1;
 					const source = `touch${gunTouchSerial}`;
 					onTrigger(source, true);
@@ -75,14 +101,23 @@ export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectang
 						onTrigger(source, false);
 					};
 					const connection = input.GetPropertyChangedSignal("UserInputState").Connect(() => {
-						if (input.UserInputState === Enum.UserInputState.End || input.UserInputState === Enum.UserInputState.Cancel) release();
+						if (
+							input.UserInputState === Enum.UserInputState.End ||
+							input.UserInputState === Enum.UserInputState.Cancel
+						)
+							release();
 					});
 					heldInputs.current.set(source, release);
 				},
 			}}
 		>
 			<uicorner CornerRadius={new UDim(0.5, 0)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={HUD.Green} Thickness={1.5} Transparency={empty ? 0.5 : 0.2} />
+			<uistroke
+				ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+				Color={HUD.Green}
+				Thickness={1.5}
+				Transparency={empty ? 0.5 : 0.2}
+			/>
 		</textbutton>
 	);
 }
@@ -92,14 +127,26 @@ export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectang
  * charge pips and a recharge ring, and pulses red while a missile is inbound
  * and a charge is ready. The server decides; a press is always sent.
  */
-export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rectangle; telemetry: Telemetry; onEvade: () => void }) {
+export function EvadeButton({
+	rectangle,
+	telemetry,
+	onEvade,
+}: {
+	rectangle: Rectangle;
+	telemetry: Telemetry;
+	onEvade: () => void;
+}) {
 	const gauge = evadeGauge(telemetry);
 	const flashRef = useRef<Frame>();
 	useEffect(() => {
 		const flash = flashRef.current;
 		if (!flash || !gauge.flash) return;
 		flash.BackgroundTransparency = 0.25;
-		const pulse = TweenService.Create(flash, new TweenInfo(0.32, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundTransparency: 0.85 });
+		const pulse = TweenService.Create(
+			flash,
+			new TweenInfo(0.32, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ BackgroundTransparency: 0.85 },
+		);
 		pulse.Play();
 		return () => pulse.Cancel();
 	}, [gauge.flash]);
@@ -110,7 +157,14 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 		for (let index = 0; index < gauge.maxCharges; index++) {
 			const lit = index < gauge.charges;
 			pips.push(
-				<frame key={`Pip${index + 1}`} LayoutOrder={index} BackgroundColor3={lit ? HUD.Green : HUD.Shadow} BackgroundTransparency={lit ? 0.05 : 0.4} BorderSizePixel={0} Size={UDim2.fromOffset(pip, pip)}>
+				<frame
+					key={`Pip${index + 1}`}
+					LayoutOrder={index}
+					BackgroundColor3={lit ? HUD.Green : HUD.Shadow}
+					BackgroundTransparency={lit ? 0.05 : 0.4}
+					BorderSizePixel={0}
+					Size={UDim2.fromOffset(pip, pip)}
+				>
 					<uicorner CornerRadius={new UDim(0.5, 0)} />
 					<uistroke Color={HUD.Green} Transparency={lit ? 0.4 : 0.2} Thickness={1} />
 				</frame>,
@@ -131,15 +185,33 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 			Event={{
 				InputBegan: (_rbx, input) => {
 					if (input.UserInputState !== Enum.UserInputState.Begin) return;
-					if (input.UserInputType === Enum.UserInputType.Touch || input.UserInputType === Enum.UserInputType.MouseButton1) onEvade();
+					if (
+						input.UserInputType === Enum.UserInputType.Touch ||
+						input.UserInputType === Enum.UserInputType.MouseButton1
+					)
+						onEvade();
 				},
 			}}
 		>
 			<uicorner CornerRadius={new UDim(0.5, 0)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={HUD.Green} Thickness={2.5} Transparency={0.05}>
+			<uistroke
+				ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+				Color={HUD.Green}
+				Thickness={2.5}
+				Transparency={0.05}
+			>
 				<uigradient Rotation={-90} Transparency={ringSequence(gauge.recharge)} />
 			</uistroke>
-			<frame ref={flashRef} key="IncomingFlash" BackgroundColor3={HUD.Red} BackgroundTransparency={1} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={gauge.flash} ZIndex={0}>
+			<frame
+				ref={flashRef}
+				key="IncomingFlash"
+				BackgroundColor3={HUD.Red}
+				BackgroundTransparency={1}
+				BorderSizePixel={0}
+				Size={UDim2.fromScale(1, 1)}
+				Visible={gauge.flash}
+				ZIndex={0}
+			>
 				<uicorner CornerRadius={new UDim(0.5, 0)} />
 			</frame>
 			<textlabel
@@ -157,8 +229,19 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 				ZIndex={2}
 			/>
 			{pips.size() > 0 && (
-				<frame key="ChargePips" BackgroundTransparency={1} Position={UDim2.fromScale(0, 0.62)} Size={new UDim2(1, 0, 0, pip)} ZIndex={2}>
-					<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Center} Padding={new UDim(0, 3)} SortOrder={Enum.SortOrder.LayoutOrder} />
+				<frame
+					key="ChargePips"
+					BackgroundTransparency={1}
+					Position={UDim2.fromScale(0, 0.62)}
+					Size={new UDim2(1, 0, 0, pip)}
+					ZIndex={2}
+				>
+					<uilistlayout
+						FillDirection={Enum.FillDirection.Horizontal}
+						HorizontalAlignment={Enum.HorizontalAlignment.Center}
+						Padding={new UDim(0, 3)}
+						SortOrder={Enum.SortOrder.LayoutOrder}
+					/>
 					{pips}
 				</frame>
 			)}
@@ -178,12 +261,24 @@ const RADAR_COLORS: { [kind in RadarContactKind]: Color3 } = {
 	missile: HUD.Red,
 };
 const RADAR_TEXT: { [kind in RadarContactKind]: number } = {
-	friendly: 12, required: 11, optional: 11, ground: 10, groundOptional: 9, objective: 13, protected: 10, missile: 14,
+	friendly: 12,
+	required: 11,
+	optional: 11,
+	ground: 10,
+	groundOptional: 9,
+	objective: 13,
+	protected: 10,
+	missile: 14,
 };
 /** Seconds between radar refreshes: smooth enough for a heading-up scope, cheap on phones. */
 const RADAR_INTERVAL = 1 / 20;
 /** Heading letters on the rim, from world -Z (north) clockwise. */
-const RADAR_CARDINALS: [string, number, number][] = [["N", 0, -1], ["E", 1, 0], ["S", 0, 1], ["W", -1, 0]];
+const RADAR_CARDINALS: [string, number, number][] = [
+	["N", 0, -1],
+	["E", 1, 0],
+	["S", 0, 1],
+	["W", -1, 0],
+];
 
 /**
  * Heading-up square radar scope: range rings, heading letters on the rim and
@@ -192,7 +287,19 @@ const RADAR_CARDINALS: [string, number, number][] = [["N", 0, -1], ["E", 1, 0], 
  * client's own replicated mission folder and telemetry via
  * FlightController.GetRadarContacts. Missiles in flight blink red.
  */
-function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number; minText?: number }) {
+function RadarImpl({
+	rectangle,
+	controller,
+	visible,
+	textSize = 10,
+	minText = 8,
+}: {
+	rectangle: Rectangle;
+	controller: FlightController;
+	visible: boolean;
+	textSize?: number;
+	minText?: number;
+}) {
 	const scopeRef = useRef<Frame>();
 	const cardinalRefs = [useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>()];
 	const rangeRef = useRef<TextLabel>();
@@ -214,12 +321,21 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 			const yaw = controller.GetHeading();
 			let used = 0;
 			if (position && yaw !== undefined) {
-				const jammed=controller.GetTelemetry().radarJammed;
-				scope.BackgroundColor3=jammed ? Color3.fromRGB(12,35+math.floor(os.clock()*17)%15,22) : HUD.Shadow;
-				if(jammed && rangeRef.current) rangeRef.current.Text=controller.GetTelemetry().radarPartial ? "PARTIAL JAM" : "JAMMED";
+				const jammed = controller.GetTelemetry().radarJammed;
+				scope.BackgroundColor3 = jammed
+					? Color3.fromRGB(12, 35 + (math.floor(os.clock() * 17) % 15), 22)
+					: HUD.Shadow;
+				if (jammed && rangeRef.current)
+					rangeRef.current.Text = controller.GetTelemetry().radarPartial ? "PARTIAL JAM" : "JAMMED";
 				const contacts = controller.GetRadarContacts();
 				const range = radarRange(position.X, position.Z, contacts, controller.GetAirspace());
-				if (!jammed && (range !== lastRange || (rangeRef.current?.Text==="JAMMED" || rangeRef.current?.Text==="PARTIAL JAM")) && rangeRef.current) {
+				if (
+					!jammed &&
+					(range !== lastRange ||
+						rangeRef.current?.Text === "JAMMED" ||
+						rangeRef.current?.Text === "PARTIAL JAM") &&
+					rangeRef.current
+				) {
 					lastRange = range;
 					rangeRef.current.Text = range === RADAR_NEAR_RANGE ? "1.6k" : string.format("%.1fk", range / 1000);
 				}
@@ -250,7 +366,11 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 					const glyph = RADAR_GLYPHS[contact.kind];
 					if (label.Text !== glyph) label.Text = glyph;
 					const missile = contact.kind === "missile";
-					label.TextColor3 = contact.selected ? HUD.Amber : missile && blink ? HUD.White : RADAR_COLORS[contact.kind];
+					label.TextColor3 = contact.selected
+						? HUD.Amber
+						: missile && blink
+							? HUD.White
+							: RADAR_COLORS[contact.kind];
 					label.TextSize = math.floor((RADAR_TEXT[contact.kind] + (contact.selected ? 3 : 0)) * glyphScale);
 					label.ZIndex = 3 + RADAR_LAYER[contact.kind];
 					label.TextTransparency = blip.edge ? 0.45 : missile && blink ? 0.15 : 0;
@@ -266,27 +386,90 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 		};
 	}, [visible, size, controller]);
 	const line = (name: string, horizontal: boolean) => (
-		<frame key={name} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={HUD.Green} BackgroundTransparency={0.7} BorderSizePixel={0} Position={UDim2.fromScale(0.5, 0.5)} Size={horizontal ? new UDim2(1, -4, 0, 1) : new UDim2(0, 1, 1, -4)} ZIndex={2} />
+		<frame
+			key={name}
+			AnchorPoint={new Vector2(0.5, 0.5)}
+			BackgroundColor3={HUD.Green}
+			BackgroundTransparency={0.7}
+			BorderSizePixel={0}
+			Position={UDim2.fromScale(0.5, 0.5)}
+			Size={horizontal ? new UDim2(1, -4, 0, 1) : new UDim2(0, 1, 1, -4)}
+			ZIndex={2}
+		/>
 	);
 	const ring = (name: string, scale: number, transparency: number) => (
-		<frame key={name} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromScale(scale, scale)} ZIndex={2}>
+		<frame
+			key={name}
+			AnchorPoint={new Vector2(0.5, 0.5)}
+			BackgroundTransparency={1}
+			Position={UDim2.fromScale(0.5, 0.5)}
+			Size={UDim2.fromScale(scale, scale)}
+			ZIndex={2}
+		>
 			<uicorner CornerRadius={new UDim(0.5, 0)} />
 			<uistroke Color={HUD.Green} Transparency={transparency} Thickness={1} />
 		</frame>
 	);
 	return (
-		<frame ref={scopeRef} key="Radar" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.5} BorderSizePixel={0} Visible={visible} {...at(rectangle)}>
+		<frame
+			ref={scopeRef}
+			key="Radar"
+			BackgroundColor3={HUD.Shadow}
+			BackgroundTransparency={0.5}
+			BorderSizePixel={0}
+			Visible={visible}
+			{...at(rectangle)}
+		>
 			<uistroke Color={HUD.Green} Transparency={0.15} Thickness={1.5} />
 			{line("Across", true)}
 			{line("Along", false)}
 			{ring("OuterRing", (size - 2 * RADAR_RIM_INSET) / size, 0.35)}
 			{ring("MiddleRing", 0.5, 0.55)}
 			{ring("InnerRing", 0.22, 0.7)}
-			<textlabel key="Player" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(14, 14)} Font={Enum.Font.GothamBlack} Text="▲" TextColor3={HUD.Green} TextSize={12} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.3} ZIndex={11} />
+			<textlabel
+				key="Player"
+				AnchorPoint={new Vector2(0.5, 0.5)}
+				BackgroundTransparency={1}
+				Position={UDim2.fromScale(0.5, 0.5)}
+				Size={UDim2.fromOffset(14, 14)}
+				Font={Enum.Font.GothamBlack}
+				Text="▲"
+				TextColor3={HUD.Green}
+				TextSize={12}
+				TextStrokeColor3={HUD.Shadow}
+				TextStrokeTransparency={0.3}
+				ZIndex={11}
+			/>
 			{RADAR_CARDINALS.map(([letter], index) => (
-				<textlabel ref={cardinalRefs[index]} key={`Heading${letter}`} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Size={UDim2.fromOffset(12, 12)} FontFace={HUD_FONT_BOLD} Text={letter} TextColor3={HUD.Green} TextSize={textSize} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.3} ZIndex={3} />
+				<textlabel
+					ref={cardinalRefs[index]}
+					key={`Heading${letter}`}
+					AnchorPoint={new Vector2(0.5, 0.5)}
+					BackgroundTransparency={1}
+					Size={UDim2.fromOffset(12, 12)}
+					FontFace={HUD_FONT_BOLD}
+					Text={letter}
+					TextColor3={HUD.Green}
+					TextSize={textSize}
+					TextStrokeColor3={HUD.Shadow}
+					TextStrokeTransparency={0.3}
+					ZIndex={3}
+				/>
 			))}
-			<textlabel ref={rangeRef} key="Range" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Position={new UDim2(1, -3, 1, -1)} Size={UDim2.fromOffset(40, 10)} FontFace={HUD_FONT} Text="" TextColor3={HUD.Dim} TextSize={math.max(minText, textSize - 2)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={3} />
+			<textlabel
+				ref={rangeRef}
+				key="Range"
+				AnchorPoint={new Vector2(1, 1)}
+				BackgroundTransparency={1}
+				Position={new UDim2(1, -3, 1, -1)}
+				Size={UDim2.fromOffset(40, 10)}
+				FontFace={HUD_FONT}
+				Text=""
+				TextColor3={HUD.Dim}
+				TextSize={math.max(minText, textSize - 2)}
+				TextXAlignment={Enum.TextXAlignment.Right}
+				ZIndex={3}
+			/>
 		</frame>
 	);
 }
@@ -294,7 +477,21 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 export const Radar = React.memo(RadarImpl);
 
 /** Overlay button: 44+ px, gamepad-selectable, accent when primary. */
-function OverlayButton({ name, text, rectangle, primary = false, textSize = 13, onActivated }: { name: string; text: string; rectangle: Rectangle; primary?: boolean; textSize?: number; onActivated: () => void }) {
+function OverlayButton({
+	name,
+	text,
+	rectangle,
+	primary = false,
+	textSize = 13,
+	onActivated,
+}: {
+	name: string;
+	text: string;
+	rectangle: Rectangle;
+	primary?: boolean;
+	textSize?: number;
+	onActivated: () => void;
+}) {
 	return (
 		<textbutton
 			key={name}
@@ -313,32 +510,119 @@ function OverlayButton({ name, text, rectangle, primary = false, textSize = 13, 
 			Event={{ Activated: onActivated }}
 		>
 			<uicorner CornerRadius={new UDim(0, 6)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={primary ? C.AccentHot : C.Ivory} Transparency={primary ? 0.5 : 0.8} />
+			<uistroke
+				ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+				Color={primary ? C.AccentHot : C.Ivory}
+				Transparency={primary ? 0.5 : 0.8}
+			/>
 		</textbutton>
 	);
 }
 
 /** Dim overlay while the sortie is paused. The server resumes when the shared budget expires. */
-export function PauseOverlay({ viewport, remaining, onResume, onSettings, onMenu }: { remaining?: number; viewport: Vector2; onResume: () => void; onSettings: () => void; onMenu: () => void }) {
+export function PauseOverlay({
+	viewport,
+	remaining,
+	onResume,
+	onSettings,
+	onMenu,
+}: {
+	remaining?: number;
+	viewport: Vector2;
+	onResume: () => void;
+	onSettings: () => void;
+	onMenu: () => void;
+}) {
 	const layout = getPauseLayout(viewport.X, viewport.Y);
 	const row = layout.buttons[0].y === layout.buttons[1].y;
 	return (
-		<frame key="PauseOverlay" Active={true} BackgroundColor3={C.Ink} BackgroundTransparency={0.35} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} ZIndex={40}>
-			<frame key="PauseCard" BackgroundColor3={C.Panel} BackgroundTransparency={0.08} BorderSizePixel={0} ZIndex={41} {...at(layout.panel)}>
+		<frame
+			key="PauseOverlay"
+			Active={true}
+			BackgroundColor3={C.Ink}
+			BackgroundTransparency={0.35}
+			BorderSizePixel={0}
+			Size={UDim2.fromScale(1, 1)}
+			ZIndex={40}
+		>
+			<frame
+				key="PauseCard"
+				BackgroundColor3={C.Panel}
+				BackgroundTransparency={0.08}
+				BorderSizePixel={0}
+				ZIndex={41}
+				{...at(layout.panel)}
+			>
 				<uicorner CornerRadius={new UDim(0, 10)} />
 				<uistroke Color={C.Accent} Transparency={0.6} />
-				<textlabel key="PauseTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Text={remaining !== undefined && remaining <= 10 ? "RESUMING SOON" : "PAUSED"} TextColor3={C.Ivory} TextSize={layout.title.height >= 28 ? 13 : 10} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={42} {...at({ ...layout.title, height: layout.title.height / 2 })} />
-				<textlabel key="PauseNote" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Text={remaining === undefined ? "CONFIRMING PAUSE…" : `AUTO-RESUME ${math.ceil(remaining)}s`} TextColor3={remaining !== undefined && remaining <= 10 ? C.Orange : C.Muted} TextSize={9} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={42} {...at({ ...layout.title, y: layout.title.y + layout.title.height / 2, height: layout.title.height / 2 })} />
-				<OverlayButton name="PauseResumeButton" text={row ? "RESUME" : "RESUME  ›"} rectangle={layout.buttons[0]} primary={true} textSize={row ? 12 : 15} onActivated={onResume} />
-				<OverlayButton name="PauseSettingsButton" text="SETTINGS" rectangle={layout.buttons[1]} textSize={row ? 11 : 13} onActivated={onSettings} />
-				<OverlayButton name="PauseMenuButton" text="MAIN MENU" rectangle={layout.buttons[2]} textSize={row ? 11 : 13} onActivated={onMenu} />
+				<textlabel
+					key="PauseTitle"
+					BackgroundTransparency={1}
+					Font={Enum.Font.GothamBlack}
+					Text={remaining !== undefined && remaining <= 10 ? "RESUMING SOON" : "PAUSED"}
+					TextColor3={C.Ivory}
+					TextSize={layout.title.height >= 28 ? 13 : 10}
+					TextXAlignment={Enum.TextXAlignment.Left}
+					ZIndex={42}
+					{...at({ ...layout.title, height: layout.title.height / 2 })}
+				/>
+				<textlabel
+					key="PauseNote"
+					BackgroundTransparency={1}
+					Font={Enum.Font.GothamBold}
+					Text={remaining === undefined ? "CONFIRMING PAUSE…" : `AUTO-RESUME ${math.ceil(remaining)}s`}
+					TextColor3={remaining !== undefined && remaining <= 10 ? C.Orange : C.Muted}
+					TextSize={9}
+					TextXAlignment={Enum.TextXAlignment.Right}
+					ZIndex={42}
+					{...at({
+						...layout.title,
+						y: layout.title.y + layout.title.height / 2,
+						height: layout.title.height / 2,
+					})}
+				/>
+				<OverlayButton
+					name="PauseResumeButton"
+					text={row ? "RESUME" : "RESUME  ›"}
+					rectangle={layout.buttons[0]}
+					primary={true}
+					textSize={row ? 12 : 15}
+					onActivated={onResume}
+				/>
+				<OverlayButton
+					name="PauseSettingsButton"
+					text="SETTINGS"
+					rectangle={layout.buttons[1]}
+					textSize={row ? 11 : 13}
+					onActivated={onSettings}
+				/>
+				<OverlayButton
+					name="PauseMenuButton"
+					text="MAIN MENU"
+					rectangle={layout.buttons[2]}
+					textSize={row ? 11 : 13}
+					onActivated={onMenu}
+				/>
 			</frame>
 		</frame>
 	);
 }
 
-function SettingRow({ settingKey, settings, order, rowHeight, control, valueWidth, onChange }: {
-	settingKey: SettingKey; settings: PlayerSettings; order: number; rowHeight: number; control: number; valueWidth: number;
+function SettingRow({
+	settingKey,
+	settings,
+	order,
+	rowHeight,
+	control,
+	valueWidth,
+	onChange,
+}: {
+	settingKey: SettingKey;
+	settings: PlayerSettings;
+	order: number;
+	rowHeight: number;
+	control: number;
+	valueWidth: number;
 	onChange: <K extends SettingKey>(key: K, value: PlayerSettings[K]) => void;
 }) {
 	const controlsWidth = control * 2 + valueWidth;
@@ -349,22 +633,88 @@ function SettingRow({ settingKey, settings, order, rowHeight, control, valueWidt
 		onChange(key, stepSetting(key, settings[key], direction));
 	};
 	const square = (name: string, text: string, x: number, onActivated: () => void) => (
-		<textbutton key={name} Active={true} AutoButtonColor={true} Selectable={true} BackgroundColor3={C.PanelHot} BackgroundTransparency={0.1} BorderSizePixel={0} Font={Enum.Font.GothamBlack} Position={UDim2.fromOffset(x, (rowHeight - control) / 2)} Size={UDim2.fromOffset(control, control)} Text={text} TextColor3={C.Ivory} TextSize={18} ZIndex={44} Event={{ Activated: onActivated }}>
+		<textbutton
+			key={name}
+			Active={true}
+			AutoButtonColor={true}
+			Selectable={true}
+			BackgroundColor3={C.PanelHot}
+			BackgroundTransparency={0.1}
+			BorderSizePixel={0}
+			Font={Enum.Font.GothamBlack}
+			Position={UDim2.fromOffset(x, (rowHeight - control) / 2)}
+			Size={UDim2.fromOffset(control, control)}
+			Text={text}
+			TextColor3={C.Ivory}
+			TextSize={18}
+			ZIndex={44}
+			Event={{ Activated: onActivated }}
+		>
 			<uicorner CornerRadius={new UDim(0, 6)} />
 		</textbutton>
 	);
 	return (
-		<frame key={`Setting_${settingKey}`} BackgroundTransparency={1} LayoutOrder={order} Size={new UDim2(1, -6, 0, rowHeight)} ZIndex={43}>
-			<textlabel key="Label" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Size={new UDim2(1, -controlsWidth - 8, 1, 0)} Text={SETTING_LABELS[settingKey]} TextColor3={C.Ivory} TextSize={12} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={44} />
-			<frame key="Controls" AnchorPoint={new Vector2(1, 0)} BackgroundTransparency={1} Position={UDim2.fromScale(1, 0)} Size={new UDim2(0, controlsWidth, 1, 0)} ZIndex={43}>
+		<frame
+			key={`Setting_${settingKey}`}
+			BackgroundTransparency={1}
+			LayoutOrder={order}
+			Size={new UDim2(1, -6, 0, rowHeight)}
+			ZIndex={43}
+		>
+			<textlabel
+				key="Label"
+				BackgroundTransparency={1}
+				Font={Enum.Font.GothamBold}
+				Size={new UDim2(1, -controlsWidth - 8, 1, 0)}
+				Text={SETTING_LABELS[settingKey]}
+				TextColor3={C.Ivory}
+				TextSize={12}
+				TextTruncate={Enum.TextTruncate.AtEnd}
+				TextXAlignment={Enum.TextXAlignment.Left}
+				ZIndex={44}
+			/>
+			<frame
+				key="Controls"
+				AnchorPoint={new Vector2(1, 0)}
+				BackgroundTransparency={1}
+				Position={UDim2.fromScale(1, 0)}
+				Size={new UDim2(0, controlsWidth, 1, 0)}
+				ZIndex={43}
+			>
 				{isToggleSetting(settingKey) ? (
-					<textbutton key={`Setting${settingKey}Toggle`} Active={true} AutoButtonColor={true} Selectable={true} BackgroundColor3={settings[settingKey] ? C.Accent : C.PanelHot} BackgroundTransparency={0.05} BorderSizePixel={0} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, (rowHeight - control) / 2)} Size={UDim2.fromOffset(controlsWidth, control)} Text={value} TextColor3={settings[settingKey] ? C.Ink : C.Ivory} TextSize={13} ZIndex={44} Event={{ Activated: () => onChange(settingKey, !settings[settingKey]) }}>
+					<textbutton
+						key={`Setting${settingKey}Toggle`}
+						Active={true}
+						AutoButtonColor={true}
+						Selectable={true}
+						BackgroundColor3={settings[settingKey] ? C.Accent : C.PanelHot}
+						BackgroundTransparency={0.05}
+						BorderSizePixel={0}
+						Font={Enum.Font.GothamBold}
+						Position={UDim2.fromOffset(0, (rowHeight - control) / 2)}
+						Size={UDim2.fromOffset(controlsWidth, control)}
+						Text={value}
+						TextColor3={settings[settingKey] ? C.Ink : C.Ivory}
+						TextSize={13}
+						ZIndex={44}
+						Event={{ Activated: () => onChange(settingKey, !settings[settingKey]) }}
+					>
 						<uicorner CornerRadius={new UDim(0, 6)} />
 					</textbutton>
 				) : (
 					<>
 						{square(`Setting${settingKey}Minus`, "−", 0, () => stepper(-1))}
-						<textlabel key="Value" BackgroundTransparency={1} Font={Enum.Font.RobotoMono} Position={UDim2.fromOffset(control, 0)} Size={new UDim2(0, valueWidth, 1, 0)} Text={value} TextColor3={C.Accent} TextSize={12} ZIndex={44} />
+						<textlabel
+							key="Value"
+							BackgroundTransparency={1}
+							Font={Enum.Font.RobotoMono}
+							Position={UDim2.fromOffset(control, 0)}
+							Size={new UDim2(0, valueWidth, 1, 0)}
+							Text={value}
+							TextColor3={C.Accent}
+							TextSize={12}
+							ZIndex={44}
+						/>
 						{square(`Setting${settingKey}Plus`, "+", control + valueWidth, () => stepper(1))}
 					</>
 				)}
@@ -374,26 +724,108 @@ function SettingRow({ settingKey, settings, order, rowHeight, control, valueWidt
 }
 
 /** The settings sheet, from the title screen or the pause card. Every change applies at once. */
-export function SettingsSheet({ viewport, settings, onChange, onClose }: {
-	viewport: Vector2; settings: PlayerSettings;
-	onChange: <K extends SettingKey>(key: K, value: PlayerSettings[K]) => void; onClose: () => void;
+export function SettingsSheet({
+	viewport,
+	settings,
+	onChange,
+	onClose,
+}: {
+	viewport: Vector2;
+	settings: PlayerSettings;
+	onChange: <K extends SettingKey>(key: K, value: PlayerSettings[K]) => void;
+	onClose: () => void;
 }) {
 	const layout = getSettingsLayout(viewport.X, viewport.Y);
 	return (
-		<frame key="SettingsSheet" Active={true} BackgroundColor3={C.Ink} BackgroundTransparency={0.3} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} ZIndex={40}>
-			<frame key="SettingsPanel" BackgroundColor3={C.Panel} BackgroundTransparency={0.05} BorderSizePixel={0} ZIndex={41} {...at(layout.panel)}>
+		<frame
+			key="SettingsSheet"
+			Active={true}
+			BackgroundColor3={C.Ink}
+			BackgroundTransparency={0.3}
+			BorderSizePixel={0}
+			Size={UDim2.fromScale(1, 1)}
+			ZIndex={40}
+		>
+			<frame
+				key="SettingsPanel"
+				BackgroundColor3={C.Panel}
+				BackgroundTransparency={0.05}
+				BorderSizePixel={0}
+				ZIndex={41}
+				{...at(layout.panel)}
+			>
 				<uicorner CornerRadius={new UDim(0, 10)} />
 				<uistroke Color={C.Accent} Transparency={0.6} />
-				<textlabel key="SettingsTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Text="SETTINGS" TextColor3={C.Ivory} TextSize={layout.header.height >= 30 ? 18 : 14} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={42} {...at(layout.header)} />
-				<textlabel key="SettingsNote" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Text="SAVED FOR THIS SESSION" TextColor3={C.Faint} TextSize={9} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={42} {...at(layout.header)} />
-				<scrollingframe key="SettingsList" Active={true} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0, SETTING_ORDER.size() * layout.rowHeight + 140)} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={false} ZIndex={42} {...at(layout.list)}>
+				<textlabel
+					key="SettingsTitle"
+					BackgroundTransparency={1}
+					Font={Enum.Font.GothamBlack}
+					Text="SETTINGS"
+					TextColor3={C.Ivory}
+					TextSize={layout.header.height >= 30 ? 18 : 14}
+					TextXAlignment={Enum.TextXAlignment.Left}
+					ZIndex={42}
+					{...at(layout.header)}
+				/>
+				<textlabel
+					key="SettingsNote"
+					BackgroundTransparency={1}
+					Font={Enum.Font.GothamBold}
+					Text="SAVED FOR THIS SESSION"
+					TextColor3={C.Faint}
+					TextSize={9}
+					TextXAlignment={Enum.TextXAlignment.Right}
+					ZIndex={42}
+					{...at(layout.header)}
+				/>
+				<scrollingframe
+					key="SettingsList"
+					Active={true}
+					BackgroundTransparency={1}
+					BorderSizePixel={0}
+					CanvasSize={UDim2.fromOffset(0, SETTING_ORDER.size() * layout.rowHeight + 140)}
+					ScrollBarThickness={3}
+					ScrollBarImageColor3={C.Ivory}
+					ScrollBarImageTransparency={0.6}
+					ScrollingDirection={Enum.ScrollingDirection.Y}
+					Selectable={false}
+					ZIndex={42}
+					{...at(layout.list)}
+				>
 					<uilistlayout SortOrder={Enum.SortOrder.LayoutOrder} />
 					{SETTING_ORDER.map((key, index) => (
-						<SettingRow key={`Setting_${key}`} settingKey={key} settings={settings} order={index} rowHeight={layout.rowHeight} control={layout.control} valueWidth={layout.valueWidth} onChange={onChange} />
+						<SettingRow
+							key={`Setting_${key}`}
+							settingKey={key}
+							settings={settings}
+							order={index}
+							rowHeight={layout.rowHeight}
+							control={layout.control}
+							valueWidth={layout.valueWidth}
+							onChange={onChange}
+						/>
 					))}
-					<textlabel key="VoiceDisclosure" BackgroundTransparency={1} LayoutOrder={SETTING_ORDER.size()} Size={new UDim2(1, -12, 0, 140)} Font={Enum.Font.Gotham} Text={VOICE_DISCLOSURE + "\n" + VOICE_DISCLOSURE_DETAIL} TextColor3={C.Ivory} TextSize={13} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={43} />
+					<textlabel
+						key="VoiceDisclosure"
+						BackgroundTransparency={1}
+						LayoutOrder={SETTING_ORDER.size()}
+						Size={new UDim2(1, -12, 0, 140)}
+						Font={Enum.Font.Gotham}
+						Text={VOICE_DISCLOSURE + "\n" + VOICE_DISCLOSURE_DETAIL}
+						TextColor3={C.Ivory}
+						TextSize={13}
+						TextWrapped={true}
+						TextXAlignment={Enum.TextXAlignment.Left}
+						ZIndex={43}
+					/>
 				</scrollingframe>
-				<OverlayButton name="SettingsDoneButton" text="DONE" rectangle={layout.done} primary={true} onActivated={onClose} />
+				<OverlayButton
+					name="SettingsDoneButton"
+					text="DONE"
+					rectangle={layout.done}
+					primary={true}
+					onActivated={onClose}
+				/>
 			</frame>
 		</frame>
 	);

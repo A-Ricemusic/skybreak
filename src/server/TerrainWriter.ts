@@ -1,6 +1,14 @@
 import { worldTraceScope } from "./WorldBuildTrace";
 import { Workspace } from "@rbxts/services";
-import { terrainExecutionJobs, alignedBlockRegion, runBudgeted, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
+import {
+	terrainExecutionJobs,
+	alignedBlockRegion,
+	runBudgeted,
+	FILL_CHUNK,
+	TERRAIN_BUDGET,
+	type BudgetRun,
+	type TerrainJob,
+} from "../shared/TerrainSchedule";
 import { bumpProfile, type TerrainOp } from "../shared/WorldPlan";
 
 // Executes planned terrain ops (shared/WorldPlan) as bounded jobs
@@ -21,16 +29,21 @@ const yawFrame = (x: number, y: number, z: number, yaw: number) => new CFrame(x,
 
 /** One grid slice of an additive cosine hill: only air voxels inside the hill's profile are filled. */
 function writeBump(terrain: Terrain, job: TerrainJob, mat: Enum.Material): void {
-	const o = job.op, r = job.region!;
+	const o = job.op,
+		r = job.region!;
 	const region = new Region3(new Vector3(r.min[0], r.min[1], r.min[2]), new Vector3(r.max[0], r.max[1], r.max[2]));
 	const [materials, occupancy] = terrain.ReadVoxels(region, 4);
 	const size = materials.Size;
-	const c = math.cos(o.yaw), s = math.sin(o.yaw);
+	const c = math.cos(o.yaw),
+		s = math.sin(o.yaw);
 	for (let i = 0; i < size.X; i++) {
 		const x = r.min[0] + i * 4 + 2;
 		for (let k = 0; k < size.Z; k++) {
 			const z = r.min[2] + k * 4 + 2;
-			const dx = x - o.x, dz = z - o.z, lx = c * dx - s * dz, lz = s * dx + c * dz;
+			const dx = x - o.x,
+				dz = z - o.z,
+				lx = c * dx - s * dz,
+				lz = s * dx + c * dz;
 			const top = o.y + o.sy * bumpProfile(math.sqrt((lx / o.sx) * (lx / o.sx) + (lz / o.sz) * (lz / o.sz)));
 			if (top <= o.y) continue;
 			for (let j = 0; j < size.Y; j++) {
@@ -50,14 +63,15 @@ function writeBump(terrain: Terrain, job: TerrainJob, mat: Enum.Material): void 
 
 function run(terrain: Terrain, job: TerrainJob): void {
 	const o = job.op;
-	const mat = o.material === "Air" ? Enum.Material.Air : o.material === "Water" ? Enum.Material.Water : material(o.material);
+	const mat =
+		o.material === "Air" ? Enum.Material.Air : o.material === "Water" ? Enum.Material.Water : material(o.material);
 	if (job.region !== undefined) writeBump(terrain, job, mat);
 	else if (o.material !== "Water" && alignedBlockRegion(o) !== undefined) {
-  // FillRegion replaces solids with water; FillBlock water preserves them.
-  const r = alignedBlockRegion(o)!;
-  terrain.FillRegion(new Region3(new Vector3(...r.min), new Vector3(...r.max)), 4, mat);
- }
- else if (o.shape === "block") terrain.FillBlock(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
+		// FillRegion replaces solids with water; FillBlock water preserves them.
+		const r = alignedBlockRegion(o)!;
+		terrain.FillRegion(new Region3(new Vector3(...r.min), new Vector3(...r.max)), 4, mat);
+	} else if (o.shape === "block")
+		terrain.FillBlock(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
 	else if (o.shape === "wedge") terrain.FillWedge(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
 	else if (o.shape === "ball") terrain.FillBall(new Vector3(o.x, o.y, o.z), o.sx, mat);
 	else terrain.FillCylinder(new CFrame(o.x, o.y, o.z), o.sy, o.sx, mat);
@@ -67,14 +81,26 @@ export const TerrainWriter = {
 	/** One scheduled job (measurement harnesses time jobs individually). */
 	WriteJob: run,
 	/** Writes `ops` in order as bounded jobs, yielding between resumptions; returns the timing. */
-	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK, cancelled?: () => boolean): BudgetRun & { jobs: number } {
+	Write(
+		ops: TerrainOp[],
+		budget = TERRAIN_BUDGET,
+		fillChunk = FILL_CHUNK,
+		cancelled?: () => boolean,
+	): BudgetRun & { jobs: number } {
 		const endTrace = worldTraceScope("terrain-batches");
 		try {
 			const terrain = Workspace.Terrain;
 			terrain.SetAttribute("SKYBREAKTerrainClean", false);
 			const jobs = terrainExecutionJobs(ops, fillChunk);
-			const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait(), cancelled });
+			const timing = runBudgeted(jobs, (job) => run(terrain, job), {
+				budget,
+				clock: os.clock,
+				pause: () => task.wait(),
+				cancelled,
+			});
 			return { ...timing, jobs: jobs.size() };
-		} finally { endTrace(); }
+		} finally {
+			endTrace();
+		}
 	},
 };

@@ -46,15 +46,21 @@ export interface DifficultyDefinition {
 
 const DEFINITIONS: { [K in DifficultyKind]: DifficultyDefinition } = {
 	easy: {
-		kind: "easy", name: "EASY", short: "ESY",
+		kind: "easy",
+		name: "EASY",
+		short: "ESY",
 		description: "Lighter hits, slower fire, lazier missiles, softer bandits. Scores count for 85%.",
 	},
 	normal: {
-		kind: "normal", name: "NORMAL", short: "NRM",
+		kind: "normal",
+		name: "NORMAL",
+		short: "NRM",
 		description: "Room to fly and follow the story. Lighter hits and one flight missile at a time. Full score.",
 	},
 	ace: {
-		kind: "ace", name: "ACE", short: "ACE",
+		kind: "ace",
+		name: "ACE",
+		short: "ACE",
 		description: "Heavier hits, armored flights, more missiles. Bandits break and flare. Scores count for 120%.",
 	},
 };
@@ -77,7 +83,20 @@ const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } 
 	protectDrain: { easy: 0.75, normal: 1, ace: 1.25 },
 	score: { easy: 0.85, normal: 1, ace: 1.2 },
 };
-const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "aceGate", "flightDivisor", "threatCap", "windup", "missileTurn", "aceHealth", "banditHealth", "breakChance", "protectDrain", "score"];
+const KNOBS: DifficultyKnob[] = [
+	"hostileDamage",
+	"hostileGate",
+	"aceGate",
+	"flightDivisor",
+	"threatCap",
+	"windup",
+	"missileTurn",
+	"aceHealth",
+	"banditHealth",
+	"breakChance",
+	"protectDrain",
+	"score",
+];
 const BEHAVIOURS: { [K in DifficultyKind]: DifficultyBehaviour } = {
 	easy: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },
 	normal: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },
@@ -99,9 +118,15 @@ export const Difficulty = {
 	Coerce(value: unknown): DifficultyKind {
 		return Difficulty.IsKind(value) ? value : Difficulty.Default;
 	},
-	Get(kind: DifficultyKind): DifficultyDefinition { return DEFINITIONS[kind]; },
-	All(): DifficultyDefinition[] { return ORDER.map((kind) => DEFINITIONS[kind]); },
-	Multiplier(kind: DifficultyKind, knob: DifficultyKnob): number { return MULTIPLIERS[knob][kind]; },
+	Get(kind: DifficultyKind): DifficultyDefinition {
+		return DEFINITIONS[kind];
+	},
+	All(): DifficultyDefinition[] {
+		return ORDER.map((kind) => DEFINITIONS[kind]);
+	},
+	Multiplier(kind: DifficultyKind, knob: DifficultyKnob): number {
+		return MULTIPLIERS[knob][kind];
+	},
 	/** Act I Ace keeps a two-hit hull; later acts retain the armored flight. */
 	/**
 	 * Hull for optional raiders and couriers: Easy may soften them, but Ace never toughens them
@@ -114,7 +139,9 @@ export const Difficulty = {
 		return base * (kind === "ace" && act === 1 ? 1.35 : MULTIPLIERS.banditHealth[kind]);
 	},
 	/** Behaviour switches for this level (see DifficultyBehaviour). */
-	Behaviour(kind: DifficultyKind): DifficultyBehaviour { return BEHAVIOURS[Difficulty.Coerce(kind)]; },
+	Behaviour(kind: DifficultyKind): DifficultyBehaviour {
+		return BEHAVIOURS[Difficulty.Coerce(kind)];
+	},
 	/** `value` scaled for this level; a non-finite value passes through untouched. */
 	Scale(kind: DifficultyKind, knob: DifficultyKnob, value: number): number {
 		if (!finite(value)) return value;

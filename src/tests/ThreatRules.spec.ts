@@ -3,7 +3,18 @@ import { ThreatRules } from "../shared/ThreatRules";
 
 // Pure threat contracts; the same file runs in the offline Luau VM (toBe/toBeUndefined only).
 describe("Enemy fire gate", () => {
-	const open = { separation: 900, aimDot: 0.9, fireTimer: 0, globalReady: true, evading: false, playerStraight: false, minRange: 450, maxRange: 1700, aimThreshold: 0.65, straightRelax: 0.2 };
+	const open = {
+		separation: 900,
+		aimDot: 0.9,
+		fireTimer: 0,
+		globalReady: true,
+		evading: false,
+		playerStraight: false,
+		minRange: 450,
+		maxRange: 1700,
+		aimThreshold: 0.65,
+		straightRelax: 0.2,
+	};
 	it("fires inside the envelope with a reload done and the flight gate open", () => {
 		expect(ThreatRules.MayFire(open)).toBe(true);
 	});
@@ -43,7 +54,8 @@ describe("Bandit defensive break", () => {
 		expect(ThreatRules.ShouldBreak({ ...ready, roll: 0.9, chance: 0 })).toBe(false);
 	});
 	it("detects only player missiles guided onto this enemy inside the inbound range", () => {
-		const me = { id: "me" }, other = { id: "other" };
+		const me = { id: "me" },
+			other = { id: "other" };
 		const missiles = [
 			{ target: other, distance: 100 },
 			{ target: me, distance: ThreatRules.InboundRange + 1 },
@@ -64,13 +76,23 @@ describe("Bandit defensive break", () => {
 		expect(mirrored.x < -0.8).toBe(true);
 	});
 	it("drops the seeker only when a breaking target starts opening range beyond the fuse", () => {
-		expect(ThreatRules.LosesTrack({ breaking: true, distance: 120, previousDistance: 100, fuseRadius: 36 })).toBe(true);
-		expect(ThreatRules.LosesTrack({ breaking: false, distance: 120, previousDistance: 100, fuseRadius: 36 })).toBe(false);
-		expect(ThreatRules.LosesTrack({ breaking: true, distance: 90, previousDistance: 100, fuseRadius: 36 })).toBe(false);
+		expect(ThreatRules.LosesTrack({ breaking: true, distance: 120, previousDistance: 100, fuseRadius: 36 })).toBe(
+			true,
+		);
+		expect(ThreatRules.LosesTrack({ breaking: false, distance: 120, previousDistance: 100, fuseRadius: 36 })).toBe(
+			false,
+		);
+		expect(ThreatRules.LosesTrack({ breaking: true, distance: 90, previousDistance: 100, fuseRadius: 36 })).toBe(
+			false,
+		);
 		// Still inside two fuse radii: the proximity fuse gets its chance first.
-		expect(ThreatRules.LosesTrack({ breaking: true, distance: 70, previousDistance: 60, fuseRadius: 36 })).toBe(false);
+		expect(ThreatRules.LosesTrack({ breaking: true, distance: 70, previousDistance: 60, fuseRadius: 36 })).toBe(
+			false,
+		);
 		// A fresh shot from far out never counts as an overshoot, whatever the bandit is doing.
-		expect(ThreatRules.LosesTrack({ breaking: true, distance: 1210, previousDistance: 1200, fuseRadius: 36 })).toBe(false);
+		expect(ThreatRules.LosesTrack({ breaking: true, distance: 1210, previousDistance: 1200, fuseRadius: 36 })).toBe(
+			false,
+		);
 	});
 });
 describe("Ace pressure", () => {
@@ -87,26 +109,52 @@ describe("Ace pressure", () => {
 		expect(ThreatRules.ScaledHealth(165, 0.5)).toBe(165);
 	});
 	it("fans a second salvo missile off the first and leaves a single shot untouched", () => {
-		const forward = { x: 0, y: 0, z: 1 }, right = { x: 1, y: 0, z: 0 };
+		const forward = { x: 0, y: 0, z: 1 },
+			right = { x: 1, y: 0, z: 0 };
 		expect(ThreatRules.SalvoDirection(forward, right, 0, 1)).toBe(forward);
 		expect(ThreatRules.SalvoDirection(forward, right, 0, 2)).toBe(forward);
 		const second = ThreatRules.SalvoDirection(forward, right, 1, 2);
 		expect(second.x > 0.1).toBe(true);
 		expect(second.z < 1).toBe(true);
-		expect(math.abs(math.sqrt(second.x * second.x + second.y * second.y + second.z * second.z) - 1) < 1e-6).toBe(true);
+		expect(math.abs(math.sqrt(second.x * second.x + second.y * second.y + second.z * second.z) - 1) < 1e-6).toBe(
+			true,
+		);
 	});
 });
 // Round 2: flight-wide fire control that scales with the number of live hostiles.
-interface Cadence { launches: number; peakThreats: number; minSpacing: number }
+interface Cadence {
+	launches: number;
+	peakThreats: number;
+	minSpacing: number;
+}
 /** Pure model of CombatService's bandit fire control: every bandit always in the envelope and aimed. */
-function simulate(bandits: number, gateBase: number, maxDivisor: number, maxCap: number, reload: number, windup: number, flight: number, seconds = 60): Cadence {
+function simulate(
+	bandits: number,
+	gateBase: number,
+	maxDivisor: number,
+	maxCap: number,
+	reload: number,
+	windup: number,
+	flight: number,
+	seconds = 60,
+): Cadence {
 	const dt = 1 / 30;
-	const fire: number[] = [], lit: number[] = [];
-	for (let index = 0; index < bandits; index++) { fire.push(4 + index * 1.5); lit.push(0); }
+	const fire: number[] = [],
+		lit: number[] = [];
+	for (let index = 0; index < bandits; index++) {
+		fire.push(4 + index * 1.5);
+		lit.push(0);
+	}
 	const missiles: number[] = [];
-	let lastWindup = -math.huge, launches = 0, peak = 0, minSpacing = math.huge;
+	let lastWindup = -math.huge,
+		launches = 0,
+		peak = 0,
+		minSpacing = math.huge;
 	for (let t = 0; t < seconds; t += dt) {
-		for (let index = missiles.size() - 1; index >= 0; index--) { missiles[index] -= dt; if (missiles[index] <= 0) missiles.remove(index); }
+		for (let index = missiles.size() - 1; index >= 0; index--) {
+			missiles[index] -= dt;
+			if (missiles[index] <= 0) missiles.remove(index);
+		}
 		let threats = missiles.size();
 		for (const value of lit) if (value > 0) threats += 1;
 		const gate = ThreatRules.FlightGate(gateBase, bandits, maxDivisor);
@@ -116,11 +164,31 @@ function simulate(bandits: number, gateBase: number, maxDivisor: number, maxCap:
 			fire[index] = math.max(0, fire[index] - dt);
 			if (lit[index] > 0) {
 				lit[index] -= dt;
-				if (lit[index] <= 0) { missiles.push(flight); launches += 1; fire[index] = reload; }
-			} else if (ready && ThreatRules.MayFire({ separation: 1000, aimDot: 1, fireTimer: fire[index], globalReady: true, evading: false, playerStraight: false, minRange: 350, maxRange: 2100, aimThreshold: 0.45, straightRelax: 0.3 })) {
+				if (lit[index] <= 0) {
+					missiles.push(flight);
+					launches += 1;
+					fire[index] = reload;
+				}
+			} else if (
+				ready &&
+				ThreatRules.MayFire({
+					separation: 1000,
+					aimDot: 1,
+					fireTimer: fire[index],
+					globalReady: true,
+					evading: false,
+					playerStraight: false,
+					minRange: 350,
+					maxRange: 2100,
+					aimThreshold: 0.45,
+					straightRelax: 0.3,
+				})
+			) {
 				lit[index] = windup;
 				minSpacing = math.min(minSpacing, t - lastWindup);
-				lastWindup = t; threats += 1; ready = false;
+				lastWindup = t;
+				threats += 1;
+				ready = false;
 			}
 		}
 		peak = math.max(peak, threats);

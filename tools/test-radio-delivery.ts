@@ -7,13 +7,21 @@ const read = (path: string) => Bun.file(resolve(root, path)).text();
 const controller = await read("out/client/FlightController.luau");
 const ui = await read("out/client/GameUI.luau");
 function between(source: string, start: string, end: string): string {
-  const a = source.indexOf(start), b = source.indexOf(end, a + start.length);
-  if (a < 0 || b < 0) throw new Error(`Compiled delivery boundary missing: ${start}`);
-  return source.slice(a, b);
+	const a = source.indexOf(start),
+		b = source.indexOf(end, a + start.length);
+	if (a < 0 || b < 0) throw new Error(`Compiled delivery boundary missing: ${start}`);
+	return source.slice(a, b);
 }
-const method = between(controller, "\tfunction FlightController:applyHud(message)", "\tfunction FlightController:handleBoundInput");
+const method = between(
+	controller,
+	"\tfunction FlightController:applyHud(message)",
+	"\tfunction FlightController:handleBoundInput",
+);
 const delivery = between(ui, "\t\t\tif sanitized.radio ~= nil", "\t\t\tif sanitized.fireDenied ~= nil");
-const queue = (await read("out/shared/RadioQueue.luau")).split("\n").filter(line => !line.startsWith("local TS =") && !line.includes("TS.import(")).join("\n");
+const queue = (await read("out/shared/RadioQueue.luau"))
+	.split("\n")
+	.filter((line) => !line.startsWith("local TS =") && !line.includes("TS.import("))
+	.join("\n");
 const harness = `
 local FlightController = {}
 local MissionCatalog={IsValidId=function() return false end}
@@ -58,4 +66,4 @@ await mkdir(dest, { recursive: true });
 const path = resolve(dest, "run.luau");
 await Bun.write(path, harness);
 const proc = Bun.spawn([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
-if (await proc.exited !== 0) process.exitCode = 1;
+if ((await proc.exited) !== 0) process.exitCode = 1;

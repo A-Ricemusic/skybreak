@@ -29,7 +29,11 @@ interface Smoothed {
 	connections: RBXScriptConnection[];
 }
 /** A smoothed visual handed over as a wreck: where it was and how fast it was going. */
-export interface ClaimedVisual { visual: Model; frame: CFrame; velocity: Vector3 }
+export interface ClaimedVisual {
+	visual: Model;
+	frame: CFrame;
+	velocity: Vector3;
+}
 // A killed jet's clone outlives its server model briefly, whichever of the
 // removal or the CombatEffect event reaches this client first.
 const KILLED_GRACE = 1;
@@ -46,19 +50,33 @@ export class EnemySmoothing {
 		// Without a model, only a clone close to the blast is plausibly the same jet.
 		let bestDistance = model ? 120 : 30;
 		for (const [key, entry] of killed) {
-			if (now - entry.at > KILLED_GRACE || entry.visual.Parent === undefined) { entry.visual.Destroy(); killed.delete(key); continue; }
+			if (now - entry.at > KILLED_GRACE || entry.visual.Parent === undefined) {
+				entry.visual.Destroy();
+				killed.delete(key);
+				continue;
+			}
 			const distance = entry.frame.Position.sub(position).Magnitude;
-			if (key === model) { best = key; break; }
-			if (distance < bestDistance) { best = key; bestDistance = distance; }
+			if (key === model) {
+				best = key;
+				break;
+			}
+			if (distance < bestDistance) {
+				best = key;
+				bestDistance = distance;
+			}
 		}
-		if (model) for (const smoothing of instances) {
-			const entry = smoothing.tracked.get(model);
-			if (!entry) continue;
-			smoothing.tracked.delete(model);
-			for (const connection of entry.connections) connection.Disconnect();
-			if (entry.visual.Parent === undefined) { entry.visual.Destroy(); break; }
-			return claimed(entry);
-		}
+		if (model)
+			for (const smoothing of instances) {
+				const entry = smoothing.tracked.get(model);
+				if (!entry) continue;
+				smoothing.tracked.delete(model);
+				for (const connection of entry.connections) connection.Disconnect();
+				if (entry.visual.Parent === undefined) {
+					entry.visual.Destroy();
+					break;
+				}
+				return claimed(entry);
+			}
 		const entry = best && killed.get(best);
 		if (!best || !entry) return undefined;
 		killed.delete(best);
@@ -72,11 +90,13 @@ export class EnemySmoothing {
 		instances.add(this);
 		for (const child of folder.GetChildren()) this.consider(child);
 		this.connections.push(folder.ChildAdded.Connect((child) => this.consider(child)));
-		this.connections.push(folder.ChildRemoved.Connect((child) => {
-			if (!child.IsA("Model")) return;
-			this.pending.get(child)?.Disconnect();
-			this.pending.delete(child);
-		}));
+		this.connections.push(
+			folder.ChildRemoved.Connect((child) => {
+				if (!child.IsA("Model")) return;
+				this.pending.get(child)?.Disconnect();
+				this.pending.delete(child);
+			}),
+		);
 	}
 	public Stop(): void {
 		for (const connection of this.connections) connection.Disconnect();
@@ -96,12 +116,18 @@ export class EnemySmoothing {
 		const alpha = FlightMath.DampAlpha(SMOOTH_RATE, dt);
 		for (const [model, entry] of this.tracked) {
 			// AncestryChanged releases removed models; this only guards a clone destroyed elsewhere.
-			if (entry.visualRoot.Parent === undefined) { this.release(model); continue; }
+			if (entry.visualRoot.Parent === undefined) {
+				this.release(model);
+				continue;
+			}
 			const replicated = entry.root.CFrame;
 			if (replicated.Position !== entry.last.Position) {
 				const elapsed = now - entry.arrived;
 				if (elapsed > 0.008 && elapsed < 0.5) {
-					const measured = math.min(MAX_SPEED, replicated.Position.sub(entry.last.Position).Magnitude / elapsed);
+					const measured = math.min(
+						MAX_SPEED,
+						replicated.Position.sub(entry.last.Position).Magnitude / elapsed,
+					);
 					entry.speed += (measured - entry.speed) * 0.15;
 				}
 				entry.last = replicated;
@@ -117,7 +143,10 @@ export class EnemySmoothing {
 	}
 	private consider(child: Instance): void {
 		if (!child.IsA("Model") || this.tracked.has(child) || this.pending.has(child)) return;
-		if (child.GetAttribute("TargetKind") === "air") { this.track(child); return; }
+		if (child.GetAttribute("TargetKind") === "air") {
+			this.track(child);
+			return;
+		}
 		// Attributes can land a frame after the instance when replication batches split;
 		// a model that already has a non-air TargetKind never needs the wait.
 		if (child.GetAttribute("TargetKind") !== undefined) return;
@@ -140,19 +169,37 @@ export class EnemySmoothing {
 		const visual = model.Clone();
 		visual.Name = `${model.Name}_LocalVisual`;
 		for (const item of visual.GetDescendants()) {
-			if (item.IsA("BillboardGui")) item.Destroy(); // the warning banner stays on the server model
+			if (item.IsA("BillboardGui"))
+				item.Destroy(); // the warning banner stays on the server model
 			// Server models ship with trails, emitters and lights off; only this visible clone draws them.
 			else if (JetFactory.IsCosmetic(item)) JetFactory.ShowCosmetic(item);
 		}
 		const visualRoot = visual.PrimaryPart;
-		if (visualRoot === undefined) { visual.Destroy(); return; }
+		if (visualRoot === undefined) {
+			visual.Destroy();
+			return;
+		}
 		const frame = root.CFrame;
 		visualRoot.CFrame = frame;
 		visual.Parent = Workspace;
 		for (const item of model.GetDescendants()) hide(item);
-		const entry: Smoothed = { model, root, visual, visualRoot, frame, last: frame, arrived: os.clock(), speed: DEFAULT_SPEED, connections: [] };
+		const entry: Smoothed = {
+			model,
+			root,
+			visual,
+			visualRoot,
+			frame,
+			last: frame,
+			arrived: os.clock(),
+			speed: DEFAULT_SPEED,
+			connections: [],
+		};
 		entry.connections.push(model.DescendantAdded.Connect(hide));
-		entry.connections.push(model.AncestryChanged.Connect(() => { if (!model.IsDescendantOf(Workspace)) this.release(model); }));
+		entry.connections.push(
+			model.AncestryChanged.Connect(() => {
+				if (!model.IsDescendantOf(Workspace)) this.release(model);
+			}),
+		);
 		this.tracked.set(model, entry);
 	}
 	private release(model: Model): void {
@@ -162,7 +209,12 @@ export class EnemySmoothing {
 		for (const connection of entry.connections) connection.Disconnect();
 		if (!model.Parent && model.GetAttribute("Health") === 0 && entry.visual.Parent) {
 			killed.set(model, { ...claimed(entry), at: os.clock() });
-			task.delay(KILLED_GRACE, () => { if (killed.get(model)?.visual === entry.visual) { killed.delete(model); entry.visual.Destroy(); } });
+			task.delay(KILLED_GRACE, () => {
+				if (killed.get(model)?.visual === entry.visual) {
+					killed.delete(model);
+					entry.visual.Destroy();
+				}
+			});
 			return;
 		}
 		entry.visual.Destroy();

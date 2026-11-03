@@ -75,24 +75,39 @@ const FLARE_RECHARGE = 15;
 
 const DEFINITIONS: { [K in SpecialKind]: SpecialDefinition } = {
 	uav: {
-		kind: "uav", name: "RECON DRONE", short: "UAV",
+		kind: "uav",
+		name: "RECON DRONE",
+		short: "UAV",
 		description: `Marks every hostile for ${UAV_DURATION} s. Locks build faster and reach ${math.round((UAV_RANGE_FACTOR - 1) * 100)}% farther.`,
-		charges: 2, cooldown: 25, duration: UAV_DURATION,
+		charges: 2,
+		cooldown: 25,
+		duration: UAV_DURATION,
 	},
 	flares: {
-		kind: "flares", name: "FLARE POD", short: "FLR",
+		kind: "flares",
+		name: "FLARE POD",
+		short: "FLR",
 		description: `${FLARE_DURATION} s decoy cloud: inbound missiles within ${FLARE_DECOY_RADIUS} m chase it. One charge back every ${FLARE_RECHARGE} s.`,
-		charges: 3, rechargeSeconds: FLARE_RECHARGE, cooldown: 1.5, duration: FLARE_DURATION,
+		charges: 3,
+		rechargeSeconds: FLARE_RECHARGE,
+		cooldown: 1.5,
+		duration: FLARE_DURATION,
 	},
 	salvo: {
-		kind: "salvo", name: "4AAM SALVO", short: "4AAM",
+		kind: "salvo",
+		name: "4AAM SALVO",
+		short: "4AAM",
 		description: "Four guided missiles at up to four different hostiles in the lock cone, no lock time.",
-		charges: 3, cooldown: 5,
+		charges: 3,
+		cooldown: 5,
 	},
 	lance: {
-		kind: "lance", name: "XLAA LANCE", short: "XLAA",
+		kind: "lance",
+		name: "XLAA LANCE",
+		short: "XLAA",
 		description: `Heavy missile: locks bandits to ${math.round(WeaponRules.EnvelopeRange(LANCE_RANGE, false) / 10) * 10} m, ground to ${LANCE_RANGE} m; one hit downs a bandit.`,
-		charges: 4, cooldown: 4,
+		charges: 4,
+		cooldown: 4,
 	},
 };
 const ORDER: SpecialKind[] = ["uav", "flares", "salvo", "lance"];
@@ -112,10 +127,16 @@ export const SpecialWeapons = {
 	IsKind(value: unknown): value is SpecialKind {
 		return typeIs(value, "string") && ORDER.includes(value as SpecialKind);
 	},
-	Get(kind: SpecialKind): SpecialDefinition { return DEFINITIONS[kind]; },
-	All(): SpecialDefinition[] { return ORDER.map((kind) => DEFINITIONS[kind]); },
+	Get(kind: SpecialKind): SpecialDefinition {
+		return DEFINITIONS[kind];
+	},
+	All(): SpecialDefinition[] {
+		return ORDER.map((kind) => DEFINITIONS[kind]);
+	},
 	/** The next special in briefing order (tap to cycle). */
-	Next(kind: SpecialKind): SpecialKind { return ORDER[(ORDER.indexOf(kind) + 1) % ORDER.size()]; },
+	Next(kind: SpecialKind): SpecialKind {
+		return ORDER[(ORDER.indexOf(kind) + 1) % ORDER.size()];
+	},
 	New(kind: SpecialKind): SpecialState {
 		return { kind, charges: DEFINITIONS[kind].charges, cooldown: 0, recharge: 0, active: 0 };
 	},
@@ -125,7 +146,10 @@ export const SpecialWeapons = {
 		state.cooldown = math.max(0, state.cooldown - dt);
 		state.active = math.max(0, state.active - dt);
 		const definition = DEFINITIONS[state.kind];
-		if (state.finite === true || definition.rechargeSeconds === undefined || state.charges >= definition.charges) { state.recharge = 0; return; }
+		if (state.finite === true || definition.rechargeSeconds === undefined || state.charges >= definition.charges) {
+			state.recharge = 0;
+			return;
+		}
 		state.recharge += dt;
 		while (state.recharge >= definition.rechargeSeconds && state.charges < definition.charges) {
 			state.recharge -= definition.rechargeSeconds;
@@ -143,7 +167,8 @@ export const SpecialWeapons = {
 		// The drone's cooldown outlasts its flight, so "already up" is checked first to explain the press.
 		if (state.kind === "uav" && state.active > 0) return { kind: "denied", reason: "special_active" };
 		if (state.cooldown > 0) return { kind: "denied", reason: "special_cooldown" };
-		if ((state.kind === "salvo" || state.kind === "lance") && (!finite(targets) || targets < 1)) return { kind: "denied", reason: "special_no_target" };
+		if ((state.kind === "salvo" || state.kind === "lance") && (!finite(targets) || targets < 1))
+			return { kind: "denied", reason: "special_no_target" };
 		state.charges -= 1;
 		state.cooldown = definition.cooldown;
 		state.active = definition.duration ?? 0;
@@ -157,7 +182,9 @@ export const SpecialWeapons = {
 	},
 	/** The standard missile's envelope: only the active drone extends it; the lance's reach is its own. */
 	StandardLockRange(state: SpecialState): number {
-		return state.kind === "uav" && state.active > 0 ? WeaponRules.LockRange * UAV_RANGE_FACTOR : WeaponRules.LockRange;
+		return state.kind === "uav" && state.active > 0
+			? WeaponRules.LockRange * UAV_RANGE_FACTOR
+			: WeaponRules.LockRange;
 	},
 	LockBuildSeconds(state: SpecialState): number {
 		return state.kind === "uav" && state.active > 0 ? UAV_LOCK_BUILD_SECONDS : WeaponRules.LockBuildSeconds;
@@ -171,11 +198,16 @@ export const SpecialWeapons = {
 		for (let index = 0; index < candidates.size(); index++) {
 			const candidate = candidates[index];
 			if (!candidate.allowed || !finite(candidate.distance) || !finite(candidate.dot)) continue;
-			if (candidate.distance > WeaponRules.EnvelopeRange(range, candidate.ground) || candidate.dot < WeaponRules.LockDotFor(candidate.ground)) continue;
+			if (
+				candidate.distance > WeaponRules.EnvelopeRange(range, candidate.ground) ||
+				candidate.dot < WeaponRules.LockDotFor(candidate.ground)
+			)
+				continue;
 			picked.push(index);
 		}
 		table.sort(picked, (a, b) => {
-			const left = candidates[a], right = candidates[b];
+			const left = candidates[a],
+				right = candidates[b];
 			if (left.current !== right.current) return left.current;
 			if (left.required !== right.required) return left.required;
 			return left.distance < right.distance;
@@ -183,22 +215,30 @@ export const SpecialWeapons = {
 		while (picked.size() > SALVO_MAX) picked.pop();
 		return picked;
 	},
-	FlareChance(ace: boolean): number { return ace ? FLARE_CHANCE_ACE : FLARE_CHANCE; },
+	FlareChance(ace: boolean): number {
+		return ace ? FLARE_CHANCE_ACE : FLARE_CHANCE;
+	},
 	/** Whether a missile inside the decoy cloud takes the bait; `roll` is uniform in [0, 1). */
 	FlareDecoys(roll: number, ace: boolean): boolean {
 		return finite(roll) && roll < SpecialWeapons.FlareChance(ace);
 	},
 	/** Hull damage and speed of a missile launched by this special. */
-	MissileDamage(kind: SpecialKind): number { return kind === "lance" ? LANCE_DAMAGE : STANDARD_DAMAGE; },
-	MissileSpeed(kind: SpecialKind): number { return kind === "lance" ? LANCE_SPEED : WeaponRules.MissileSpeed; },
+	MissileDamage(kind: SpecialKind): number {
+		return kind === "lance" ? LANCE_DAMAGE : STANDARD_DAMAGE;
+	},
+	MissileSpeed(kind: SpecialKind): number {
+		return kind === "lance" ? LANCE_SPEED : WeaponRules.MissileSpeed;
+	},
 	StandardDamage: STANDARD_DAMAGE,
 	/** HUD button label and state; the server answers every press, so it is always enabled. */
 	Button(kind: SpecialKind, charges: number, cooldown: number, active: number): SpecialButtonState {
 		const definition = DEFINITIONS[kind];
 		const count = finite(charges) ? math.max(0, math.floor(charges)) : 0;
-		if (finite(active) && active > 0) return { text: `${definition.short} ${math.ceil(active)}`, filled: true, enabled: true, dimmed: false };
+		if (finite(active) && active > 0)
+			return { text: `${definition.short} ${math.ceil(active)}`, filled: true, enabled: true, dimmed: false };
 		if (count <= 0) return { text: `${definition.short} 0`, filled: false, enabled: true, dimmed: true };
-		if (finite(cooldown) && cooldown > 0) return { text: string.format("%.1f", cooldown), filled: false, enabled: true, dimmed: true };
+		if (finite(cooldown) && cooldown > 0)
+			return { text: string.format("%.1f", cooldown), filled: false, enabled: true, dimmed: true };
 		return { text: `${definition.short} ${count}`, filled: false, enabled: true, dimmed: false };
 	},
 };

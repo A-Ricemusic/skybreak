@@ -13,7 +13,16 @@ import {
 
 describe("client comfort settings", () => {
 	it("defaults to no inversion, full shake, 100% HUD and sticks, full volume", () => {
-		expect(defaultSettings()).toEqual({ invertY: false, levelAssist: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 });
+		expect(defaultSettings()).toEqual({
+			invertY: false,
+			levelAssist: false,
+			shake: 1,
+			hudScale: 1,
+			stickScale: 1,
+			music: 1,
+			sfx: 1,
+			voice: 1,
+		});
 		expect(SETTING_ORDER.size()).toBe(8);
 	});
 	it("uses the audio contract attribute names", () => {
@@ -43,9 +52,25 @@ describe("client comfort settings", () => {
 		expect(stepSetting("shake", 1, -1)).toBe(0.75);
 	});
 	it("reads attributes back, defaulting anything missing or invalid", () => {
-		const stored: { [name: string]: unknown } = { InvertY: true, CameraShake: 0.25, HudScale: 5, MusicVolume: 0.4, SfxVolume: "loud", VoiceVolume: 0.7 };
+		const stored: { [name: string]: unknown } = {
+			InvertY: true,
+			CameraShake: 0.25,
+			HudScale: 5,
+			MusicVolume: 0.4,
+			SfxVolume: "loud",
+			VoiceVolume: 0.7,
+		};
 		const settings = readSettings((name) => stored[name]);
-		expect(settings).toEqual({ invertY: true, levelAssist: false, shake: 0.25, hudScale: 1.3, stickScale: 1, music: 0.4, sfx: 1, voice: 0.7 });
+		expect(settings).toEqual({
+			invertY: true,
+			levelAssist: false,
+			shake: 0.25,
+			hudScale: 1.3,
+			stickScale: 1,
+			music: 0.4,
+			sfx: 1,
+			voice: 0.7,
+		});
 		expect(readSettings(() => undefined)).toEqual(defaultSettings());
 	});
 	it("formats values for the sheet", () => {
@@ -66,10 +91,17 @@ describe("client comfort settings", () => {
 		// 320x182: a 1.3 request would leave a 246 px virtual root.
 		expect(effectiveHudScale(1.3, true, 320, 182)).toBe(1);
 		expect(effectiveHudScale(1.3, false, 400, 400)).toBe(1.25);
-		for (const [width, height] of [[320, 182], [667, 375], [800, 390], [1920, 854]]) for (const touch of [true, false]) for (const requested of [0.8, 1, 1.3]) {
-			const scale = effectiveHudScale(requested, touch, width, height);
-			expect(width / scale).toBeGreaterThanOrEqual(touch ? math.min(width, 320) : 320 * 0.999);
-			expect(scale).toBeGreaterThanOrEqual(touch ? 1 : 0.8);
-		}
+		for (const [width, height] of [
+			[320, 182],
+			[667, 375],
+			[800, 390],
+			[1920, 854],
+		])
+			for (const touch of [true, false])
+				for (const requested of [0.8, 1, 1.3]) {
+					const scale = effectiveHudScale(requested, touch, width, height);
+					expect(width / scale).toBeGreaterThanOrEqual(touch ? math.min(width, 320) : 320 * 0.999);
+					expect(scale).toBeGreaterThanOrEqual(touch ? 1 : 0.8);
+				}
 	});
 });

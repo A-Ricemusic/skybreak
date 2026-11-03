@@ -11,10 +11,18 @@ function fakeJet(): Model {
 	const model = new Instance("Model");
 	model.Name = JET_TEMPLATE_NAME;
 	const root = new Instance("Part");
-	root.Name = "Root"; root.Size = new Vector3(3, 3, 16); root.Anchored = true; root.Position = new Vector3(40, 10, -5); root.Parent = model;
+	root.Name = "Root";
+	root.Size = new Vector3(3, 3, 16);
+	root.Anchored = true;
+	root.Position = new Vector3(40, 10, -5);
+	root.Parent = model;
 	model.PrimaryPart = root;
 	const wing = new Instance("Part");
-	wing.Name = "Wing"; wing.Size = new Vector3(20, 0.5, 6); wing.Anchored = true; wing.Position = new Vector3(40, 10, -3); wing.Parent = model;
+	wing.Name = "Wing";
+	wing.Size = new Vector3(20, 0.5, 6);
+	wing.Anchored = true;
+	wing.Position = new Vector3(40, 10, -3);
+	wing.Parent = model;
 	new Instance("Trail").Parent = root;
 	new Instance("ParticleEmitter").Parent = root;
 	new Instance("Sound").Parent = root;
@@ -40,7 +48,9 @@ describe("loading screen jet rig", () => {
 		const [box] = rig.model!.GetBoundingBox();
 		expect(box.Position.Magnitude).toBeLessThan(0.01);
 		for (const item of rig.model!.GetDescendants()) {
-			expect(item.IsA("Trail") || item.IsA("ParticleEmitter") || item.IsA("Sound") || item.IsA("Light")).toBe(false);
+			expect(item.IsA("Trail") || item.IsA("ParticleEmitter") || item.IsA("Sound") || item.IsA("Light")).toBe(
+				false,
+			);
 		}
 		// The replicated template is never modified.
 		expect(template.FindFirstChildWhichIsA("Part", true)?.Position).toEqual(new Vector3(40, 10, -5));
@@ -75,7 +85,8 @@ describe("loading screen jet rig", () => {
 		expect(calls).toBe(0);
 		fakeJet().Parent = folder;
 		expect(waitUntil(() => calls === 1)).toBe(true);
-		const extra = new Instance("Folder"); extra.Parent = folder;
+		const extra = new Instance("Folder");
+		extra.Parent = folder;
 		task.wait(0.1);
 		expect(calls).toBe(1);
 		stop();
@@ -103,18 +114,36 @@ describe("loading screen fader", () => {
 
 describe("loading screen text fits", () => {
 	it("fits the longest segment label wherever labels are drawn", () => {
-		for (const [width, height] of [[1920, 1022], [1280, 662], [768, 966], [390, 750], [430, 830]] as [number, number][]) {
+		for (const [width, height] of [
+			[1920, 1022],
+			[1280, 662],
+			[768, 966],
+			[390, 750],
+			[430, 830],
+		] as [number, number][]) {
 			const layout = getLoadingLayout(width, height);
 			if (layout.labelsHeight === 0) continue;
 			for (const name of LOADING_SEGMENTS) {
-				const size = TextService.GetTextSize(name, layout.smallSize, Enum.Font.GothamBold, new Vector2(1000, 100));
+				const size = TextService.GetTextSize(
+					name,
+					layout.smallSize,
+					Enum.Font.GothamBold,
+					new Vector2(1000, 100),
+				);
 				expect(size.X).toBeLessThanOrEqual(layout.segmentWidth);
 			}
 		}
 	});
 
 	it("keeps every mission title legible (≥ 14 px when scaled) in the header column", () => {
-		for (const [width, height] of [[1920, 1022], [1280, 662], [750, 332], [568, 262], [390, 750], [320, 510]] as [number, number][]) {
+		for (const [width, height] of [
+			[1920, 1022],
+			[1280, 662],
+			[750, 332],
+			[568, 262],
+			[390, 750],
+			[320, 510],
+		] as [number, number][]) {
 			const layout = getLoadingLayout(width, height);
 			for (const mission of [MissionCatalog.Get(0), ...MissionCatalog.All()]) {
 				const size = TextService.GetTextSize(mission.title, 14, Enum.Font.GothamBlack, new Vector2(10000, 100));
@@ -128,7 +157,14 @@ describe("loading screen component", () => {
 	it("covers the full screen while loading, fades into the mission and cleans up fully", () => {
 		const container = new Instance("Folder");
 		const root = ReactRoblox.createRoot(container);
-		const props = { missionId: 2, progress: 0, viewport: new Vector2(1280, 662), phase: "building" as const, inputMode: "keyboard" as const, motion: true };
+		const props = {
+			missionId: 2,
+			progress: 0,
+			viewport: new Vector2(1280, 662),
+			phase: "building" as const,
+			inputMode: "keyboard" as const,
+			motion: true,
+		};
 		root.render(<LoadingScreen visible={true} launched={false} {...props} />);
 		expect(waitUntil(() => container.FindFirstChild("SkybreakLoadingBackdrop") !== undefined)).toBe(true);
 		const backdrop = container.FindFirstChild("SkybreakLoadingBackdrop") as ScreenGui;
@@ -150,7 +186,13 @@ describe("loading screen component", () => {
 		const early = fill.Size.X.Scale;
 
 		root.render(<LoadingScreen visible={true} launched={false} {...props} phase="queued" />);
-		expect(waitUntil(() => (content.FindFirstChild("Status", true) as TextLabel).Text === "Waiting for the previous mission to clear…")).toBe(true);
+		expect(
+			waitUntil(
+				() =>
+					(content.FindFirstChild("Status", true) as TextLabel).Text ===
+					"Waiting for the previous mission to clear…",
+			),
+		).toBe(true);
 		root.render(<LoadingScreen visible={true} launched={false} {...props} phase="preloading" progress={0.5} />);
 		expect(waitUntil(() => fill.Size.X.Scale > 4 / 6)).toBe(true);
 		expect(fill.Size.X.Scale).toBeGreaterThanOrEqual(early);
@@ -190,7 +232,16 @@ describe("loading screen component", () => {
 
 		root.render(<LoadingScreen visible={false} launched={false} phase="idle" progress={1} {...props} />);
 		task.wait(0.05);
-		root.render(<LoadingScreen visible={true} launched={false} phase="building" progress={0} buildFolder={terrain} {...props} />);
+		root.render(
+			<LoadingScreen
+				visible={true}
+				launched={false}
+				phase="building"
+				progress={0}
+				buildFolder={terrain}
+				{...props}
+			/>,
+		);
 		task.wait(0.05);
 		expect(backdrop.Enabled).toBe(true);
 		// The retry is at TERRAIN (segment 3 of 6): the bar must show it, below the failed attempt's fill.

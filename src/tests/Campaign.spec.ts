@@ -104,7 +104,12 @@ describe("Campaign domain unit tests", () => {
 
 	it("merges mission records monotonically and preserves each fastest time", () => {
 		const stored = profileWith(1, { mission1Completed: true, mission1BestTime: 53.33 });
-		const desired = profileWith(1, { mission1Completed: true, mission2Completed: true, mission1BestTime: 70, mission2BestTime: 91 });
+		const desired = profileWith(1, {
+			mission1Completed: true,
+			mission2Completed: true,
+			mission1BestTime: 70,
+			mission2BestTime: 91,
+		});
 		const merged = mergeProfiles(stored, desired);
 		expect(merged.slots[0].completed).toBe(false);
 		expect(merged.slots[0].mission1BestTime).toBe(53.33);
@@ -155,10 +160,18 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(deferred).toHaveLength(1);
 		let finalKind: string | undefined;
 		// The harness never runs deferred writes, so the save stays pending; skip the flush wait (0) rather than time out.
-		const recorded = completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: 53.33 }, (message) => {
-			finalKind = message.kind;
-			expect(message.saved).toBe(false);
-		}, 0);
+		const recorded = completeMission(
+			coordinator,
+			1,
+			1,
+			true,
+			{ slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: 53.33 },
+			(message) => {
+				finalKind = message.kind;
+				expect(message.saved).toBe(false);
+			},
+			0,
+		);
 		expect(recorded).toBe(true);
 		expect(finalKind).toBe("Completed");
 		expect(coordinator.getSlots()[0].mission1Completed).toBe(true);
@@ -186,9 +199,18 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(coordinator.load()).toBe(true);
 		coordinator.recordMissionStarted(1, 1);
 		let saved: boolean | undefined;
-		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: 53.33 }, (message) => {
-			saved = message.saved;
-		})).toBe(true);
+		expect(
+			completeMission(
+				coordinator,
+				1,
+				1,
+				true,
+				{ slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: 53.33 },
+				(message) => {
+					saved = message.saved;
+				},
+			),
+		).toBe(true);
 		expect(saved).toBe(true);
 		expect(coordinator.hasPendingSave()).toBe(false);
 		expect(normalizeProfile(store.data).slots[0].mission1Completed).toBe(true);
@@ -247,19 +269,41 @@ describe("CampaignCoordinator datastore integration", () => {
 	});
 
 	it("does not record or notify a forged locked Mission 2 completion", () => {
- const { coordinator } = harness(new FakeStore()); coordinator.load();
- let notified=false;
- expect(completeMission(coordinator,1,2,true,{slot:1,missionId:2,kills:100,groundKills:100,completedPhases:1,elapsed:88},()=>{notified=true;})).toBe(false);
- expect(notified).toBe(false);expect(coordinator.getSlots()[0].mission2Completed).toBe(false);
- });
+		const { coordinator } = harness(new FakeStore());
+		coordinator.load();
+		let notified = false;
+		expect(
+			completeMission(
+				coordinator,
+				1,
+				2,
+				true,
+				{ slot: 1, missionId: 2, kills: 100, groundKills: 100, completedPhases: 1, elapsed: 88 },
+				() => {
+					notified = true;
+				},
+			),
+		).toBe(false);
+		expect(notified).toBe(false);
+		expect(coordinator.getSlots()[0].mission2Completed).toBe(false);
+	});
 
 	it("ignores a result whose mission does not match the active server mission", () => {
 		const { coordinator } = harness(new FakeStore());
 		coordinator.load();
 		let notified = false;
-		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 2, kills: 4, groundKills: 5, elapsed: 50 }, () => {
-			notified = true;
-		})).toBe(false);
+		expect(
+			completeMission(
+				coordinator,
+				1,
+				1,
+				true,
+				{ slot: 1, missionId: 2, kills: 4, groundKills: 5, elapsed: 50 },
+				() => {
+					notified = true;
+				},
+			),
+		).toBe(false);
 		expect(notified).toBe(false);
 		expect(coordinator.getSlots()[0].occupied).toBe(false);
 	});
@@ -268,16 +312,37 @@ describe("CampaignCoordinator datastore integration", () => {
 		const coordinator = new CampaignCoordinator("session_player");
 		coordinator.load();
 		let firstKind: string | undefined;
-		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 5, groundKills: 0, completedPhases: 1, elapsed: 40 }, (message) => {
-			firstKind = message.kind;
-		});
+		completeMission(
+			coordinator,
+			1,
+			1,
+			true,
+			{ slot: 1, missionId: 1, kills: 5, groundKills: 0, completedPhases: 1, elapsed: 40 },
+			(message) => {
+				firstKind = message.kind;
+			},
+		);
 		expect(firstKind).toBe("Failed");
 		expect(coordinator.getSlots()[0].mission1Completed).toBe(false);
 
 		let timeoutReason: string | undefined;
-		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: MissionCatalog.CountdownSeconds(1) + 1 }, (message) => {
-			timeoutReason = message.reason;
-		});
+		completeMission(
+			coordinator,
+			1,
+			1,
+			true,
+			{
+				slot: 1,
+				missionId: 1,
+				kills: 6,
+				groundKills: 0,
+				completedPhases: 1,
+				elapsed: MissionCatalog.CountdownSeconds(1) + 1,
+			},
+			(message) => {
+				timeoutReason = message.reason;
+			},
+		);
 		expect(timeoutReason).toBe("timeout");
 		expect(coordinator.getSlots()[0].mission1Completed).toBe(false);
 	});
@@ -378,8 +443,12 @@ describe("CampaignCoordinator datastore integration", () => {
 		older.set("1", { occupied: true, special: "uav", updatedAt: 100 });
 		const newer = new Map<string, object>();
 		newer.set("1", { occupied: true, special: "salvo", updatedAt: 200 });
-		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].special).toBe("salvo");
-		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].special).toBe("salvo");
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].special).toBe(
+			"salvo",
+		);
+		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].special).toBe(
+			"salvo",
+		);
 		const blank = new Map<string, object>();
 		blank.set("1", { occupied: true, updatedAt: 300 });
 		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].special).toBe("uav");
@@ -405,10 +474,16 @@ describe("CampaignCoordinator datastore integration", () => {
 		older.set("1", { occupied: true, difficulty: "easy", updatedAt: 100 });
 		const newer = new Map<string, object>();
 		newer.set("1", { occupied: true, difficulty: "ace", updatedAt: 200 });
-		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].difficulty).toBe("ace");
-		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].difficulty).toBe("ace");
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].difficulty).toBe(
+			"ace",
+		);
+		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].difficulty).toBe(
+			"ace",
+		);
 		const blank = new Map<string, object>();
 		blank.set("1", { occupied: true, updatedAt: 300 });
-		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].difficulty).toBe("easy");
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].difficulty).toBe(
+			"easy",
+		);
 	});
 });

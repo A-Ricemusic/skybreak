@@ -6,7 +6,13 @@ import { evadeGauge } from "../../shared/EvadeGauge";
 import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
 import { WeaponRules } from "../../shared/WeaponRules";
-import { armamentStatusLine, clockLines, instrumentValue, returnProgressLine, skipPrompt } from "../../shared/HudInstruments";
+import {
+	armamentStatusLine,
+	clockLines,
+	instrumentValue,
+	returnProgressLine,
+	skipPrompt,
+} from "../../shared/HudInstruments";
 import { pointsLine } from "../../shared/SortieCutaways";
 import { MissionCatalog } from "../../shared/MissionCatalog";
 import type { Telemetry } from "../../shared/Types";
@@ -96,7 +102,11 @@ function RoundButton({
 			Event={{ Activated: () => enabled && onActivated() }}
 		>
 			<Corner scale={0.5} />
-			<Stroke color={HUD.Green} transparency={filled || primary ? 0 : enabled ? 0.3 : 0.75} thickness={primary ? 2.5 : 1.5} />
+			<Stroke
+				color={HUD.Green}
+				transparency={filled || primary ? 0 : enabled ? 0.3 : 0.75}
+				thickness={primary ? 2.5 : 1.5}
+			/>
 		</textbutton>
 	);
 }
@@ -105,18 +115,65 @@ function RoundButton({
 function FlightHint({ hint, order }: { hint: ControlHint; order: number }) {
 	const glyph = hint.keyCode !== undefined ? glyphFor(hint.keyCode) : "";
 	return (
-		<frame key={`${hint.action}Hint`} AutomaticSize={Enum.AutomaticSize.X} BackgroundTransparency={1} LayoutOrder={order} Size={UDim2.fromOffset(0, 16)}>
-			<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 4)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
-			{glyph !== ""
-				? <imagelabel key="Glyph" BackgroundTransparency={1} Image={glyph} LayoutOrder={1} Size={UDim2.fromOffset(16, 16)} />
-				: <Label name="Key" text={hint.label} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 14)} automaticSize={Enum.AutomaticSize.X} layoutOrder={1} stroke={true} />}
-			<Label name="Action" text={hint.action} color={C.Ivory} textSize={10} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 14)} automaticSize={Enum.AutomaticSize.X} layoutOrder={2} stroke={true} />
+		<frame
+			key={`${hint.action}Hint`}
+			AutomaticSize={Enum.AutomaticSize.X}
+			BackgroundTransparency={1}
+			LayoutOrder={order}
+			Size={UDim2.fromOffset(0, 16)}
+		>
+			<uilistlayout
+				FillDirection={Enum.FillDirection.Horizontal}
+				Padding={new UDim(0, 4)}
+				SortOrder={Enum.SortOrder.LayoutOrder}
+				VerticalAlignment={Enum.VerticalAlignment.Center}
+			/>
+			{glyph !== "" ? (
+				<imagelabel
+					key="Glyph"
+					BackgroundTransparency={1}
+					Image={glyph}
+					LayoutOrder={1}
+					Size={UDim2.fromOffset(16, 16)}
+				/>
+			) : (
+				<Label
+					name="Key"
+					text={hint.label}
+					color={C.Accent}
+					textSize={10}
+					font={Enum.Font.GothamBold}
+					size={UDim2.fromOffset(0, 14)}
+					automaticSize={Enum.AutomaticSize.X}
+					layoutOrder={1}
+					stroke={true}
+				/>
+			)}
+			<Label
+				name="Action"
+				text={hint.action}
+				color={C.Ivory}
+				textSize={10}
+				font={Enum.Font.GothamBold}
+				size={UDim2.fromOffset(0, 14)}
+				automaticSize={Enum.AutomaticSize.X}
+				layoutOrder={2}
+				stroke={true}
+			/>
 		</frame>
 	);
 }
 
 // A touch stick pad; the knob is moved directly through knobRef while dragging.
-function TouchStick({ name, knobName, rectangle, frameRef, knobRef, knob, onBegan }: {
+function TouchStick({
+	name,
+	knobName,
+	rectangle,
+	frameRef,
+	knobRef,
+	knob,
+	onBegan,
+}: {
 	name: string;
 	knobName: string;
 	rectangle?: Rectangle;
@@ -219,8 +276,14 @@ function MissionHud({
 	// Batch D1: a sortie with a fitted gun adds the touch GUN button; every other sortie keeps its exact layout.
 	const hasGun = telemetry.gunRounds !== undefined;
 	const layoutOptions = useMemo(() => (hasGun ? { ...options, gun: true } : options), [options, hasGun]);
-	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, layoutOptions), [virtualWidth, virtualHeight, inputMode, layoutOptions]);
-	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, layoutOptions), [virtualWidth, virtualHeight, inputMode, layoutOptions]);
+	const layout = useMemo(
+		() => getHudLayout(virtualWidth, virtualHeight, inputMode, layoutOptions),
+		[virtualWidth, virtualHeight, inputMode, layoutOptions],
+	);
+	const killRectangle = useMemo(
+		() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, layoutOptions),
+		[virtualWidth, virtualHeight, inputMode, layoutOptions],
+	);
 	// Target boxes (FlightController) keep clear of the touch controls this layout draws and inside this safe-area root.
 	const hudFrameRef = useRef<Frame>();
 	useEffect(() => {
@@ -232,7 +295,11 @@ function MissionHud({
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
 	const narrow = layout.alert.width < 200;
-	const warning = flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow, controller.FlightWarningsEnabled());
+	const warning = flightWarning(
+		{ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds },
+		narrow,
+		controller.FlightWarningsEnabled(),
+	);
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
 	const alertText = noticeInAlert ? fireNotice! : warning;
@@ -244,16 +311,34 @@ function MissionHud({
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
 	// Second weapon slot: label, button state and a hint when it is both ready and relevant now
 	// (flares with a missile inbound, missiles with a lock, the drone during the opening legend).
-	const specialKind: SpecialKind = SpecialWeapons.IsKind(telemetry.special) ? telemetry.special : SpecialWeapons.Default;
+	const specialKind: SpecialKind = SpecialWeapons.IsKind(telemetry.special)
+		? telemetry.special
+		: SpecialWeapons.Default;
 	const specialDefinition = SpecialWeapons.Get(specialKind);
-	const specialButton = SpecialWeapons.Button(specialKind, telemetry.specialCharges ?? 0, telemetry.specialCooldown ?? 0, telemetry.specialActive ?? 0);
-	const specialReady = (telemetry.specialCharges ?? 0) > 0 && (telemetry.specialCooldown ?? 0) <= 0 && (telemetry.specialActive ?? 0) <= 0;
-	const specialRelevant = specialKind === "flares" ? telemetry.incoming : specialKind === "uav" ? telemetry.target !== undefined && !locked : locked;
-	const specialHint = specialReady && specialRelevant ? getSpecialHint(inputMode, specialDefinition.short) : undefined;
-	// EVADE leads only while a missile is decoyable; never more than two hints at once.
-	const hints = [...(evadeHint ? [evadeHint] : []), ...flightHints.filter((hint) => hint.action !== evadeHint?.action), ...(specialHint ? [specialHint] : [])].filter(
-		(_hint, index) => index < MAX_FLIGHT_HINTS,
+	const specialButton = SpecialWeapons.Button(
+		specialKind,
+		telemetry.specialCharges ?? 0,
+		telemetry.specialCooldown ?? 0,
+		telemetry.specialActive ?? 0,
 	);
+	const specialReady =
+		(telemetry.specialCharges ?? 0) > 0 &&
+		(telemetry.specialCooldown ?? 0) <= 0 &&
+		(telemetry.specialActive ?? 0) <= 0;
+	const specialRelevant =
+		specialKind === "flares"
+			? telemetry.incoming
+			: specialKind === "uav"
+				? telemetry.target !== undefined && !locked
+				: locked;
+	const specialHint =
+		specialReady && specialRelevant ? getSpecialHint(inputMode, specialDefinition.short) : undefined;
+	// EVADE leads only while a missile is decoyable; never more than two hints at once.
+	const hints = [
+		...(evadeHint ? [evadeHint] : []),
+		...flightHints.filter((hint) => hint.action !== evadeHint?.action),
+		...(specialHint ? [specialHint] : []),
+	].filter((_hint, index) => index < MAX_FLIGHT_HINTS);
 	const alertActive = visible && alertText !== "";
 	const warningText = useRef<TextLabel>();
 	useEffect(() => {
@@ -261,55 +346,126 @@ function MissionHud({
 		if (!alertActive || !label) return;
 		// Gentle pulse on the text itself; nothing grows or covers more of the view.
 		label.TextTransparency = 0;
-		const pulse = TweenService.Create(label, new TweenInfo(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextTransparency: 0.45 });
+		const pulse = TweenService.Create(
+			label,
+			new TweenInfo(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ TextTransparency: 0.45 },
+		);
 		pulse.Play();
 		return () => {
 			pulse.Cancel();
 			label.TextTransparency = 0;
 		};
 	}, [alertActive, alertSharesObjective]);
-	const ammo = armamentStatusLine({
-		missiles: telemetry.missiles,
-		missileCooldown: telemetry.missileCooldown,
-		special: specialDefinition.short,
-		specialCharges: telemetry.specialCharges ?? 0,
-		specialCooldown: telemetry.specialCooldown ?? 0,
-		specialActive: telemetry.specialActive ?? 0,
-		evadeCharges: evade.charges,
-	}, telemetry.gunRounds);
-	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
+	const ammo = armamentStatusLine(
+		{
+			missiles: telemetry.missiles,
+			missileCooldown: telemetry.missileCooldown,
+			special: specialDefinition.short,
+			specialCharges: telemetry.specialCharges ?? 0,
+			specialCooldown: telemetry.specialCooldown ?? 0,
+			specialActive: telemetry.specialActive ?? 0,
+			evadeCharges: evade.charges,
+		},
+		telemetry.gunRounds,
+	);
+	const fireButton = WeaponRules.FireButton(
+		telemetry.missiles,
+		telemetry.missileCooldown,
+		telemetry.target !== undefined && telemetry.targetDamageable !== false,
+		telemetry.lockProgress,
+	);
 	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
-	const [timeLine, normalProgressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
-	const tallyLine=telemetry.missionPoints!==undefined ? missionPointsLine(telemetry.missionId, telemetry.missionPoints) : normalProgressLine;
+	const [timeLine, normalProgressLine] = clockLines(
+		timeRemaining,
+		telemetry.objectiveProgress,
+		telemetry.objectiveTotal,
+		telemetry.kills,
+		telemetry.total,
+	);
+	const tallyLine =
+		telemetry.missionPoints !== undefined
+			? missionPointsLine(telemetry.missionId, telemetry.missionPoints)
+			: normalProgressLine;
 	const landing = telemetry.phase === "landing" ? controller.LandingStatus() : undefined;
 	const progressLine = returnProgressLine(telemetry.phase, landing?.distance) ?? tallyLine;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
 	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
-	const objectiveLine = alertSharesObjective && alertText !== "" ? alertText : objectiveCallout?.text ?? (tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective");
+	const objectiveLine =
+		alertSharesObjective && alertText !== ""
+			? alertText
+			: (objectiveCallout?.text ??
+				(tutorial !== "" ? tutorial : (telemetry.objective ?? "Complete the objective")));
 	const displayObjective = objectiveLine;
-	const objectiveColor = alertSharesObjective && alertText !== "" ? alertColor : objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green);
-	const movement = telemetry.tutorialStep === "move" && objectiveLine === tutorial
-		? getMovementIndicators(inputMode, telemetry.turnObserved, telemetry.pitchObserved) : undefined;
+	const objectiveColor =
+		alertSharesObjective && alertText !== ""
+			? alertColor
+			: (objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green));
+	const movement =
+		telemetry.tutorialStep === "move" && objectiveLine === tutorial
+			? getMovementIndicators(inputMode, telemetry.turnObserved, telemetry.pitchObserved)
+			: undefined;
 	const movementTextSize = metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11;
 	const movementCells = getMovementIndicatorLayout(layout.callout, movementTextSize);
 	const stalling = telemetry.speed < FlightMath.WarningSpeed;
 	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (
-		<frame ref={hudFrameRef} key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
+		<frame
+			ref={hudFrameRef}
+			key="MissionHUD"
+			BackgroundTransparency={1}
+			Size={UDim2.fromScale(1 / scale, 1 / scale)}
+			Visible={visible}
+		>
 			<uiscale Scale={scale} />
 			{/* Reference: a blinking white-and-pink MISSION UPDATE box; MISSION ACCOMPLISHED holds on the runway. */}
-			{(telemetry.missionUpdateSeconds ?? 0)>0 && <HudBanner name="MissionUpdateBanner" text="MISSION UPDATE" color={HUD.White} stroke={MISSION_UPDATE_PINK} metrics={metrics} blink={true} />}
-			{landing?.accomplished === true && <HudBanner name="MissionAccomplishedBanner" text="MISSION ACCOMPLISHED" color={HUD.Green} metrics={metrics} />}
+			{(telemetry.missionUpdateSeconds ?? 0) > 0 && (
+				<HudBanner
+					name="MissionUpdateBanner"
+					text="MISSION UPDATE"
+					color={HUD.White}
+					stroke={MISSION_UPDATE_PINK}
+					metrics={metrics}
+					blink={true}
+				/>
+			)}
+			{landing?.accomplished === true && (
+				<HudBanner
+					name="MissionAccomplishedBanner"
+					text="MISSION ACCOMPLISHED"
+					color={HUD.Green}
+					metrics={metrics}
+				/>
+			)}
 			{landing !== undefined && !landing.accomplished && (
-				<textbutton key="SkipLanding" Active={true} AutoButtonColor={false} Selectable={false} BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0}
-					FontFace={HUD_FONT_BOLD} Text={skipPrompt(inputMode)} TextColor3={landing.skippable ? HUD.Green : HUD.Dim} TextSize={metrics.text}
-					AnchorPoint={new Vector2(0.5, 0)} Position={UDim2.fromScale(0.5, 0.72)} Size={UDim2.fromOffset(math.max(160, metrics.row * 6), metrics.row * 2)}
-					Event={{ Activated: () => controller.SkipLanding() }}>
+				<textbutton
+					key="SkipLanding"
+					Active={true}
+					AutoButtonColor={false}
+					Selectable={false}
+					BackgroundColor3={HUD.Shadow}
+					BackgroundTransparency={0.6}
+					BorderSizePixel={0}
+					FontFace={HUD_FONT_BOLD}
+					Text={skipPrompt(inputMode)}
+					TextColor3={landing.skippable ? HUD.Green : HUD.Dim}
+					TextSize={metrics.text}
+					AnchorPoint={new Vector2(0.5, 0)}
+					Position={UDim2.fromScale(0.5, 0.72)}
+					Size={UDim2.fromOffset(math.max(160, metrics.row * 6), metrics.row * 2)}
+					Event={{ Activated: () => controller.SkipLanding() }}
+				>
 					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
 				</textbutton>
 			)}
-			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
+			<NavigationCue
+				telemetry={telemetry}
+				visible={visible}
+				inputMode={inputMode}
+				scale={scale}
+				options={options}
+			/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
@@ -336,21 +492,82 @@ function MissionHud({
 					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
 				</textbutton>
 			)}
-			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} textSize={metrics.label} minText={metrics.minText} />}
+			{layout.radar && (
+				<Radar
+					rectangle={layout.radar}
+					controller={controller}
+					visible={visible}
+					textSize={metrics.label}
+					minText={metrics.minText}
+				/>
+			)}
 
-			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
-			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
-			{movement ? movement.map((cell, index) => (
-				<HudLabel key={`Movement${index}`} name={`Movement${index}`} text={cell.text}
-					rectangle={movementCells[index]}
-					color={cell.done ? HUD.Green : HUD.Amber} bold={!cell.done} textSize={movementTextSize}
-					verticalAlignment={Enum.TextYAlignment.Top} />
-			)) : <HudLabel name="ObjectiveText" text={displayObjective} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />}
+			<HudLabel
+				name="MissionTimer"
+				text={timeLine}
+				rectangle={{ ...layout.clock, height: metrics.row }}
+				textSize={metrics.text}
+				color={timeRemaining <= 60 ? HUD.Red : HUD.Green}
+			/>
+			<HudLabel
+				name="ObjectiveProgress"
+				text={progressLine}
+				rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }}
+				textSize={metrics.text}
+			/>
+			{movement ? (
+				movement.map((cell, index) => (
+					<HudLabel
+						key={`Movement${index}`}
+						name={`Movement${index}`}
+						text={cell.text}
+						rectangle={movementCells[index]}
+						color={cell.done ? HUD.Green : HUD.Amber}
+						bold={!cell.done}
+						textSize={movementTextSize}
+						verticalAlignment={Enum.TextYAlignment.Top}
+					/>
+				))
+			) : (
+				<HudLabel
+					name="ObjectiveText"
+					text={displayObjective}
+					rectangle={layout.callout}
+					color={objectiveColor}
+					textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11}
+					wrap={true}
+					verticalAlignment={Enum.TextYAlignment.Top}
+				/>
+			)}
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
-			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
-			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={warningAltitude(telemetry) < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
-			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
+			<InstrumentBox
+				name="SpeedBox"
+				caption="MPH"
+				value={instrumentValue(FlightMath.ToMph(telemetry.speed))}
+				rectangle={layout.speed}
+				metrics={metrics}
+				pointsRight={true}
+				color={stalling ? HUD.Amber : HUD.Green}
+			/>
+			<InstrumentBox
+				name="AltitudeBox"
+				caption="ALT"
+				value={instrumentValue(telemetry.altitude)}
+				rectangle={layout.altitude}
+				metrics={metrics}
+				pointsRight={false}
+				color={warningAltitude(telemetry) < LOW_ALTITUDE ? HUD.Amber : HUD.Green}
+			/>
+			{!alertSharesObjective && (
+				<WarningBox
+					rectangle={layout.alert}
+					text={alertText}
+					color={alertColor}
+					metrics={metrics}
+					textRef={warningText}
+				/>
+			)}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
 
 			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo.cells} fit={ammo.fit} />
@@ -380,13 +597,41 @@ function MissionHud({
 				/>
 			)}
 
-			<TouchStick name="TouchJoystick" knobName="JoystickKnob" rectangle={touch?.joystick} frameRef={joystickRef} knobRef={knobRef} knob={knob} onBegan={onJoystickBegan} />
-			<TouchStick name="ThrottleJoystick" knobName="ThrottleKnob" rectangle={touch?.throttle} frameRef={throttleJoystickRef} knobRef={throttleKnobRef} knob={knob} onBegan={onThrottleBegan} />
+			<TouchStick
+				name="TouchJoystick"
+				knobName="JoystickKnob"
+				rectangle={touch?.joystick}
+				frameRef={joystickRef}
+				knobRef={knobRef}
+				knob={knob}
+				onBegan={onJoystickBegan}
+			/>
+			<TouchStick
+				name="ThrottleJoystick"
+				knobName="ThrottleKnob"
+				rectangle={touch?.throttle}
+				frameRef={throttleJoystickRef}
+				knobRef={throttleKnobRef}
+				knob={knob}
+				onBegan={onThrottleBegan}
+			/>
 			{touch?.throttleUpLabel && (
-				<HudLabel name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+				<HudLabel
+					name="ThrottleUp"
+					text="SPEED UP"
+					rectangle={touch.throttleUpLabel}
+					textSize={10}
+					alignment={Enum.TextXAlignment.Center}
+				/>
 			)}
 			{touch?.throttleDownLabel && (
-				<HudLabel name="ThrottleDown" text="SLOW DOWN" rectangle={touch.throttleDownLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+				<HudLabel
+					name="ThrottleDown"
+					text="SLOW DOWN"
+					rectangle={touch.throttleDownLabel}
+					textSize={10}
+					alignment={Enum.TextXAlignment.Center}
+				/>
 			)}
 
 			<frame key="CombatControls" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
@@ -403,7 +648,17 @@ function MissionHud({
 						onActivated={onMissile}
 					/>
 				)}
-				{touch && <RoundButton name="TargetButton" text="TGT" rectangle={touch.target} filled={false} enabled={true} textSize={11} onActivated={onTarget} />}
+				{touch && (
+					<RoundButton
+						name="TargetButton"
+						text="TGT"
+						rectangle={touch.target}
+						filled={false}
+						enabled={true}
+						textSize={11}
+						onActivated={onTarget}
+					/>
+				)}
 				{touch && (
 					<RoundButton
 						name="SpecialButton"
@@ -417,7 +672,13 @@ function MissionHud({
 					/>
 				)}
 				{touch && <EvadeButton rectangle={touch.evade} telemetry={telemetry} onEvade={onEvade} />}
-				{touch?.gun && <GunButton rectangle={touch.gun} rounds={telemetry.gunRounds ?? 0} onTrigger={(source, held) => controller.SetGunTrigger(source, held)} />}
+				{touch?.gun && (
+					<GunButton
+						rectangle={touch.gun}
+						rounds={telemetry.gunRounds ?? 0}
+						onTrigger={(source, held) => controller.SetGunTrigger(source, held)}
+					/>
+				)}
 			</frame>
 
 			{layout.hints && (
@@ -435,13 +696,14 @@ function MissionHud({
 						SortOrder={Enum.SortOrder.LayoutOrder}
 						VerticalAlignment={Enum.VerticalAlignment.Center}
 					/>
-					{hints.map((hint, index) => <FlightHint key={`${hint.action}Hint`} hint={hint} order={index + 1} />)}
+					{hints.map((hint, index) => (
+						<FlightHint key={`${hint.action}Hint`} hint={hint} order={index + 1} />
+					))}
 				</frame>
 			)}
 		</frame>
 	);
 }
-
 
 export { MissionHud };
 export type { Callout };

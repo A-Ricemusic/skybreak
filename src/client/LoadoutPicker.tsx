@@ -7,7 +7,12 @@ import { C } from "./Theme";
 // 44px row that cycles through the specials, and a wrapping description.
 // Self-contained so GameUI only has to mount it; the chosen kind travels with
 // the StartMission request.
-export function LoadoutPicker({ kind, enabled, layoutOrder, onChange }: {
+export function LoadoutPicker({
+	kind,
+	enabled,
+	layoutOrder,
+	onChange,
+}: {
 	kind: SpecialKind;
 	enabled: boolean;
 	layoutOrder: number;
@@ -18,7 +23,13 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, onChange }: {
 	const index = SpecialWeapons.Order.indexOf(kind) + 1;
 	const count = SpecialWeapons.Order.size();
 	return (
-		<frame key="LoadoutPicker" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={layoutOrder} Size={new UDim2(1, -12, 0, 0)}>
+		<frame
+			key="LoadoutPicker"
+			AutomaticSize={Enum.AutomaticSize.Y}
+			BackgroundTransparency={1}
+			LayoutOrder={layoutOrder}
+			Size={new UDim2(1, -12, 0, 0)}
+		>
 			<uilistlayout Padding={new UDim(0, 4)} SortOrder={Enum.SortOrder.LayoutOrder} />
 			<textlabel
 				key="LoadoutHeading"
@@ -52,7 +63,12 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, onChange }: {
 				}}
 			>
 				<uicorner CornerRadius={new UDim(0, 8)} />
-				<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={hot ? C.Ivory : C.Accent} Thickness={hot ? 2 : 1} Transparency={hot ? 0.1 : 0.55} />
+				<uistroke
+					ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+					Color={hot ? C.Ivory : C.Accent}
+					Thickness={hot ? 2 : 1}
+					Transparency={hot ? 0.1 : 0.55}
+				/>
 				<textlabel
 					key="Short"
 					BackgroundTransparency={1}

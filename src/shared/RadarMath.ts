@@ -5,7 +5,8 @@ import { FlightMath } from "./FlightMath";
 // Pure heading-up radar projection shared by the HUD radar and Roblox Jest.
 // The player sits at the centre; their nose points at the top of the disc.
 
-export type RadarContactKind = "friendly" | "required" | "optional" | "ground" | "groundOptional" | "objective" | "protected" | "missile";
+export type RadarContactKind =
+	"friendly" | "required" | "optional" | "ground" | "groundOptional" | "objective" | "protected" | "missile";
 
 export interface RadarContact {
 	kind: RadarContactKind;
@@ -46,7 +47,14 @@ export const RADAR_GLYPHS: { [kind in RadarContactKind]: string } = {
 
 /** Draw order, lowest first: threats always end on top. */
 export const RADAR_LAYER: { [kind in RadarContactKind]: number } = {
-	friendly: 0, objective: 1, protected: 2, groundOptional: 3, ground: 4, optional: 5, required: 6, missile: 7,
+	friendly: 0,
+	objective: 1,
+	protected: 2,
+	groundOptional: 3,
+	ground: 4,
+	optional: 5,
+	required: 6,
+	missile: 7,
 };
 
 /**
@@ -62,7 +70,10 @@ export function radarProject(dx: number, dz: number, yaw: number, range: number,
 	const limit = math.max(1, radius - RADAR_RIM_INSET);
 	const length = math.sqrt(x * x + y * y);
 	const edge = length > limit;
-	if (edge) { x = (x / length) * limit; y = (y / length) * limit; }
+	if (edge) {
+		x = (x / length) * limit;
+		y = (y / length) * limit;
+	}
 	return { x, y, edge };
 }
 
@@ -73,13 +84,19 @@ export function radarHeadingDegrees(yaw: number): number {
 }
 
 /** Zooms in while every required contact (and the objective) sits inside the near range. */
-export function radarRange(playerX: number, playerZ: number, contacts: RadarContact[], limits?: MissionAirspacePolicy): number {
+export function radarRange(
+	playerX: number,
+	playerZ: number,
+	contacts: RadarContact[],
+	limits?: MissionAirspacePolicy,
+): number {
 	let farthest = 0;
 	let any = false;
 	for (const contact of contacts) {
 		if (contact.kind === "missile" || contact.kind === "optional" || contact.kind === "groundOptional") continue;
 		any = true;
-		const dx = contact.x - playerX, dz = contact.z - playerZ;
+		const dx = contact.x - playerX,
+			dz = contact.z - playerZ;
 		farthest = math.max(farthest, math.sqrt(dx * dx + dz * dz));
 	}
 	const wide = limits?.radarRange ?? WorldAirspace.radarRange;

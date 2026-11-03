@@ -32,6 +32,8 @@ export function applyMobileGraphics(): RBXScriptConnection[] {
 		Lighting.ChildAdded.Connect(trimEffect),
 		Workspace.Terrain.ChildAdded.Connect(trimClouds),
 		// The preset can replicate after its clouds: re-trim from the table when it lands.
-		Lighting.GetAttributeChangedSignal(ENVIRONMENT_ATTRIBUTE).Connect(() => { for (const item of Workspace.Terrain.GetChildren()) trimClouds(item); }),
+		Lighting.GetAttributeChangedSignal(ENVIRONMENT_ATTRIBUTE).Connect(() => {
+			for (const item of Workspace.Terrain.GetChildren()) trimClouds(item);
+		}),
 	];
 }

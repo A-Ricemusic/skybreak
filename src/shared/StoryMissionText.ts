@@ -1,19 +1,210 @@
 /** Authored mission story handoffs, D-130. Radio for locked missions is a build contract, not scheduled gameplay. */
-export interface MissionStoryText { briefing: string; debrief: string; failure: string; radio: string[]; }
-export const MISSION_STORY_TEXT: Record<number,MissionStoryText> = {
-4: {"briefing": "The radar memory names the Teklan orchard. Three high couriers are the patrols' eyes over the evacuation road. Destroy all three before they escape along the harbour route. Two airborne jammers hide their escorts; find them by eye or destroy the optional jammers to restore radar.", "debrief": "The high flyers are gone. The trucks reach Varda; the lead driver's granddaughter marks the fuel works on Sera's map.", "failure": "The patrols still have their eyes above the orchard. The evacuation road is unsafe.", "radio": ["SERA: High contacts are guiding the patrols. The trucks need that sky clear.", "SERA: The road is open. Count the trucks at Varda."]},
-5: {"briefing": "The granddaughter marked the tanks hidden under grain permits. Strike the refinery and offshore rig under the searchlights. Reach 2,000 points in ten minutes and keep burning until the clock expires. Rearm at the southern base if needed. When Vulture Lead arrives, escape his squadron across the return line.", "debrief": "The fuel works are burning. You escaped Vulture Lead; Sera recorded his relayed orders while he hunted you. Their signatures lead to Iron Coast.", "failure": "The fuel trail and the pilot carrying it have not reached safety.", "radio": ["SERA: Fuel tanks only. The grain silos beside them feed families.", "SERA: Vulture flight inbound. Leave the works. Survive; this is no duel.", "SERA: You are clear. I kept his orders on tape."]},
-6: {"briefing": "Vulture Lead's guard-channel orders are signed by a man who died in spring. The chain ends at Iron Coast. Strike the docked warships and fuel barges; AA guards the docks. Workers and the fish market are nearby. Use the service stop if needed.", "debrief": "The warships and fuel barges are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it.", "failure": "The harbour supply line holds. Sera still has only one link in the order chain.", "radio": ["SERA: Iron Coast ahead. Cargo ships and fuel barges; leave the market clear.", "SERA: Harbour traffic copied. We can follow the orders inland."]},
-7: {"briefing": "Kiro's key needs matching logs from Lira and Merel. Cross the hills low at sunset, copy the array traffic and cut the transmitters. Long-range guns watch the ridges; drop into the canyon when they find you.", "debrief": "Three stations carry one signature. Varda's island transmitter can send the proof in thirty-five seconds.", "failure": "The array logs are incomplete. The forgery still has room to hide.", "radio": ["SERA: Copy before you cut. We need the signature, not just wreckage.", "SERA: Guns have the ridge. Take the canyon."]},
-8: {"briefing": "Varda's island transmitter will broadcast Teal's thirty-five seconds. Sera stays in the tower. Hold the tropical island's sky against the fighters and bomber wave until the signal is out, then clear the remaining attackers.", "debrief": "The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us.", "failure": "The transmitter could not hold the window. The garrisons have not heard the proof.", "radio": ["SERA: I stay in the tower. Keep bombers off the transmitter.", "SERA: Thirty-five seconds sent. Two garrisons are answering.", "SERA: Six bombers west. Keep them off the tower until the window closes.", "SERA: Transmitter is live. Hold this sky for thirty-five seconds.", "SERA: A bomber reached the tower. We have lost the transmitter."]},
-9: {"briefing": "The garrisons that stood down are landing under the weather. Loyalist frigates cover them. Score 2,200 in ten minutes against the coastal guns, then stop nine attack jets in seven minutes. Clear each beach's two batteries to release its landing craft. Keep all three landing forces alive. Weapons are finite; the offshore carrier can rearm you during the beach strike.", "debrief": "The landing holds. Then the Marshal answers Varda's broadcast: the Teklan orchard burns, and his guns close the river valleys.", "failure": "The beach guns still hold the landing offshore.", "radio": ["SERA: Green beacon is ours. Clear the guns above the beach.", "SERA: The landing is through. There is smoke over Teklan."]},
-10: {"briefing": "The orchard burned in reprisal. Its survivors are alive, but the Marshal's river positions block their escape. Score 3,000 points in twenty minutes; keep attacking for rank. When the guns warn, descend below 2,000 feet and put a ridge between you and the battery. The southwest runway can refill your 58 missiles, cannon and area weapon; damage stays. Today the valleys are clear. Give the survivors a crossing.", "debrief": "The river line is broken. The orchard survivors can fly out over the snowy saddle on two civilian airliners.", "failure": "The river line holds. The survivors still have no safe crossing.", "radio": ["SERA: Keep the valley between you and the long-range guns.", "SERA: The corridor is open. Two civilian flights are ready.", "SERA: Pads waking up. Strike the aircraft before they climb.", "SERA: Docks and pen mouths feed this line. Cut their supply route.", "RIVER TOWER: Cleared to land southbound. Racks ready; damage stays.", "RIVER TOWER: Ammunition aboard. Cleared for takeoff."]} ,
-11: {"briefing": "Two civilian airliners carry the orchard survivors over the snowy saddle. One cannot climb. Move between their altitude bands and keep hostile fighters off both aircraft. Sera matched Vulture Two’s checkride signature to the forged orders before takeoff. These families trusted Teal; now they are trusting you.", "debrief": "Both airliners are clear. The passengers thank the escort as Vulture Two sends his challenge from the command array.", "failure": "The families did not make the crossing safely.", "radio": ["SERA: One airliner cannot climb. Watch both altitude bands.", "SERA: Both flights are clear. Vulture Two is calling from the array.", "ORCHARD ONE: Fighters above the cloud. We need cover.", "SERA: Another high group. Orchard One, keep your course.", "ORCHARD TWO: Cannot climb. Fighters on the saddle!", "SERA: More contacts low. Emergency crews await beyond the pass.", "ORCHARD ONE: Last ridge ahead. Three fighters closing high.", "SERA: Rime crossing. Optional intercept; the families come first.", "SERA: Orchard Two stays low. Leave room to descend.", "ORCHARD TWO: They can see the escort. Stay with us to the ridge."]},
-12: {"briefing": "Seven live guns defend the Marshal's command array; the eighth tower is wreckage. Destroy the central ECM for clear radar, then silence the ring within fifteen minutes. Sweep fire ends above 3,080 feet absolute altitude. The southwest service strip can refill your racks. Expect Vulture Two after the final gun falls.", "debrief": "Vulture Two ejected and was recovered alive from the crater. His statement and the harbour master's paper copy will leave on an evidence plane.", "failure": "The command ring or its elite defenders still control the crater. The recovery team cannot approach.", "radio": ["SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.", "SERA: Ring silent. Five elites inbound; one defeat will break them.", "SERA: Ejection marked. Marines are moving. Vulture Two is alive."]},
-13: {"briefing": "A slow reconnaissance plane carries the paper copy and Vulture Two's statement through a fog-filled ravine. Silence the airship jammers, then intercept the fighters before they reach it. The archive he points to is still on the ice coast.", "debrief": "The evidence plane is clear. The crown station holds the first order; missiles are already on their way to silence it.", "failure": "The evidence plane did not get through. The paper trail is still trapped.", "radio": ["SERA: Jammers in the ravine. Clear the plane a channel.", "SERA: Fighters beyond the fog. Keep them off the evidence plane.", "SERA: Gun range: nine hundred studs. Keep the hull in your sight.", "SERA: Paper One has the copy and statement. Archive still ashore.", "SERA: Vulture Two admits his handwriting. No name behind the order.", "SERA: Another pair through the grey. Stay with Paper One."]},
-14: {"briefing": "The crown station stands on the ice coast under the aurora. Its archive holds the first signed order. Stop every low-flying cruise missile before it reaches the dish. Three salvos share twenty minutes. Carriers can split; every released child must be intercepted. Fighters are distractions. Keep the archive transmitting until the record is received.", "debrief": "Archive received. ORDER 0001: RUSK, AIR MARSHAL. Sera finally has a name for the voice holding the city.", "failure": "The dish fell before the whole archive arrived. The first signature is lost.", "radio": ["SERA: Missiles low over the ice. The dish must keep talking.", "SERA: Archive received. Order zero-zero-zero-one. Rusk.", "SERA: New salvo. Carriers may split; watch for fresh contacts.", "SERA: One final weapon. Leave the high aircraft; protect the dish."]},
-15: {"briefing": "ORDER 0001 names Rusk. His relay holds the lit city on one repeated emergency. Score 2,000 and silence the relay in ten minutes. Clear the marked street armour to move three loyalist squads; keep all three alive against attacking pairs. Then destroy all six bombers before they reach the city. The northwest runway refills weapons and repairs damage; the objective clock pauses during service.", "debrief": "The city hears silence for the first time since spring. Rusk addresses the trainee by his own name while parliament's column approaches the dry coast.", "failure": "The city remains under Rusk's voice and guns.", "radio": ["SERA: Loyalist troops below. Keep Rusk's armour off their streets.", "SERA: Bombers incoming. They are turning on the city."]},
-16: {"briefing": "Parliament follows a loyalist column across the dry coast. Clear the crater, bunkers and ruined town ahead of its armour. The airbase can service you. Stay until both squads answer from the streets.", "debrief": "The column is through. Recovery reaches the upper pass and finds Teal in his aircraft, his recorder still running. The witnesses head for parliament.", "failure": "The column cannot reach the town. Parliament is still outside its own city.", "radio": ["SERA: Clear the bunkers ahead of the column.", "SERA: Both squads answering from the streets. Parliament has a road home."]},
-17: {"briefing": "Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and docks open. Break the defences, then defeat Rusk's four wingmen, including Vulture Lead. Rusk withdraws to sea; he must survive for the final confrontation.", "debrief": "Vulture Lead and the other three wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.", "failure": "The witnesses cannot reach parliament. The bridges and docks remain under fire.", "radio": ["SERA: Four wingmen with Rusk. Vulture Lead is over the capital.", "SERA: He left his wing. Rusk is running for the coast.", "SERA: East bridge is friendly. Break the western supply line.", "SERA: Keep turning over the guns. The flooded streets are no refuge.", "SERA: Four red targets. Rusk is leaving them for the coast.", "RIM TOWER: Eastern runway clear. Weapons and hull repairs available.", "MARINE: East crossing clear. Witness convoy moving.", "MARINE: Witnesses across. Parliament is within reach.", "MARINE: Crossing under fire!"]},
-18: {"briefing": "Rusk's coastal relay works repeat his voice through the storm. Destroy three generators inside the grooves, run the central vent and escape. When the works fall silent, Rusk rises alone. Shoot him down in open air; then broadcast in your own voice.", "debrief": "Rusk is down. The relay is dark. You open the frequency in your own voice: the coast is free. Sera answers, then the harbours, one by one. Teal's evidence belongs to everyone now; no borrowed voice will speak for them again.", "failure": "The relay has not been silenced. Rusk still owns the frequency.", "radio": ["SERA: Generators first. Then the central vent. Leave yourself a way out.", "SERA: Clear of the works. Loop stopped. Rusk is coming up alone.", "SERA: Grooves run north. Line up outside; wings level inside.", "SERA: All three feeds must go. The central route is still sealed.", "SERA: Feeds dark. Descend beyond the grooves. Level at 174 before amber.", "SERA: Gate opens in three seconds. Core left; exit north, then climb.", "SERA: Core hits are not enough. Follow cyan all the way out.", "RUSK: Without my relay, who do you think will hear you?", "SERA: We will. Wing clear. Finish this in your own sky."]},
+export interface MissionStoryText {
+	briefing: string;
+	debrief: string;
+	failure: string;
+	radio: string[];
+}
+export const MISSION_STORY_TEXT: Record<number, MissionStoryText> = {
+	4: {
+		briefing:
+			"The radar memory names the Teklan orchard. Three high couriers are the patrols' eyes over the evacuation road. Destroy all three before they escape along the harbour route. Two airborne jammers hide their escorts; find them by eye or destroy the optional jammers to restore radar.",
+		debrief:
+			"The high flyers are gone. The trucks reach Varda; the lead driver's granddaughter marks the fuel works on Sera's map.",
+		failure: "The patrols still have their eyes above the orchard. The evacuation road is unsafe.",
+		radio: [
+			"SERA: High contacts are guiding the patrols. The trucks need that sky clear.",
+			"SERA: The road is open. Count the trucks at Varda.",
+		],
+	},
+	5: {
+		briefing:
+			"The granddaughter marked the tanks hidden under grain permits. Strike the refinery and offshore rig under the searchlights. Reach 2,000 points in ten minutes and keep burning until the clock expires. Rearm at the southern base if needed. When Vulture Lead arrives, escape his squadron across the return line.",
+		debrief:
+			"The fuel works are burning. You escaped Vulture Lead; Sera recorded his relayed orders while he hunted you. Their signatures lead to Iron Coast.",
+		failure: "The fuel trail and the pilot carrying it have not reached safety.",
+		radio: [
+			"SERA: Fuel tanks only. The grain silos beside them feed families.",
+			"SERA: Vulture flight inbound. Leave the works. Survive; this is no duel.",
+			"SERA: You are clear. I kept his orders on tape.",
+		],
+	},
+	6: {
+		briefing:
+			"Vulture Lead's guard-channel orders are signed by a man who died in spring. The chain ends at Iron Coast. Strike the docked warships and fuel barges; AA guards the docks. Workers and the fish market are nearby. Use the service stop if needed.",
+		debrief:
+			"The warships and fuel barges are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it.",
+		failure: "The harbour supply line holds. Sera still has only one link in the order chain.",
+		radio: [
+			"SERA: Iron Coast ahead. Cargo ships and fuel barges; leave the market clear.",
+			"SERA: Harbour traffic copied. We can follow the orders inland.",
+		],
+	},
+	7: {
+		briefing:
+			"Kiro's key needs matching logs from Lira and Merel. Cross the hills low at sunset, copy the array traffic and cut the transmitters. Long-range guns watch the ridges; drop into the canyon when they find you.",
+		debrief:
+			"Three stations carry one signature. Varda's island transmitter can send the proof in thirty-five seconds.",
+		failure: "The array logs are incomplete. The forgery still has room to hide.",
+		radio: [
+			"SERA: Copy before you cut. We need the signature, not just wreckage.",
+			"SERA: Guns have the ridge. Take the canyon.",
+		],
+	},
+	8: {
+		briefing:
+			"Varda's island transmitter will broadcast Teal's thirty-five seconds. Sera stays in the tower. Hold the tropical island's sky against the fighters and bomber wave until the signal is out, then clear the remaining attackers.",
+		debrief: "The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us.",
+		failure: "The transmitter could not hold the window. The garrisons have not heard the proof.",
+		radio: [
+			"SERA: I stay in the tower. Keep bombers off the transmitter.",
+			"SERA: Thirty-five seconds sent. Two garrisons are answering.",
+			"SERA: Six bombers west. Keep them off the tower until the window closes.",
+			"SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+			"SERA: A bomber reached the tower. We have lost the transmitter.",
+		],
+	},
+	9: {
+		briefing:
+			"The garrisons that stood down are landing under the weather. Loyalist frigates cover them. Score 2,200 in ten minutes against the coastal guns, then stop nine attack jets in seven minutes. Clear each beach's two batteries to release its landing craft. Keep all three landing forces alive. Weapons are finite; the offshore carrier can rearm you during the beach strike.",
+		debrief:
+			"The landing holds. Then the Marshal answers Varda's broadcast: the Teklan orchard burns, and his guns close the river valleys.",
+		failure: "The beach guns still hold the landing offshore.",
+		radio: [
+			"SERA: Green beacon is ours. Clear the guns above the beach.",
+			"SERA: The landing is through. There is smoke over Teklan.",
+		],
+	},
+	10: {
+		briefing:
+			"The orchard burned in reprisal. Its survivors are alive, but the Marshal's river positions block their escape. Score 3,000 points in twenty minutes; keep attacking for rank. When the guns warn, descend below 2,000 feet and put a ridge between you and the battery. The southwest runway can refill your 58 missiles, cannon and area weapon; damage stays. Today the valleys are clear. Give the survivors a crossing.",
+		debrief:
+			"The river line is broken. The orchard survivors can fly out over the snowy saddle on two civilian airliners.",
+		failure: "The river line holds. The survivors still have no safe crossing.",
+		radio: [
+			"SERA: Keep the valley between you and the long-range guns.",
+			"SERA: The corridor is open. Two civilian flights are ready.",
+			"SERA: Pads waking up. Strike the aircraft before they climb.",
+			"SERA: Docks and pen mouths feed this line. Cut their supply route.",
+			"RIVER TOWER: Cleared to land southbound. Racks ready; damage stays.",
+			"RIVER TOWER: Ammunition aboard. Cleared for takeoff.",
+		],
+	},
+	11: {
+		briefing:
+			"Two civilian airliners carry the orchard survivors over the snowy saddle. One cannot climb. Move between their altitude bands and keep hostile fighters off both aircraft. Sera matched Vulture Two’s checkride signature to the forged orders before takeoff. These families trusted Teal; now they are trusting you.",
+		debrief:
+			"Both airliners are clear. The passengers thank the escort as Vulture Two sends his challenge from the command array.",
+		failure: "The families did not make the crossing safely.",
+		radio: [
+			"SERA: One airliner cannot climb. Watch both altitude bands.",
+			"SERA: Both flights are clear. Vulture Two is calling from the array.",
+			"ORCHARD ONE: Fighters above the cloud. We need cover.",
+			"SERA: Another high group. Orchard One, keep your course.",
+			"ORCHARD TWO: Cannot climb. Fighters on the saddle!",
+			"SERA: More contacts low. Emergency crews await beyond the pass.",
+			"ORCHARD ONE: Last ridge ahead. Three fighters closing high.",
+			"SERA: Rime crossing. Optional intercept; the families come first.",
+			"SERA: Orchard Two stays low. Leave room to descend.",
+			"ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
+		],
+	},
+	12: {
+		briefing:
+			"Seven live guns defend the Marshal's command array; the eighth tower is wreckage. Destroy the central ECM for clear radar, then silence the ring within fifteen minutes. Sweep fire ends above 3,080 feet absolute altitude. The southwest service strip can refill your racks. Expect Vulture Two after the final gun falls.",
+		debrief:
+			"Vulture Two ejected and was recovered alive from the crater. His statement and the harbour master's paper copy will leave on an evidence plane.",
+		failure: "The command ring or its elite defenders still control the crater. The recovery team cannot approach.",
+		radio: [
+			"SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
+			"SERA: Ring silent. Five elites inbound; one defeat will break them.",
+			"SERA: Ejection marked. Marines are moving. Vulture Two is alive.",
+		],
+	},
+	13: {
+		briefing:
+			"A slow reconnaissance plane carries the paper copy and Vulture Two's statement through a fog-filled ravine. Silence the airship jammers, then intercept the fighters before they reach it. The archive he points to is still on the ice coast.",
+		debrief:
+			"The evidence plane is clear. The crown station holds the first order; missiles are already on their way to silence it.",
+		failure: "The evidence plane did not get through. The paper trail is still trapped.",
+		radio: [
+			"SERA: Jammers in the ravine. Clear the plane a channel.",
+			"SERA: Fighters beyond the fog. Keep them off the evidence plane.",
+			"SERA: Gun range: nine hundred studs. Keep the hull in your sight.",
+			"SERA: Paper One has the copy and statement. Archive still ashore.",
+			"SERA: Vulture Two admits his handwriting. No name behind the order.",
+			"SERA: Another pair through the grey. Stay with Paper One.",
+		],
+	},
+	14: {
+		briefing:
+			"The crown station stands on the ice coast under the aurora. Its archive holds the first signed order. Stop every low-flying cruise missile before it reaches the dish. Three salvos share twenty minutes. Carriers can split; every released child must be intercepted. Fighters are distractions. Keep the archive transmitting until the record is received.",
+		debrief:
+			"Archive received. ORDER 0001: RUSK, AIR MARSHAL. Sera finally has a name for the voice holding the city.",
+		failure: "The dish fell before the whole archive arrived. The first signature is lost.",
+		radio: [
+			"SERA: Missiles low over the ice. The dish must keep talking.",
+			"SERA: Archive received. Order zero-zero-zero-one. Rusk.",
+			"SERA: New salvo. Carriers may split; watch for fresh contacts.",
+			"SERA: One final weapon. Leave the high aircraft; protect the dish.",
+		],
+	},
+	15: {
+		briefing:
+			"ORDER 0001 names Rusk. His relay holds the lit city on one repeated emergency. Score 2,000 and silence the relay in ten minutes. Clear the marked street armour to move three loyalist squads; keep all three alive against attacking pairs. Then destroy all six bombers before they reach the city. The northwest runway refills weapons and repairs damage; the objective clock pauses during service.",
+		debrief:
+			"The city hears silence for the first time since spring. Rusk addresses the trainee by his own name while parliament's column approaches the dry coast.",
+		failure: "The city remains under Rusk's voice and guns.",
+		radio: [
+			"SERA: Loyalist troops below. Keep Rusk's armour off their streets.",
+			"SERA: Bombers incoming. They are turning on the city.",
+		],
+	},
+	16: {
+		briefing:
+			"Parliament follows a loyalist column across the dry coast. Clear the crater, bunkers and ruined town ahead of its armour. The airbase can service you. Stay until both squads answer from the streets.",
+		debrief:
+			"The column is through. Recovery reaches the upper pass and finds Teal in his aircraft, his recorder still running. The witnesses head for parliament.",
+		failure: "The column cannot reach the town. Parliament is still outside its own city.",
+		radio: [
+			"SERA: Clear the bunkers ahead of the column.",
+			"SERA: Both squads answering from the streets. Parliament has a road home.",
+		],
+	},
+	17: {
+		briefing:
+			"Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and docks open. Break the defences, then defeat Rusk's four wingmen, including Vulture Lead. Rusk withdraws to sea; he must survive for the final confrontation.",
+		debrief:
+			"Vulture Lead and the other three wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.",
+		failure: "The witnesses cannot reach parliament. The bridges and docks remain under fire.",
+		radio: [
+			"SERA: Four wingmen with Rusk. Vulture Lead is over the capital.",
+			"SERA: He left his wing. Rusk is running for the coast.",
+			"SERA: East bridge is friendly. Break the western supply line.",
+			"SERA: Keep turning over the guns. The flooded streets are no refuge.",
+			"SERA: Four red targets. Rusk is leaving them for the coast.",
+			"RIM TOWER: Eastern runway clear. Weapons and hull repairs available.",
+			"MARINE: East crossing clear. Witness convoy moving.",
+			"MARINE: Witnesses across. Parliament is within reach.",
+			"MARINE: Crossing under fire!",
+		],
+	},
+	18: {
+		briefing:
+			"Rusk's coastal relay works repeat his voice through the storm. Destroy three generators inside the grooves, run the central vent and escape. When the works fall silent, Rusk rises alone. Shoot him down in open air; then broadcast in your own voice.",
+		debrief:
+			"Rusk is down. The relay is dark. You open the frequency in your own voice: the coast is free. Sera answers, then the harbours, one by one. Teal's evidence belongs to everyone now; no borrowed voice will speak for them again.",
+		failure: "The relay has not been silenced. Rusk still owns the frequency.",
+		radio: [
+			"SERA: Generators first. Then the central vent. Leave yourself a way out.",
+			"SERA: Clear of the works. Loop stopped. Rusk is coming up alone.",
+			"SERA: Grooves run north. Line up outside; wings level inside.",
+			"SERA: All three feeds must go. The central route is still sealed.",
+			"SERA: Feeds dark. Descend beyond the grooves. Level at 174 before amber.",
+			"SERA: Gate opens in three seconds. Core left; exit north, then climb.",
+			"SERA: Core hits are not enough. Follow cyan all the way out.",
+			"RUSK: Without my relay, who do you think will hear you?",
+			"SERA: We will. Wing clear. Finish this in your own sky.",
+		],
+	},
 };

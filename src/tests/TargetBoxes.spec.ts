@@ -51,7 +51,9 @@ describe("target box validity", () => {
 		expect(locked.tone).toBe("locked");
 		expect(locked.locked).toBe(true);
 		expect(TargetBoxes.CaptionText(locked, 1, 820.4, true, -1)).toBe("LOCKED · 820m");
-		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(true, true, 0.6), 0.6, 820, true, 45)).toBe("LOCK 60% · 45%");
+		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(true, true, 0.6), 0.6, 820, true, 45)).toBe(
+			"LOCK 60% · 45%",
+		);
 		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(true, true, 0), 0, 820, true, -1)).toBe("TGT · 820m");
 		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(true, false, 0), 0, 820, false, -1)).toBe("820m");
 	});
@@ -65,7 +67,9 @@ describe("target box validity", () => {
 			expect(string.find(text, "LOCK")[0]).toBeUndefined();
 		}
 		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(false, true, 1), 1, 1000, true, -1)).toBe("TRACK · 1000m");
-		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(false, true, 0.2), 0.2, 1000, true, 66)).toBe("HOLD · 1000m · 66%");
+		expect(TargetBoxes.CaptionText(TargetBoxes.Selected(false, true, 0.2), 0.2, 1000, true, 66)).toBe(
+			"HOLD · 1000m · 66%",
+		);
 	});
 });
 
@@ -117,7 +121,8 @@ describe("target box ranking", () => {
 		expect(count).toBe(TARGET_BOX_LIMIT - 1);
 		expect(contacts[0].distance).toBe(1100);
 		expect(contacts[count - 1].distance).toBe(2100);
-		for (let index = 1; index < contacts.size(); index++) expect(contacts[index].distance >= contacts[index - 1].distance).toBe(true);
+		for (let index = 1; index < contacts.size(); index++)
+			expect(contacts[index].distance >= contacts[index - 1].distance).toBe(true);
 	});
 	it("returns every contact when under the cap", () => {
 		const contacts: RankedContact[] = [{ distance: 5 }, { distance: 1 }];
@@ -148,8 +153,15 @@ describe("target box placement", () => {
 		expect(TargetBoxes.Fits(70, 200, 30, bounds, [])).toBe(true);
 	});
 	it("never draws over a touch control at any HUD scale", () => {
-		for (const [width, height, scale] of [[844, 390, 1], [667, 375, 1], [568, 320, 1], [844, 390, 0.8], [1180, 820, 1.25]]) {
-			const virtualWidth = math.floor(width / scale), virtualHeight = math.floor(height / scale);
+		for (const [width, height, scale] of [
+			[844, 390, 1],
+			[667, 375, 1],
+			[568, 320, 1],
+			[844, 390, 0.8],
+			[1180, 820, 1.25],
+		]) {
+			const virtualWidth = math.floor(width / scale),
+				virtualHeight = math.floor(height / scale);
 			const hud = getHudLayout(virtualWidth, virtualHeight, "touch", { scale });
 			const keepouts = TargetBoxes.Keepouts(hud, scale, 0, 0);
 			const touch = hud.touch!;
@@ -166,11 +178,29 @@ describe("target box placement", () => {
 			// The open sky above the centre stays usable.
 			expect(TargetBoxes.Fits(width / 2, height * 0.3, TARGET_BOX_MIN, bounds, keepouts)).toBe(true);
 			// Every keep-out covers its control with padding.
-			for (const control of [touch.missile, touch.target, touch.special, touch.evade, touch.joystick, touch.throttle]) {
-				const scaled = { x: control.x * scale, y: control.y * scale, width: control.width * scale, height: control.height * scale };
+			for (const control of [
+				touch.missile,
+				touch.target,
+				touch.special,
+				touch.evade,
+				touch.joystick,
+				touch.throttle,
+			]) {
+				const scaled = {
+					x: control.x * scale,
+					y: control.y * scale,
+					width: control.width * scale,
+					height: control.height * scale,
+				};
 				let covered = false;
 				for (const keepout of keepouts) {
-					if (keepout.x <= scaled.x && keepout.y <= scaled.y && keepout.x + keepout.width >= scaled.x + scaled.width && keepout.y + keepout.height >= scaled.y + scaled.height) covered = true;
+					if (
+						keepout.x <= scaled.x &&
+						keepout.y <= scaled.y &&
+						keepout.x + keepout.width >= scaled.x + scaled.width &&
+						keepout.y + keepout.height >= scaled.y + scaled.height
+					)
+						covered = true;
 				}
 				expect(covered).toBe(true);
 			}
@@ -190,7 +220,10 @@ describe("target box placement", () => {
 		const spot: CaptionSpot = { above: false, dx: 0 };
 		// The old under-the-box caption would have crossed EVADE.
 		expect(rectanglesOverlap(TargetBoxes.CaptionRect(432, 287, 30, spot), evade)).toBe(true);
-		if (TargetBoxes.Fits(432, 287, 30, bounds, keepouts) && TargetBoxes.PlaceCaption(432, 287, 30, bounds, keepouts, spot)) {
+		if (
+			TargetBoxes.Fits(432, 287, 30, bounds, keepouts) &&
+			TargetBoxes.PlaceCaption(432, 287, 30, bounds, keepouts, spot)
+		) {
 			expect(rectanglesOverlap(TargetBoxes.CaptionRect(432, 287, 30, spot), evade)).toBe(false);
 		}
 	});
@@ -217,11 +250,19 @@ function controlsOf(hud: HudLayout, scale: number, originX: number, originY: num
 	const result: Rectangle[] = [];
 	const list = [touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade];
 	if (hud.pause) list.push(hud.pause);
-	for (const r of list) result.push({ x: originX + r.x * scale, y: originY + r.y * scale, width: r.width * scale, height: r.height * scale });
+	for (const r of list)
+		result.push({
+			x: originX + r.x * scale,
+			y: originY + r.y * scale,
+			width: r.width * scale,
+			height: r.height * scale,
+		});
 	return result;
 }
 function inside(r: Rectangle, area: Rectangle): boolean {
-	return r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height;
+	return (
+		r.x >= area.x && r.y >= area.y && r.x + r.width <= area.x + area.width && r.y + r.height <= area.y + area.height
+	);
 }
 function hitsAny(r: Rectangle, controls: readonly Rectangle[]): boolean {
 	for (const control of controls) if (rectanglesOverlap(r, control)) return true;
@@ -230,21 +271,39 @@ function hitsAny(r: Rectangle, controls: readonly Rectangle[]): boolean {
 
 describe("target box text across phone roots and HUD scales", () => {
 	it("never puts a box, caption or TGT tag over a control or off screen (5 roots x HUD 0.8-1.3)", () => {
-		const roots = [[667, 375], [800, 390], [706, 267], [568, 320], [320, 182]];
+		const roots = [
+			[667, 375],
+			[800, 390],
+			[706, 267],
+			[568, 320],
+			[320, 182],
+		];
 		const requested = [0.8, 0.9, 1, 1.1, 1.2, 1.3];
 		// The smallest pooled box, locked (26), far selected (30) and the nearest box.
 		const sizes = [TARGET_BOX_MIN, 26, TARGET_BOX_SELECTED_MIN, TARGET_BOX_MAX];
 		const spot: CaptionSpot = { above: false, dx: 0 };
-		let cases = 0, boxes = 0, captions = 0, lifted = 0, slid = 0, tags = 0, leftTags = 0, failures = 0;
+		let cases = 0,
+			boxes = 0,
+			captions = 0,
+			lifted = 0,
+			slid = 0,
+			tags = 0,
+			leftTags = 0,
+			failures = 0;
 		let firstFailure = "";
-		const fail = (what: string) => { failures += 1; if (firstFailure === "") firstFailure = what; };
+		const fail = (what: string) => {
+			failures += 1;
+			if (firstFailure === "") firstFailure = what;
+		};
 		for (const [width, height] of roots) {
 			for (const ask of requested) {
 				// A notch-free root; at 1 and 1.3 also one inset 30 px left and right (the HUD root's safe area).
 				for (const inset of ask === 1 || ask === 1.3 ? [0, 30] : [0]) {
 					const rootWidth = width - inset * 2;
 					const scale = effectiveHudScale(ask, true, rootWidth, height);
-					const hud = getHudLayout(math.floor(rootWidth / scale), math.floor(height / scale), "touch", { scale });
+					const hud = getHudLayout(math.floor(rootWidth / scale), math.floor(height / scale), "touch", {
+						scale,
+					});
 					const keepouts = TargetBoxes.Keepouts(hud, scale, inset, 0);
 					const controls = controlsOf(hud, scale, inset, 0);
 					const safe = { x: inset, y: 0, width: rootWidth, height };
@@ -252,37 +311,75 @@ describe("target box text across phone roots and HUD scales", () => {
 					const screen = { x: 0, y: 0, width, height };
 					cases += 1;
 					// Every 8 px across the screen, then rows and columns hugging each control just outside it.
-					const xs: number[] = [], ys: number[] = [];
-					for (let y = 0; y <= height; y += 8) for (let x = 0; x <= width; x += 8) { xs.push(x); ys.push(y); }
+					const xs: number[] = [],
+						ys: number[] = [];
+					for (let y = 0; y <= height; y += 8)
+						for (let x = 0; x <= width; x += 8) {
+							xs.push(x);
+							ys.push(y);
+						}
 					for (const control of controls) {
-						const right = control.x + control.width, bottom = control.y + control.height;
+						const right = control.x + control.width,
+							bottom = control.y + control.height;
 						for (let y = control.y - 50; y <= bottom + 50; y += 3) {
-							for (const x of [control.x - 70, control.x - 31, control.x - 12, control.x - 3, right + 3, right + 12, right + 31, right + 70]) { xs.push(x); ys.push(y); }
+							for (const x of [
+								control.x - 70,
+								control.x - 31,
+								control.x - 12,
+								control.x - 3,
+								right + 3,
+								right + 12,
+								right + 31,
+								right + 70,
+							]) {
+								xs.push(x);
+								ys.push(y);
+							}
 						}
 						for (let x = control.x - 70; x <= right + 70; x += 3) {
-							for (const y of [control.y - 40, control.y - 22, control.y - 9, control.y - 3, bottom + 3, bottom + 9, bottom + 22]) { xs.push(x); ys.push(y); }
+							for (const y of [
+								control.y - 40,
+								control.y - 22,
+								control.y - 9,
+								control.y - 3,
+								bottom + 3,
+								bottom + 9,
+								bottom + 22,
+							]) {
+								xs.push(x);
+								ys.push(y);
+							}
 						}
 					}
 					for (let index = 0; index < xs.size(); index++) {
-						const x = xs[index], y = ys[index];
+						const x = xs[index],
+							y = ys[index];
 						for (const size of sizes) {
 							if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;
 							boxes += 1;
 							const box = TargetBoxes.BoxRect(x, y, size);
-							if (hitsAny(box, controls) || !inside(box, screen) || !inside(box, safe)) fail(`box ${width}x${height}@${scale} ${x},${y} ${size}`);
+							if (hitsAny(box, controls) || !inside(box, screen) || !inside(box, safe))
+								fail(`box ${width}x${height}@${scale} ${x},${y} ${size}`);
 							if (TargetBoxes.PlaceCaption(x, y, size, bounds, keepouts, spot)) {
 								captions += 1;
 								if (spot.above) lifted += 1;
 								if (spot.dx !== 0) slid += 1;
 								const caption = TargetBoxes.CaptionRect(x, y, size, spot);
-								if (hitsAny(caption, controls) || !inside(caption, screen) || !inside(caption, safe) || rectanglesOverlap(caption, box)) fail(`caption ${width}x${height}@${scale} ${x},${y} ${size}`);
+								if (
+									hitsAny(caption, controls) ||
+									!inside(caption, screen) ||
+									!inside(caption, safe) ||
+									rectanglesOverlap(caption, box)
+								)
+									fail(`caption ${width}x${height}@${scale} ${x},${y} ${size}`);
 							}
 							const side = TargetBoxes.PlaceTag(x, y, size, bounds, keepouts);
 							if (side !== undefined) {
 								tags += 1;
 								if (side === "left") leftTags += 1;
 								const tag = TargetBoxes.TagRect(x, y, size, side);
-								if (hitsAny(tag, controls) || !inside(tag, screen) || !inside(tag, safe)) fail(`tag ${width}x${height}@${scale} ${x},${y} ${size}`);
+								if (hitsAny(tag, controls) || !inside(tag, screen) || !inside(tag, safe))
+									fail(`tag ${width}x${height}@${scale} ${x},${y} ${size}`);
 							}
 						}
 					}
@@ -303,7 +400,9 @@ describe("target box text across phone roots and HUD scales", () => {
 });
 
 describe("touch target boxes", () => {
-	function contact(x = 100, y = 100, size = 14) { return { x, y, size, boxed: true, friendly: false }; }
+	function contact(x = 100, y = 100, size = 14) {
+		return { x, y, size, boxed: true, friendly: false };
+	}
 	it("hits a rendered contact by its boxed footprint", () => {
 		const selected = contact(100, 100, 24);
 		expect(TargetBoxes.TapHit([selected], 100, 100)).toBe(selected);
@@ -320,16 +419,20 @@ describe("touch target boxes", () => {
 		expect(TargetBoxes.TapHit([large], 130, 100)).toBe(large);
 	});
 	it("chooses the nearest centre among overlapping boxes", () => {
-		const a = contact(), b = contact(110, 110);
+		const a = contact(),
+			b = contact(110, 110);
 		expect(TargetBoxes.TapHit([a, b], 108, 108)).toBe(b);
 		expect(TargetBoxes.TapHit([b, a], 101, 101)).toBe(a);
 	});
 	it("ignores friendly and unboxed contacts even when closer", () => {
 		const enemy = contact(110);
-		expect(TargetBoxes.TapHit([{ ...contact(), friendly: true }, { ...contact(), boxed: false }, enemy], 100, 100)).toBe(enemy);
+		expect(
+			TargetBoxes.TapHit([{ ...contact(), friendly: true }, { ...contact(), boxed: false }, enemy], 100, 100),
+		).toBe(enemy);
 	});
 	it("keeps the first contact for equal centre distances", () => {
-		const a = contact(90), b = contact(110);
+		const a = contact(90),
+			b = contact(110);
 		expect(TargetBoxes.TapHit([a, b], 100, 100)).toBe(a);
 	});
 });

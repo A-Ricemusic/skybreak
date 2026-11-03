@@ -1,11 +1,36 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { EvadeRules } from "../shared/EvadeRules";
-import { clockLines, formatClock, HUD_FONT_ADVANCE, hudTextWidth, hullFraction, hullTone, instrumentValue, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, STATUS_SPECIAL_CHARS, statusLine, statusMaxChars, type WeaponStatus } from "../shared/HudInstruments";
+import {
+	clockLines,
+	formatClock,
+	HUD_FONT_ADVANCE,
+	hudTextWidth,
+	hullFraction,
+	hullTone,
+	instrumentValue,
+	STATUS_SEPARATOR,
+	STATUS_SEPARATOR_TIGHT,
+	STATUS_SPECIAL_CHARS,
+	statusLine,
+	statusMaxChars,
+	type WeaponStatus,
+} from "../shared/HudInstruments";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
 
-const STATUS: WeaponStatus = { missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 3, specialCooldown: 0, specialActive: 0, evadeCharges: 3 };
-const line = (status: WeaponStatus) => statusLine(status).map((cell) => cell.text).join(STATUS_SEPARATOR);
+const STATUS: WeaponStatus = {
+	missiles: 8,
+	missileCooldown: 0,
+	special: "FLR",
+	specialCharges: 3,
+	specialCooldown: 0,
+	specialActive: 0,
+	evadeCharges: 3,
+};
+const line = (status: WeaponStatus) =>
+	statusLine(status)
+		.map((cell) => cell.text)
+		.join(STATUS_SEPARATOR);
 
 describe("Ace-style HUD instruments", () => {
 	it("reads the ammo as one short line: MSL, the special slot, EVD", () => {
@@ -23,7 +48,10 @@ describe("Ace-style HUD instruments", () => {
 		expect(HUD_FONT_ADVANCE).toBe(1229 / 2048);
 		expect(hudTextWidth(22, 8)).toBeCloseTo(105.62, 2);
 		expect(STATUS_SEPARATOR_TIGHT).toBe("·");
-		const tight = (status: WeaponStatus) => statusLine(status).map((cell) => cell.text).join(STATUS_SEPARATOR_TIGHT);
+		const tight = (status: WeaponStatus) =>
+			statusLine(status)
+				.map((cell) => cell.text)
+				.join(STATUS_SEPARATOR_TIGHT);
 		expect(tight({ ...STATUS, special: "UAV", specialActive: 4 })).toBe("MSL 8·UAV ON·EVD 3");
 		// Every special cell is at most STATUS_SPECIAL_CHARS: a four-letter name, a space, then ON or one digit.
 		for (const special of SpecialWeapons.All()) {

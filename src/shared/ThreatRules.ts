@@ -4,7 +4,11 @@ import { CombatBalance } from "./CombatBalance";
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 // Every act-dependent number is passed in from CombatService.TUNING so a later
 // difficulty selector only has to scale those arrays.
-export interface Point { x: number; y: number; z: number }
+export interface Point {
+	x: number;
+	y: number;
+	z: number;
+}
 export interface FireGate {
 	separation: number;
 	aimDot: number;
@@ -95,7 +99,7 @@ export const ThreatRules = {
 	 * divisor (halved again while a radar directs the flight), never below the global 1.5 s spacing.
 	 */
 	FlightGate(base: number, live: number, maxDivisor: number, directed = false): number {
-		const gate = base / ThreatRules.FlightDivisor(live, maxDivisor) * (directed ? 0.5 : 1);
+		const gate = (base / ThreatRules.FlightDivisor(live, maxDivisor)) * (directed ? 0.5 : 1);
 		return math.max(GLOBAL_SPACING, gate);
 	},
 	/** Concurrent hostile threats (windups plus missiles in flight) allowed: one per two live hostiles, 1 to `maxCap`. */
@@ -136,11 +140,19 @@ export const ThreatRules = {
 	MayFire(gate: FireGate, targetingProtectedAircraft = false): boolean {
 		if ((!targetingProtectedAircraft && gate.evading) || !gate.globalReady || gate.fireTimer > 0) return false;
 		if (gate.separation <= gate.minRange || gate.separation >= gate.maxRange) return false;
-		const required = (targetingProtectedAircraft || gate.playerStraight) ? gate.aimThreshold - gate.straightRelax : gate.aimThreshold;
+		const required =
+			targetingProtectedAircraft || gate.playerStraight
+				? gate.aimThreshold - gate.straightRelax
+				: gate.aimThreshold;
 		return gate.aimDot > required;
 	},
 	/** Is any player missile guided onto `enemy` within InboundRange? */
-	Inbound<E, P>(enemy: E, projectiles: P[], targetOf: (projectile: P) => E | undefined, distanceTo: (projectile: P) => number): boolean {
+	Inbound<E, P>(
+		enemy: E,
+		projectiles: P[],
+		targetOf: (projectile: P) => E | undefined,
+		distanceTo: (projectile: P) => number,
+	): boolean {
 		for (const projectile of projectiles) {
 			if (targetOf(projectile) === enemy && distanceTo(projectile) <= INBOUND_RANGE) return true;
 		}
@@ -153,14 +165,22 @@ export const ThreatRules = {
 	},
 	/** Hard break: full lateral pull to the bracket side, a little forward carry, and a dive. */
 	BreakDirection(direction: Point, lateral: Point, side: number): Point {
-		return normalize({ x: lateral.x * side + direction.x * 0.25, y: -0.5, z: lateral.z * side + direction.z * 0.25 }, direction);
+		return normalize(
+			{ x: lateral.x * side + direction.x * 0.25, y: -0.5, z: lateral.z * side + direction.z * 0.25 },
+			direction,
+		);
 	},
 	/**
 	 * A guided missile that was already close (inside InboundRange) to a breaking target and has started
 	 * opening range again has overshot the notch: it loses track and flies on as an unguided shot.
 	 */
 	LosesTrack(input: TrackInput): boolean {
-		return input.breaking && input.previousDistance <= INBOUND_RANGE && input.distance > input.previousDistance && input.distance > input.fuseRadius * 2;
+		return (
+			input.breaking &&
+			input.previousDistance <= INBOUND_RANGE &&
+			input.distance > input.previousDistance &&
+			input.distance > input.fuseRadius * 2
+		);
 	},
 	/** Seconds between ace lock-breaks: the act's base cadence, shortened once the ace is below a third. */
 	AceLockBreakInterval(base: number, healthFraction: number): number {
@@ -175,6 +195,9 @@ export const ThreatRules = {
 		if (count <= 1 || index === 0) return direction;
 		const sign = index % 2 === 1 ? 1 : -1;
 		const spread = 0.12 * math.ceil(index / 2) * sign;
-		return normalize({ x: direction.x + right.x * spread, y: direction.y, z: direction.z + right.z * spread }, direction);
+		return normalize(
+			{ x: direction.x + right.x * spread, y: direction.y, z: direction.z + right.z * spread },
+			direction,
+		);
 	},
 };

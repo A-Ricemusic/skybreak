@@ -2,7 +2,13 @@ import type { Remotes } from "../../shared/Types";
 import type { Rectangle } from "../../shared/UILayout";
 import type { FlightController } from "../FlightController";
 
-const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen", cinematic: "CinematicScreen" };
+const MENU_SCREEN_FRAMES = {
+	title: "TitleScreen",
+	slots: "CampaignScreen",
+	briefing: "BriefingScreen",
+	outcome: "OutcomeScreen",
+	cinematic: "CinematicScreen",
+};
 
 type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome" | "cinematic";
 // The loading overlay is opaque; the camera simply holds its last frame underneath it.
@@ -16,13 +22,11 @@ interface ToastState {
 	isError: boolean;
 }
 
-
 interface KillNotice {
 	kills: number;
 	total: number;
 	until: number;
 }
-
 
 interface RadioNotice {
 	text: string;
@@ -32,9 +36,16 @@ interface RadioNotice {
 /** Seconds a refused FIRE reason stays up. */
 const FIRE_DENIED_SECONDS = 1;
 const FIRE_DENIED_TEXT: { [reason: string]: string } = {
-	no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND",
-	missiles_spent: "MISSILES EXPENDED", gun_empty: "GUN EMPTY",
-	special_empty: "SPECIAL EXPENDED", special_cooldown: "SPECIAL CYCLING", special_active: "DRONE ALREADY UP", special_no_target: "SPECIAL · NO TARGET IN CONE", anti_ship_hull_only: "ANTI-SHIP XLAA · SELECT A SHIP HULL",
+	no_ammo: "NO MISSILES · RELOADING",
+	cooldown: "LAUNCHER CYCLING",
+	blind: "NO LOCK · FIRING BLIND",
+	missiles_spent: "MISSILES EXPENDED",
+	gun_empty: "GUN EMPTY",
+	special_empty: "SPECIAL EXPENDED",
+	special_cooldown: "SPECIAL CYCLING",
+	special_active: "DRONE ALREADY UP",
+	special_no_target: "SPECIAL · NO TARGET IN CONE",
+	anti_ship_hull_only: "ANTI-SHIP XLAA · SELECT A SHIP HULL",
 };
 
 interface GameUIProps {
@@ -42,5 +53,12 @@ interface GameUIProps {
 	controller: FlightController;
 }
 
-export { FIRE_DENIED_SECONDS, FIRE_DENIED_TEXT, LOADING_CLIENT_TIMEOUT, MENU_SCREEN_FRAMES, MISSION_END_HOLD, NO_MENU_CAMERA };
+export {
+	FIRE_DENIED_SECONDS,
+	FIRE_DENIED_TEXT,
+	LOADING_CLIENT_TIMEOUT,
+	MENU_SCREEN_FRAMES,
+	MISSION_END_HOLD,
+	NO_MENU_CAMERA,
+};
 export type { GameUIProps, KillNotice, RadioNotice, Screen, ToastState };

@@ -27,9 +27,13 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	task.spawn(() => {
 		const applied = CoreGuiPolicy.Apply(StarterGui);
 		if (!applied.complete) {
-			const missing: string[] = CoreGuiPolicy.Hidden.filter((kind) => !applied.hidden.has(kind)).map((kind) => kind.Name);
+			const missing: string[] = CoreGuiPolicy.Hidden.filter((kind) => !applied.hidden.has(kind)).map(
+				(kind) => kind.Name,
+			);
 			if (!applied.resetButton) missing.push("ResetButton");
-			warn(`SKYBREAK core GUI policy incomplete after ${applied.attempts} attempts; still showing: ${missing.join(", ")}`);
+			warn(
+				`SKYBREAK core GUI policy incomplete after ${applied.attempts} attempts; still showing: ${missing.join(", ")}`,
+			);
 		}
 	});
 
@@ -49,20 +53,27 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	const buttons = new Map<GuiButton, RBXScriptConnection>();
 	const bindButton = (item: Instance) => {
 		if (!item.IsA("GuiButton") || buttons.has(item)) return;
-		buttons.set(item, item.Activated.Connect(() => { if (item.Active) controller.ConfirmAudio(); }));
+		buttons.set(
+			item,
+			item.Activated.Connect(() => {
+				if (item.Active) controller.ConfirmAudio();
+			}),
+		);
 	};
 	for (const item of playerGui.GetDescendants()) bindButton(item);
 	const uiAdded = playerGui.DescendantAdded.Connect(bindButton);
 	const uiRemoved = playerGui.DescendantRemoving.Connect((item) => {
 		if (!item.IsA("GuiButton")) return;
-		buttons.get(item)?.Disconnect(); buttons.delete(item);
+		buttons.get(item)?.Disconnect();
+		buttons.delete(item);
 	});
 	const effects = CombatEffects.Start(remotes);
 	const stopWeather = Weather.Start();
 	const mounted = mountGameUI(playerGui, remotes, controller);
 	const destroying = script.Destroying.Connect(() => {
 		destroying.Disconnect();
-		uiAdded.Disconnect(); uiRemoved.Disconnect();
+		uiAdded.Disconnect();
+		uiRemoved.Disconnect();
 		for (const [, connection] of buttons) connection.Disconnect();
 		buttons.clear();
 		for (const connection of graphics) connection.Disconnect();

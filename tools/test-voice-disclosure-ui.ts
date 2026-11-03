@@ -11,5 +11,5 @@ assert.match(voice, /disclosureSession.FirstVoice\(os.clock\(\)\)/);
 assert.ok(voice.indexOf("disclosureSession.FirstVoice(os.clock())") < voice.indexOf("sound.Play();"));
 assert.match(notice, /Text=\{VOICE_DISCLOSURE\}/);
 assert.match(notice, /task.delay\(remaining/);
-assert.match(notice, /Active=\{false\} Selectable=\{false\}/);
+assert.match(notice, /Active=\{false\}\s+Selectable=\{false\}/);
 console.log("VOICE_DISCLOSURE_UI passed=8 failed=0");

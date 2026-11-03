@@ -23,7 +23,9 @@ describe("Mission policy schema", () => {
 			expect(blueprint.scoring).toBeUndefined();
 			expect(blueprint.worldKey).toBeUndefined();
 			expect(blueprint.available).toBeUndefined();
-			expect(MissionCatalog.CountdownSeconds(MissionCatalog.Get(blueprint.id))).toBe(GameConfig.Campaign.MissionTimeLimit);
+			expect(MissionCatalog.CountdownSeconds(MissionCatalog.Get(blueprint.id))).toBe(
+				GameConfig.Campaign.MissionTimeLimit,
+			);
 			expect(MissionCatalog.Airspace(MissionCatalog.Get(blueprint.id))).toEqual({
 				softHalfWidth: WorldAirspace.soft,
 				hardHalfWidth: WorldAirspace.hard,
@@ -31,7 +33,12 @@ describe("Mission policy schema", () => {
 				radarRange: WorldAirspace.radarRange,
 			});
 			expect(MissionCatalog.Start(MissionCatalog.Get(blueprint.id))).toEqual({
-				kind: "airborne", x: state.x, y: state.y, z: state.z, headingDegrees: 0, speed: state.speed,
+				kind: "airborne",
+				x: state.x,
+				y: state.y,
+				z: state.z,
+				headingDegrees: 0,
+				speed: state.speed,
 			});
 			expect(MissionCatalog.Scoring(MissionCatalog.Get(blueprint.id))).toEqual({
 				points: { bandit: 100, raider: 100, courier: 100, ace: 100, ground: 150 },
@@ -75,7 +82,11 @@ describe("Mission policy schema", () => {
 			countdownSeconds: 600,
 			airspace: { softHalfWidth: 15000, hardHalfWidth: 17500, spawnLimit: 14500, radarRange: 20000 },
 			start: { kind: "carrier_flyoff", x: 100, y: 590, z: -6000, headingDegrees: 0, speed: 160 },
-			scoring: { points: { bomber: 100, escort: 60, ace: 240 }, basis: "points", rank: { S: 1000, A: 800, B: 600, C: 400 } },
+			scoring: {
+				points: { bomber: 100, escort: 60, ace: 240 },
+				basis: "points",
+				rank: { S: 1000, A: 800, B: 600, C: 400 },
+			},
 			worldKey: "m01_sea_island",
 			available: false,
 		});

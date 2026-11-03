@@ -19,7 +19,7 @@ const assets = [
 	{ name: "GrainSilo", source: "assets/mission/grainsilo.mesh.json", triangleLimit: 5000 },
 	{ name: "RelayTruck", source: "assets/mission/relaytruck.mesh.json", triangleLimit: 5000 },
 	{ name: "HarborLaunch", source: "assets/mission/harborlaunch.mesh.json", triangleLimit: 5000 },
-	] as const;
+] as const;
 
 for (const asset of assets) {
 	const geometry = await Bun.file(resolve(root, asset.source)).json();

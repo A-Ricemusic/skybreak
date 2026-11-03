@@ -5,9 +5,18 @@ import { M04_BUILD_LIMITS } from "../shared/M04Limits";
 import { buildComposition, compositionClear } from "./CompositionWorld";
 /** Combat owns all moving contacts; no static aircraft copies are built. */
 export const M04World = {
- Build: (parent: Instance, seed = 404) => buildComposition(parent, M04_ENVIRONMENT, checkpoint => ({ ...buildM04Plan(seed, checkpoint), targets: [] }), M04_BUILD_LIMITS.descendants, 5500, M04_TERRAIN_BUDGET, WORLD_FILL_CHUNK),
- /** One clear for normal exit and partial construction, owned by the shared world gate (see compositionClear). */
- Clear: compositionClear,
+	Build: (parent: Instance, seed = 404) =>
+		buildComposition(
+			parent,
+			M04_ENVIRONMENT,
+			(checkpoint) => ({ ...buildM04Plan(seed, checkpoint), targets: [] }),
+			M04_BUILD_LIMITS.descendants,
+			5500,
+			M04_TERRAIN_BUDGET,
+			WORLD_FILL_CHUNK,
+		),
+	/** One clear for normal exit and partial construction, owned by the shared world gate (see compositionClear). */
+	Clear: compositionClear,
 };
 
 registerWorldClear(M04_WORLD_KEY, M04World.Clear);

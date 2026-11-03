@@ -5,15 +5,20 @@ import { requireLuauBin } from "./luau-bin";
 const root = resolve(import.meta.dir, "..");
 const source = await Bun.file(resolve(root, "out/client/FlightController.luau")).text();
 function between(start: string, end: string) {
-  const a = source.indexOf(start), b = source.indexOf(end, a + start.length);
-  if (a < 0 || b < 0) throw new Error(`Missing compiled boundary: ${start}`);
-  return source.slice(a, b);
+	const a = source.indexOf(start),
+		b = source.indexOf(end, a + start.length);
+	if (a < 0 || b < 0) throw new Error(`Missing compiled boundary: ${start}`);
+	return source.slice(a, b);
 }
 const gun = between("\tfunction FlightController:HasGun()", "\tfunction FlightController:IsGunFiring()");
 const reset = between("\t\tlocal clearInput = function()", "\t\tlocal _connections_3 = self.connections");
-const cutIn = between('elseif message.kind == "CutInStarted" and self.active then', 'elseif message.kind == "CutInComplete"');
+const cutIn = between(
+	'elseif message.kind == "CutInStarted" and self.active then',
+	'elseif message.kind == "CutInComplete"',
+);
 for (const event of ["TextBoxFocused", "GamepadDisconnected", "WindowFocusReleased"]) {
-  if (!source.includes(`UserInputService.${event}:Connect(clearInput)`)) throw new Error(`${event} lost input cleanup`);
+	if (!source.includes(`UserInputService.${event}:Connect(clearInput)`))
+		throw new Error(`${event} lost input cleanup`);
 }
 const script = `
 local FlightController = {}
@@ -60,22 +65,23 @@ await mkdir(dir, { recursive: true });
 const path = resolve(dir, "run.luau");
 await Bun.write(path, script);
 const proc = Bun.spawn([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
-if (await proc.exited !== 0) process.exitCode = 1;
+if ((await proc.exited) !== 0) process.exitCode = 1;
 
 // The HUD must retain an equipped gun even at zero rounds, and drop it for an unequipped sortie.
 const format = await Bun.file(resolve(root, "out/client/screens/UIFormat.luau")).text();
 function formatMethod(start: string, end: string) {
-  const a = format.indexOf(start), b = format.indexOf(end, a + start.length);
-  if (a < 0 || b < 0) throw new Error(`Missing compiled formatter boundary: ${start}`);
-  return format.slice(a, b);
+	const a = format.indexOf(start),
+		b = format.indexOf(end, a + start.length);
+	if (a < 0 || b < 0) throw new Error(`Missing compiled formatter boundary: ${start}`);
+	return format.slice(a, b);
 }
 const hudScript = `
 local MissionCatalog={IsValidId=function() return true end}
 local SpecialWeapons={IsKind=function() return false end}
 local WeaponRules={IsFireNotice=function() return false end}
 local CountdownDisplay={Value=function() return 0 end}
-${formatMethod('local function finite(', 'local function scaleRectangle(')}
-${formatMethod('local function sanitizeTelemetry(', 'local function resumeMission(')}
+${formatMethod("local function finite(", "local function scaleRectangle(")}
+${formatMethod("local function sanitizeTelemetry(", "local function resumeMission(")}
 local baseline={health=100,speed=0,altitude=0,kills=0,total=1,missiles=0,missileCooldown=0,evadeCooldown=0,elapsed=0,lockProgress=0,missionId=1,targetName=''}
 for _, case in {{125,125},{0,0},{-5,0},{3.8,3},{math.huge,0}} do
  local packet=table.clone(baseline)
@@ -88,7 +94,7 @@ print('CLIENT_GUN_HUD passed=6 failed=0; compiled sanitizer only, GUI rendering 
 const hudPath = resolve(dir, "hud.luau");
 await Bun.write(hudPath, hudScript);
 const hudProc = Bun.spawn([requireLuauBin(), hudPath], { stdout: "inherit", stderr: "inherit" });
-if (await hudProc.exited !== 0) process.exitCode = 1;
+if ((await hudProc.exited) !== 0) process.exitCode = 1;
 
 // Run only the emitted input and teardown callbacks, without mounting React or a GUI.
 const controls = await Bun.file(resolve(root, "out/client/HudControls.luau")).text();
@@ -97,7 +103,8 @@ const inputStart = controls.indexOf("InputBegan = function(_rbx, input)", button
 const inputEnd = controls.indexOf("\n\t\tend,", inputStart);
 const cleanupStart = controls.indexOf("return function()", buttonStart);
 const cleanupEnd = controls.indexOf("\n\tend, {})", cleanupStart);
-if ([buttonStart, inputStart, inputEnd, cleanupStart, cleanupEnd].some(index => index < 0)) throw new Error("Missing compiled gun button callbacks");
+if ([buttonStart, inputStart, inputEnd, cleanupStart, cleanupEnd].some((index) => index < 0))
+	throw new Error("Missing compiled gun button callbacks");
 const touchScript = `
 local Enum = {UserInputState={Begin='Begin',End='End',Cancel='Cancel'},UserInputType={Touch='Touch',MouseButton1='MouseButton1'}}
 local gunTouchSerial=0
@@ -137,4 +144,4 @@ print('CLIENT_GUN_TOUCH passed=3 failed=0; compiled callbacks only, GUI mounting
 const touchPath = resolve(dir, "touch.luau");
 await Bun.write(touchPath, touchScript);
 const touchProc = Bun.spawn([requireLuauBin(), touchPath], { stdout: "inherit", stderr: "inherit" });
-if (await touchProc.exited !== 0) process.exitCode = 1;
+if ((await touchProc.exited) !== 0) process.exitCode = 1;

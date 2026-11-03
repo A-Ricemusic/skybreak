@@ -28,25 +28,34 @@ function losAim(enemy: Enemy): LuaTuple<[Vector3, number]> {
 export function occludes(hit: RaycastResult): boolean {
 	let node: Instance | undefined = hit.Instance;
 	while (node !== undefined) {
-		if (node.IsA("Model") && (node.GetAttribute("SkybreakEnemy") !== undefined || node.GetAttribute("SkybreakFriendly") !== undefined)) return false;
+		if (
+			node.IsA("Model") &&
+			(node.GetAttribute("SkybreakEnemy") !== undefined || node.GetAttribute("SkybreakFriendly") !== undefined)
+		)
+			return false;
 		node = node.Parent;
 	}
 	return true;
 }
 /** Cached per enemy and refreshed at most every TargetPriority.LosInterval, so a TGT burst or a kill chain never fans out into raycasts every frame. */
-export function enclosedPhase(session:CombatSession):boolean {
- const d=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.finale;
- return d?.vent!==undefined || d?.enclosed===true;
+export function enclosedPhase(session: CombatSession): boolean {
+	const d = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.finale;
+	return d?.vent !== undefined || d?.enclosed === true;
 }
 export function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
- if(session.blueprintState && enclosedPhase(session)) {
-  return ventObstructed(session.state,point(enemy.position),(o,d)=>{
-   const hit=Workspace.Raycast(new Vector3(o.x,o.y,o.z),new Vector3(d.x,d.y,d.z),session.collisionParams);
-   return hit && !hit.Instance.IsDescendantOf(enemy.model) && occludes(hit) ? hit.Distance : undefined;
-  });
- }
+	if (session.blueprintState && enclosedPhase(session)) {
+		return ventObstructed(session.state, point(enemy.position), (o, d) => {
+			const hit = Workspace.Raycast(
+				new Vector3(o.x, o.y, o.z),
+				new Vector3(d.x, d.y, d.z),
+				session.collisionParams,
+			);
+			return hit && !hit.Instance.IsDescendantOf(enemy.model) && occludes(hit) ? hit.Distance : undefined;
+		});
+	}
 
-	if (enemy.losAt !== undefined && session.elapsed - enemy.losAt < TargetPriority.LosInterval) return enemy.losBlocked === true;
+	if (enemy.losAt !== undefined && session.elapsed - enemy.losAt < TargetPriority.LosInterval)
+		return enemy.losBlocked === true;
 	enemy.losAt = session.elapsed;
 	const origin = positionFor(session.state);
 	const [aim, footprint] = losAim(enemy);
@@ -56,7 +65,8 @@ export function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolea
 	if (length > 0 && session.collisionParams !== undefined) {
 		const hit = Workspace.Raycast(origin, delta.Unit.mul(length), session.collisionParams);
 		if (hit !== undefined && occludes(hit)) {
-			const dx = hit.Position.X - aim.X, dz = hit.Position.Z - aim.Z;
+			const dx = hit.Position.X - aim.X,
+				dz = hit.Position.Z - aim.Z;
 			blocked = footprint <= 0 || dx * dx + dz * dz > footprint * footprint;
 		}
 	}
@@ -73,7 +83,8 @@ export function targetCandidates(session: CombatSession, view?: ViewFrustum): Ta
 	const candidates: TargetCandidate[] = [];
 	const lockRange = SpecialWeapons.LockRange(session.special);
 	const jamming = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming;
-	const visualRange = view !== undefined && jamming && RearmRuntime.liveJammers(session) > 0 ? jamming.visualLockRange : undefined;
+	const visualRange =
+		view !== undefined && jamming && RearmRuntime.liveJammers(session) > 0 ? jamming.visualLockRange : undefined;
 	const camera = view === undefined ? undefined : new Vector3(view.position.x, view.position.y, view.position.z);
 	for (let id = 0; id < session.enemies.size(); id++) {
 		const enemy = session.enemies[id];
@@ -83,7 +94,9 @@ export function targetCandidates(session: CombatSession, view?: ViewFrustum): Ta
 		// anything this phase protects (a raider over the kill cap, a ground target during an air phase) is held too.
 		const retreatingAce = enemy.aceState !== undefined && !AceRules.Fights(enemy.aceState);
 		const candidate: TargetCandidate = {
-			id, distance, dot,
+			id,
+			distance,
+			dot,
 			required: enemy.required && !retreatingAce,
 			held: retreatingAce || !sessionCanDamage(session, enemy.kind, enemy.required),
 			inRange: distance <= WeaponRules.EnvelopeRange(lockRange, enemy.kind === "ground"),
@@ -94,10 +107,12 @@ export function targetCandidates(session: CombatSession, view?: ViewFrustum): Ta
 		}
 		candidates.push(candidate);
 	}
-	if(session.blueprintState && enclosedPhase(session)) {
-		for(let i=candidates.size()-1;i>=0;i--) if(lineOfSightBlocked(session,session.enemies[candidates[i].id])) candidates.remove(i);
+	if (session.blueprintState && enclosedPhase(session)) {
+		for (let i = candidates.size() - 1; i >= 0; i--)
+			if (lineOfSightBlocked(session, session.enemies[candidates[i].id])) candidates.remove(i);
 	}
-	const checks = view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
+	const checks =
+		view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
 	for (const candidate of checks) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
 	return candidates;
 }
@@ -105,7 +120,10 @@ export function targetCandidates(session: CombatSession, view?: ViewFrustum): Ta
 export function acquireTarget(session: CombatSession): void {
 	const bestId = TargetPriority.Best(targetCandidates(session));
 	const best = bestId === undefined ? undefined : session.enemies[bestId];
-	if (session.target !== best) { session.target = best; session.lockProgress = 0; }
+	if (session.target !== best) {
+		session.target = best;
+		session.lockProgress = 0;
+	}
 }
 /** Phase entries and spawns keep a still-valid target; only a lost one is replaced. */
 export function retargetIfLost(session: CombatSession): void {

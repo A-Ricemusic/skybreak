@@ -8,7 +8,12 @@ import { clearGroundDirector } from "./GroundSectorRuntime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
-import { bomberEscortPose, compileBomberEncounter, laterEscortsDue, reinforcementFraction } from "../shared/BomberEncounter";
+import {
+	bomberEscortPose,
+	compileBomberEncounter,
+	laterEscortsDue,
+	reinforcementFraction,
+} from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { returnLineDots, type ReturnLine } from "../shared/LandingRules";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
@@ -40,7 +45,9 @@ export interface SpawnOptions {
 
 /** Combat owns simulation and lifecycle; the director only requests their effects. */
 /** Dotted return line: dash length and spacing along the line, and height above the sampled ground. */
-const RETURN_DOT_LENGTH = 160, RETURN_DOT_SPACING = 400, RETURN_DOT_LIFT = 24;
+const RETURN_DOT_LENGTH = 160,
+	RETURN_DOT_SPACING = 400,
+	RETURN_DOT_LIFT = 24;
 
 export interface PhaseCombat {
 	spawnAllies: (session: CombatSession) => void;
@@ -58,10 +65,21 @@ export interface PhaseCombat {
 
 /** Bound once by CombatService; no session registry or stepping clock is owned here. */
 export function createPhaseDirector(combat: PhaseCombat) {
-	const { spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, publishDamageable, isCurrent } = combat;
+	const {
+		spawnAir,
+		activateGround,
+		withdrawAirborne,
+		liveAircraft,
+		radio,
+		acquireTarget,
+		publishDamageable,
+		isCurrent,
+	} = combat;
 	const retargetIfLost = combat.retargetIfLost ?? acquireTarget;
 	/** Extra raiders per wave for the session's difficulty (Ace: one). */
-	function extraRaiders(session: CombatSession): number { return Difficulty.Behaviour(session.difficulty).extraRaiders; }
+	function extraRaiders(session: CombatSession): number {
+		return Difficulty.Behaviour(session.difficulty).extraRaiders;
+	}
 	/** A raider wave of `count`, plus the difficulty's extra (Mission 2 keeps its fixed five). */
 	function raiderWave(session: CombatSession, count: number): number {
 		return count > 0 && !fixedRaiders(session.blueprint) ? count + extraRaiders(session) : count;
@@ -71,17 +89,55 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (session.airQueue.size() === 0) return;
 		const phase = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState);
 		const room = (phase?.concurrentFighters ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
-		const liveRoutes = phase?.concurrentRoutes === undefined ? 0 : session.enemies.filter(enemy => enemy.routeActor !== undefined && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined && enemy.model.Parent===session.folder).size();
-		for (const batch of WavePlan.Admit(session.airQueue, room, phase?.concurrentRoutes === undefined ? room : phase.concurrentRoutes-liveRoutes)) {
+		const liveRoutes =
+			phase?.concurrentRoutes === undefined
+				? 0
+				: session.enemies
+						.filter(
+							(enemy) =>
+								enemy.routeActor !== undefined &&
+								enemy.enabled &&
+								enemy.health > 0 &&
+								enemy.withdrawUntil === undefined &&
+								enemy.model.Parent === session.folder,
+						)
+						.size();
+		for (const batch of WavePlan.Admit(
+			session.airQueue,
+			room,
+			phase?.concurrentRoutes === undefined ? room : phase.concurrentRoutes - liveRoutes,
+		)) {
 			if (batch.arrival) {
-				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: (session.missionId===18 || session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined) && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				const a = batch.arrival;
+				spawnAir(session, batch.count, "aircraft" in a && a.aircraft ? "bomber" : batch.role, {
+					arrival: a,
+					targetId:
+						(session.missionId === 18 ||
+							(session.blueprintState &&
+								BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !==
+									undefined)) &&
+						("name" in a || a.count === 1)
+							? a.id
+							: undefined,
+					optional: !("required" in a && a.required === true),
+					name: "name" in a ? a.name : undefined,
+					livery: "livery" in a ? a.livery : undefined,
+					aceHealth: "health" in a ? a.health : undefined,
+				});
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
 				for (let i = 0; i < batch.count; i++) {
 					const slot = encounter.escortsSpawned++;
-					spawnAir(session, 1, batch.role, { pose: bomberEscortPose(leading, slot), escortSlot: slot, optional: true, name: batch.role === "ace" ? BlueprintRunner.ActivePhase(session.blueprintState!)?.bombers?.escorts.aceName : undefined });
+					spawnAir(session, 1, batch.role, {
+						pose: bomberEscortPose(leading, slot),
+						escortSlot: slot,
+						optional: true,
+						name:
+							batch.role === "ace"
+								? BlueprintRunner.ActivePhase(session.blueprintState!)?.bombers?.escorts.aceName
+								: undefined,
+					});
 				}
 			} else spawnAir(session, batch.count, batch.role, { behind: batch.behind });
 			// A group's call goes out when it is really in the air, not when it was due.
@@ -89,122 +145,228 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		}
 	}
 	/** Bandits or raiders for missions 3-27: they spawn as the live-aircraft budget allows (WavePlan). */
-	function requestAir(session: CombatSession, count: number, role: AirRequest["role"], behind = false, call?: string): void {
+	function requestAir(
+		session: CombatSession,
+		count: number,
+		role: AirRequest["role"],
+		behind = false,
+		call?: string,
+	): void {
 		if (count <= 0) return;
 		session.airQueue.push({ role, count, behind, call });
 		drainAir(session);
 	}
 	/** Names the escorted or defended actor for its HUD label. */
 	function actorName(session: CombatSession, defend: boolean, coast: boolean): string {
-		const names: { [id: number]: string } = { 5: "EVACUATION TRUCK", 8: "VARDA TOWER", 12: "TRANSMITTER TRUCK", 18: "MARINE PICKUP", 20: "EVIDENCE LAUNCH", 23: "COMMAND FRIGATE", 25: "LANDING CRAFT" };
+		const names: { [id: number]: string } = {
+			5: "EVACUATION TRUCK",
+			8: "VARDA TOWER",
+			12: "TRANSMITTER TRUCK",
+			18: "MARINE PICKUP",
+			20: "EVIDENCE LAUNCH",
+			23: "COMMAND FRIGATE",
+			25: "LANDING CRAFT",
+		};
 		return names[session.missionId] ?? (coast ? "LOYALIST LAUNCH" : defend ? "LOYALIST TOWER" : "LOYALIST TRUCK");
 	}
 
 	// Blueprint-driven phase application for every mission.
 	function applyBlueprintPhase(session: CombatSession): void {
 		assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
-		const state=session.blueprintState;
+		const state = session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
 		clearCruise(session);
 		clearGroundDirector(session);
 		clearLeader(session);
-		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex && !retainProtection(session)) clearProtection(session);
-		session.appliedBlueprintPhaseIndex=state.phaseIndex;
-		session.chatterIndex=0;
-		session.reinforceIndex=0;
-		session.wave=undefined;
-		session.bomberEncounter=undefined;
+		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex && !retainProtection(session))
+			clearProtection(session);
+		session.appliedBlueprintPhaseIndex = state.phaseIndex;
+		session.chatterIndex = 0;
+		session.reinforceIndex = 0;
+		session.wave = undefined;
+		session.bomberEncounter = undefined;
 		// Retire the old phase's pursuers: they visibly fly out instead of lingering, firing, or draining a convoy.
 		if (!BlueprintRunner.ActivePhase(state)?.execution?.preservePursuers) withdrawAirborne(session);
 		// Raiders still waiting belonged to the old phase (its bandits were all out, or it could not have ended).
 		session.airQueue.clear();
-		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
-		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
-		session.rearmGate?.Destroy(); session.rearmGate=undefined;
-		if (session.navigationActor?.GetAttribute("WorldOwnedProtectedSite") !== true) session.navigationActor?.Destroy();
-		session.navigationActor=undefined; session.actorFooting=undefined;
+		session.navigationMarker?.Destroy();
+		session.navigationMarker = undefined;
+		session.returnLineMarker?.Destroy();
+		session.returnLineMarker = undefined;
+		session.rearmGate?.Destroy();
+		session.rearmGate = undefined;
+		if (session.navigationActor?.GetAttribute("WorldOwnedProtectedSite") !== true)
+			session.navigationActor?.Destroy();
+		session.navigationActor = undefined;
+		session.actorFooting = undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
-		const phases=BlueprintRunner.Phases(state);
-		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
+		const phases = BlueprintRunner.Phases(state);
+		const phase: MissionPhaseBlueprint | undefined = phases[state.phaseIndex];
 		if (!phase) return;
 		applyGroundPhase(session.enemies, state.phaseIndex);
-		if (phase.rearm) session.rearmGate=buildRearmGate(session.folder,phase.rearm);
+		if (phase.rearm) session.rearmGate = buildRearmGate(session.folder, phase.rearm);
 		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
-		if (phase.kind === "required_ground" && phase.groundTargets === undefined) activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
+		if (phase.kind === "required_ground" && phase.groundTargets === undefined)
+			activateGround(session, MissionCatalog.GroundStart(phases, state.phaseIndex), phase.count ?? 0);
 		else if (phase.bombers) {
 			const b = phase.bombers;
 			const route = compileBomberEncounter(b);
-			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false, escortsSpawned: 0, bombersSpawned: 0 };
+			session.bomberEncounter = {
+				route,
+				startedAt: session.elapsed,
+				laterSpawned: false,
+				escortsSpawned: 0,
+				bombersSpawned: 0,
+			};
 			const pose = BomberRules.Sample(route, 0);
 			for (let i = 0; i < b.count; i++) {
-				if ((b.arrivalSeconds?.[i] ?? 0)>0) break;
-				spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i, targetId: b.targetIds?.[i] });
-				session.bomberEncounter.bombersSpawned=i+1;
+				if ((b.arrivalSeconds?.[i] ?? 0) > 0) break;
+				spawnAir(session, 1, BomberRules.Role.role, {
+					pose: pose.slots[i],
+					bomberSlot: i,
+					targetId: b.targetIds?.[i],
+				});
+				session.bomberEncounter.bombersSpawned = i + 1;
 			}
 			requestAir(session, b.escorts.initial, "escort");
-		}
-		else if (phase.kind === "required_air" && !phase.cruiseIntercept && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
-			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
+		} else if (
+			phase.kind === "required_air" &&
+			!phase.cruiseIntercept &&
+			!phase.fighterWaves?.some((w) => w.required) &&
+			phase.execution?.launchDelay === undefined
+		) {
+			if (phase.execution?.directSpawn) spawnAir(session, phase.count ?? 0, "bandit");
 			else {
-			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
-			const plan=WavePlan.Groups(phase.count ?? 0,phase.groups ?? 1);
-			session.wave={phaseIndex:state.phaseIndex,plan,next:1,lastAt:session.elapsed};
-			requestAir(session,plan[0] ?? 0,"bandit");
+				// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
+				const plan = WavePlan.Groups(phase.count ?? 0, phase.groups ?? 1);
+				session.wave = { phaseIndex: state.phaseIndex, plan, next: 1, lastAt: session.elapsed };
+				requestAir(session, plan[0] ?? 0, "bandit");
 			}
-		}
-		else if (phase.kind === "chase") spawnAir(session,phase.count ?? 1,"courier",{escape: phase.escape ? new Vector3(phase.escape.x,phase.escape.y,phase.escape.z) : undefined});
-		else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165, targetId: phase.finale?.duel ? duelTargetId(state.phaseIndex) : undefined});
+		} else if (phase.kind === "chase")
+			spawnAir(session, phase.count ?? 1, "courier", {
+				escape: phase.escape ? new Vector3(phase.escape.x, phase.escape.y, phase.escape.z) : undefined,
+			});
+		else if (phase.kind === "ace")
+			spawnAir(session, 1, "ace", {
+				aceHealth: session.blueprint.aceHealth ?? 165,
+				targetId: phase.finale?.duel ? duelTargetId(state.phaseIndex) : undefined,
+			});
 		// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
-		const initialRaiders=raiderWave(session,MissionCatalog.InitialRaiders(phase));
-		if (phase.execution?.directSpawn) spawnAir(session,initialRaiders,"raider");
-		else requestAir(session,initialRaiders,"raider");
+		const initialRaiders = raiderWave(session, MissionCatalog.InitialRaiders(phase));
+		if (phase.execution?.directSpawn) spawnAir(session, initialRaiders, "raider");
+		else requestAir(session, initialRaiders, "raider");
 		// A twist that changed the objective speaks first: radio() overwrites, so its call goes out now and
 		// the new phase's beat follows a few seconds later (if the sortie is still on this phase). This runs
 		// for both the tick path and the synchronous kill path (destroyEnemy -> advance -> applyPhase).
-		let twisted=false;
-		for (let line=BlueprintRunner.TakeRadio(state); line !== undefined; line=BlueprintRunner.TakeRadio(state)) { radio(session,line,7); twisted=true; }
+		let twisted = false;
+		for (let line = BlueprintRunner.TakeRadio(state); line !== undefined; line = BlueprintRunner.TakeRadio(state)) {
+			radio(session, line, 7);
+			twisted = true;
+		}
 		if (phase.beat !== undefined) {
-			if (!twisted) radio(session, phase.beat, phase.execution?.launchDelay, phase.execution?.launchDelay !== undefined);
+			if (!twisted)
+				radio(session, phase.beat, phase.execution?.launchDelay, phase.execution?.launchDelay !== undefined);
 			else {
-				const beat=phase.beat, index=state.phaseIndex;
-				task.delay(4, () => { if (session.active && isCurrent(session) && state.phaseIndex === index && state.outcome === undefined) radio(session, beat); });
+				const beat = phase.beat,
+					index = state.phaseIndex;
+				task.delay(4, () => {
+					if (
+						session.active &&
+						isCurrent(session) &&
+						state.phaseIndex === index &&
+						state.outcome === undefined
+					)
+						radio(session, beat);
+				});
 			}
 		}
-		if (phase.returnLine) session.returnLineMarker=drawReturnLine(session,phase.returnLine);
-		const nav=phase.returnLine ? undefined : BlueprintRunner.NavigationPoint(state);
+		if (phase.returnLine) session.returnLineMarker = drawReturnLine(session, phase.returnLine);
+		const nav = phase.returnLine ? undefined : BlueprintRunner.NavigationPoint(state);
 		if (nav) {
-			const marker=new Instance("Part"); marker.Name="Flight objective"; marker.Size=new Vector3(20,20,20); marker.Shape=Enum.PartType.Ball;
-			marker.Anchored=true; marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false;
-			marker.Color=Color3.fromRGB(75,238,212); marker.Material=Enum.Material.Neon; marker.Transparency=.3;
-			marker.Position=new Vector3(nav.x,nav.y,nav.z); marker.Parent=session.folder;
-			marker.SetAttribute("ObjectiveRadius",phase.radius); marker.SetAttribute("ObjectiveCeiling",phase.ceiling);
-			session.navigationMarker=marker;
-			const gui=new Instance("BillboardGui"); gui.Size=UDim2.fromOffset(160,38); gui.AlwaysOnTop=true; gui.StudsOffsetWorldSpace=new Vector3(0,30,0); gui.Parent=marker;
-			const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=.25;
-			label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : (phase.kind === "defend" || phase.interceptHold) ? "PROTECT SITE" : "SIGNAL VOLUME";
-			label.TextSize=13; label.Font=Enum.Font.GothamBold; label.Parent=gui;
-			if (phase.kind === "escort" || phase.kind === "defend" || phase.interceptHold !== undefined || phase.parkedEscort !== undefined) {
-				const actorPoint=phase.parkedEscort ?? nav;
-				const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
-				const name=phase.interceptHold?.siteName ?? actorName(session,phase.kind === "defend",coast);
-				const siteId=phase.interceptHold?.siteId;
-				const world=siteId ? Workspace.FindFirstChild(session.blueprint.worldKey ?? "",true) : undefined;
-				const existing=siteId ? world?.FindFirstChild(siteId) : undefined;
-				const adopted=existing?.IsA("Model") ? existing : undefined;
-				const actor=adopted ?? (phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name));
-				if (!session.active || !session.folder.Parent) {if (!adopted) actor.Destroy(); return;}
+			const marker = new Instance("Part");
+			marker.Name = "Flight objective";
+			marker.Size = new Vector3(20, 20, 20);
+			marker.Shape = Enum.PartType.Ball;
+			marker.Anchored = true;
+			marker.CanCollide = false;
+			marker.CanTouch = false;
+			marker.CanQuery = false;
+			marker.Color = Color3.fromRGB(75, 238, 212);
+			marker.Material = Enum.Material.Neon;
+			marker.Transparency = 0.3;
+			marker.Position = new Vector3(nav.x, nav.y, nav.z);
+			marker.Parent = session.folder;
+			marker.SetAttribute("ObjectiveRadius", phase.radius);
+			marker.SetAttribute("ObjectiveCeiling", phase.ceiling);
+			session.navigationMarker = marker;
+			const gui = new Instance("BillboardGui");
+			gui.Size = UDim2.fromOffset(160, 38);
+			gui.AlwaysOnTop = true;
+			gui.StudsOffsetWorldSpace = new Vector3(0, 30, 0);
+			gui.Parent = marker;
+			const label = new Instance("TextLabel");
+			label.Size = UDim2.fromScale(1, 1);
+			label.BackgroundTransparency = 0.25;
+			label.BackgroundColor3 = Color3.fromRGB(7, 23, 30);
+			label.TextColor3 = marker.Color;
+			label.Text =
+				phase.kind === "route"
+					? "FLIGHT BEACON"
+					: phase.kind === "escort"
+						? "PROTECT CONVOY"
+						: phase.kind === "defend" || phase.interceptHold
+							? "PROTECT SITE"
+							: "SIGNAL VOLUME";
+			label.TextSize = 13;
+			label.Font = Enum.Font.GothamBold;
+			label.Parent = gui;
+			if (
+				phase.kind === "escort" ||
+				phase.kind === "defend" ||
+				phase.interceptHold !== undefined ||
+				phase.parkedEscort !== undefined
+			) {
+				const actorPoint = phase.parkedEscort ?? nav;
+				const coast =
+					session.blueprint.region === "coastal_city" ||
+					session.blueprint.region === "coastal_harbor" ||
+					session.blueprint.region === "ocean_platform";
+				const name = phase.interceptHold?.siteName ?? actorName(session, phase.kind === "defend", coast);
+				const siteId = phase.interceptHold?.siteId;
+				const world = siteId ? Workspace.FindFirstChild(session.blueprint.worldKey ?? "", true) : undefined;
+				const existing = siteId ? world?.FindFirstChild(siteId) : undefined;
+				const adopted = existing?.IsA("Model") ? existing : undefined;
+				const actor =
+					adopted ??
+					(phase.interceptHold
+						? MissionAssets.CreateCommsRelay(name)
+						: coast
+							? MissionAssets.CreateHarborLaunch(name)
+							: phase.kind === "defend"
+								? MissionAssets.CreateCommsRelay(name)
+								: MissionAssets.CreateRelayTruck(name));
+				if (!session.active || !session.folder.Parent) {
+					if (!adopted) actor.Destroy();
+					return;
+				}
 				if (adopted) {
-					actor.SetAttribute("WorldOwnedProtectedSite",true);actor.SetAttribute("ProtectedObjective",true);session.navigationActor=actor;
+					actor.SetAttribute("WorldOwnedProtectedSite", true);
+					actor.SetAttribute("ProtectedObjective", true);
+					session.navigationActor = actor;
 				} else {
 					// The escorted vehicle moves every step: weld it so one part replicates per move.
 					JetFactory.WeldAssembly(actor);
 					// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
-					const footing=ActorGrounding.Footing(actor,coast && !phase.interceptHold);
-					session.actorFooting=footing;
-					const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
-					actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
-					actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
+					const footing = ActorGrounding.Footing(actor, coast && !phase.interceptHold);
+					session.actorFooting = footing;
+					const y = session.groundParams
+						? ActorGrounding.PivotY(footing, actorPoint.x, actorPoint.z, session.groundParams, actorPoint.y)
+						: actorPoint.y;
+					actor.SetAttribute("ProtectedObjective", true);
+					actor.Parent = session.folder;
+					session.navigationActor = actor;
+					actor.PivotTo(new CFrame(actorPoint.x, y, actorPoint.z));
 				}
 			}
 		}
@@ -215,17 +377,31 @@ export function createPhaseDirector(combat: PhaseCombat) {
 
 	/** The reference's white dotted return line, laid across the ground under the flight path (presentation only). */
 	function drawReturnLine(session: CombatSession, line: ReturnLine): Model {
-		const model=new Instance("Model"); model.Name="Return line";
-		const dx=line.b.x-line.a.x, dz=line.b.z-line.a.z, yaw=math.atan2(-dz,dx);
-		for (const dot of returnLineDots(line,RETURN_DOT_SPACING)) {
-			const surface=session.groundParams ? ActorGrounding.Sample(dot.x,dot.z,session.groundParams) : undefined;
-			const part=new Instance("Part"); part.Name="Return line dash"; part.Size=new Vector3(RETURN_DOT_LENGTH,6,40);
-			part.Anchored=true; part.CanCollide=false; part.CanTouch=false; part.CanQuery=false; part.CastShadow=false;
-			part.Material=Enum.Material.Neon; part.Color=Color3.fromRGB(245,250,255);
-			part.CFrame=new CFrame(dot.x,(surface?.y ?? line.markerY-400)+RETURN_DOT_LIFT,dot.z).mul(CFrame.Angles(0,yaw,0));
-			part.Parent=model;
+		const model = new Instance("Model");
+		model.Name = "Return line";
+		const dx = line.b.x - line.a.x,
+			dz = line.b.z - line.a.z,
+			yaw = math.atan2(-dz, dx);
+		for (const dot of returnLineDots(line, RETURN_DOT_SPACING)) {
+			const surface = session.groundParams
+				? ActorGrounding.Sample(dot.x, dot.z, session.groundParams)
+				: undefined;
+			const part = new Instance("Part");
+			part.Name = "Return line dash";
+			part.Size = new Vector3(RETURN_DOT_LENGTH, 6, 40);
+			part.Anchored = true;
+			part.CanCollide = false;
+			part.CanTouch = false;
+			part.CanQuery = false;
+			part.CastShadow = false;
+			part.Material = Enum.Material.Neon;
+			part.Color = Color3.fromRGB(245, 250, 255);
+			part.CFrame = new CFrame(dot.x, (surface?.y ?? line.markerY - 400) + RETURN_DOT_LIFT, dot.z).mul(
+				CFrame.Angles(0, yaw, 0),
+			);
+			part.Parent = model;
 		}
-		model.Parent=session.folder;
+		model.Parent = session.folder;
 		return model;
 	}
 
@@ -239,7 +415,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	/** A retreated ace calls the raiders its phase holds for this stage. */
 	function aceCall(session: CombatSession, enemy: Enemy): void {
 		const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
-		const total = phase?.kind === "ace" ? phase.optionalRaiders ?? 0 : 0;
+		const total = phase?.kind === "ace" ? (phase.optionalRaiders ?? 0) : 0;
 		const count = raiderWave(session, AceRules.RaidersForStage(total, enemy.aceState?.stage ?? 0));
 		if (count <= 0) return;
 		radio(session, `SERA: ${enemy.name} pulled back to call his wing. ${count} inbound.`);
@@ -250,11 +426,21 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	}
 	/** Mission 1 target step: after 8 s without a TGT press, say what the step wants. Auto-selection never skips it. */
 	function stepTutorialHint(session: CombatSession): void {
-		if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" && session.elapsed >= (session.practiceHintAt ?? 6)) {
+		if (
+			session.blueprintState &&
+			BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" &&
+			session.elapsed >= (session.practiceHintAt ?? 6)
+		) {
 			session.practiceHintAt = session.elapsed + 10;
 			radio(session, "Release holds the nose. Tap opposite pitch to level; avoid long holds.");
 		}
-		if (!session.blueprintState || BlueprintRunner.ActivePhase(session.blueprintState)?.kind !== "tutorial_target") { session.targetStepSince = undefined; return; }
+		if (
+			!session.blueprintState ||
+			BlueprintRunner.ActivePhase(session.blueprintState)?.kind !== "tutorial_target"
+		) {
+			session.targetStepSince = undefined;
+			return;
+		}
 		if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
 		if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
 		session.targetStepHinted = true;
@@ -262,7 +448,11 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	}
 	function launchDue(session: CombatSession): void {
 		// Mission 1: the bandits launch a radio beat after the training radar dies.
-		if (session.blueprintState && !session.tutorialBanditsSpawned && BlueprintRunner.BanditsDue(session.blueprintState)) {
+		if (
+			session.blueprintState &&
+			!session.tutorialBanditsSpawned &&
+			BlueprintRunner.BanditsDue(session.blueprintState)
+		) {
 			session.tutorialBanditsSpawned = true;
 			radio(session, BlueprintRunner.LiveWarning, 6, true);
 			spawnAir(session, BlueprintRunner.ActivePhase(session.blueprintState)!.count ?? 0, "bandit");
@@ -273,40 +463,75 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	function step(session: CombatSession): void {
 		const bs = session.blueprintState!;
 		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
-		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
-		const active=BlueprintRunner.ActivePhase(bs);
+		for (let line = BlueprintRunner.TakeRadio(bs); line !== undefined; line = BlueprintRunner.TakeRadio(bs))
+			radio(session, line, 7);
+		const active = BlueprintRunner.ActivePhase(bs);
 
-		if (active && bs.outcome === undefined && ((active.fighterWaves?.size() ?? 0)>0 || active.standaloneAce !== undefined)) {
+		if (
+			active &&
+			bs.outcome === undefined &&
+			((active.fighterWaves?.size() ?? 0) > 0 || active.standaloneAce !== undefined)
+		) {
 			if (!session.arrivalTargets) {
-				session.arrivalTargets=[];
-				for (const phase of MissionCatalog.ExpandedPhases(bs.blueprint)) for (const target of phase.groundTargets ?? []) session.arrivalTargets.push(target);
+				session.arrivalTargets = [];
+				for (const phase of MissionCatalog.ExpandedPhases(bs.blueprint))
+					for (const target of phase.groundTargets ?? []) session.arrivalTargets.push(target);
 			}
-			const fired=session.arrivalsFired ?? new Set<string>(); session.arrivalsFired=fired;
-			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, retired:session.retiredGroundIds, targets:session.arrivalTargets, player:{ x:session.state.x, z:session.state.z } };
-			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
-				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push(authoredAirRequest(arrival));
+			const fired = session.arrivalsFired ?? new Set<string>();
+			session.arrivalsFired = fired;
+			const context = {
+				elapsed: session.elapsed,
+				phase: bs.phaseIndex,
+				requiredKills: bs.requiredAirKills + bs.requiredGroundKills + (bs.aceKilled ? 1 : 0),
+				destroyed: bs.killedIds,
+				retired: session.retiredGroundIds,
+				targets: session.arrivalTargets,
+				player: { x: session.state.x, z: session.state.z },
+			};
+			for (const arrival of [
+				...(active.fighterWaves ?? []),
+				...(active.standaloneAce ? [active.standaloneAce] : []),
+			]) {
+				if (takeArrival(arrival.id, arrival.trigger, context, fired))
+					session.airQueue.push(authoredAirRequest(arrival));
 			}
 		}
-		for(const enemy of session.enemies) if(enemy.routeActor && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined) {
-			const sample=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt);
-			if(sample.escaped) { enemy.enabled=false; enemy.model.Destroy(); continue; }
-			const pose=sample.slots[0];
-			enemy.position=new Vector3(pose.position.x,pose.position.y,pose.position.z); enemy.direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z); enemy.velocity=enemy.direction.mul(enemy.routeActor.route.speed); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction));
-		}
+		for (const enemy of session.enemies)
+			if (enemy.routeActor && enemy.enabled && enemy.health > 0 && enemy.withdrawUntil === undefined) {
+				const sample = BomberRules.Sample(enemy.routeActor.route, session.elapsed - enemy.routeActor.startedAt);
+				if (sample.escaped) {
+					enemy.enabled = false;
+					enemy.model.Destroy();
+					continue;
+				}
+				const pose = sample.slots[0];
+				enemy.position = new Vector3(pose.position.x, pose.position.y, pose.position.z);
+				enemy.direction = new Vector3(pose.facing.x, pose.facing.y, pose.facing.z);
+				enemy.velocity = enemy.direction.mul(enemy.routeActor.route.speed);
+				enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
+			}
 		if (active) {
 			const encounter = session.bomberEncounter;
 			if (active.bombers && encounter) {
-				const routeElapsed=session.elapsed-encounter.startedAt;
-				const b=active.bombers;
-				for(let i=encounter.bombersSpawned ?? b.count;i<b.count;i++) {
-					const at=b.arrivalSeconds?.[i] ?? 0;
-					if(routeElapsed<at) break;
-					const arrivalPose=BomberRules.Sample(encounter.route,routeElapsed-at,i);
-					spawnAir(session,1,BomberRules.Role.role,{pose:arrivalPose.slots[0],bomberSlot:i,targetId:b.targetIds?.[i]});
-					encounter.bombersSpawned=i+1;
+				const routeElapsed = session.elapsed - encounter.startedAt;
+				const b = active.bombers;
+				for (let i = encounter.bombersSpawned ?? b.count; i < b.count; i++) {
+					const at = b.arrivalSeconds?.[i] ?? 0;
+					if (routeElapsed < at) break;
+					const arrivalPose = BomberRules.Sample(encounter.route, routeElapsed - at, i);
+					spawnAir(session, 1, BomberRules.Role.role, {
+						pose: arrivalPose.slots[0],
+						bomberSlot: i,
+						targetId: b.targetIds?.[i],
+					});
+					encounter.bombersSpawned = i + 1;
 				}
 				const pose = BomberRules.Sample(encounter.route, routeElapsed);
-				if (!active.interceptHold && pose.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session, active.bombers.escapeCall ?? "The bombers are through."); return; }
+				if (!active.interceptHold && pose.escaped) {
+					BlueprintRunner.EscapeBombers(bs);
+					radio(session, active.bombers.escapeCall ?? "The bombers are through.");
+					return;
+				}
 				if (laterEscortsDue(active.bombers, encounter, session.elapsed)) {
 					requestAir(session, 1, "ace");
 					requestAir(session, active.bombers.escorts.count - active.bombers.escorts.initial - 1, "escort");
@@ -317,65 +542,124 @@ export function createPhaseDirector(combat: PhaseCombat) {
 					if (slot === undefined) continue;
 					if (enemy.escortSlot !== undefined) {
 						const player = new Vector3(session.state.x, session.state.y, session.state.z);
-						if (enemy.health < enemy.maxHealth || player.sub(enemy.position).Magnitude <= 2300 || session.projectiles.some((p) => !p.hostile && p.target === enemy)) enemy.escortEngaged = true;
+						if (
+							enemy.health < enemy.maxHealth ||
+							player.sub(enemy.position).Magnitude <= 2300 ||
+							session.projectiles.some((p) => !p.hostile && p.target === enemy)
+						)
+							enemy.escortEngaged = true;
 						if (enemy.escortEngaged) continue;
 					}
-					const individual=b.arrivalSeconds && enemy.bomberSlot !== undefined ? BomberRules.Sample(encounter.route,routeElapsed-(b.arrivalSeconds?.[enemy.bomberSlot] ?? 0),enemy.bomberSlot) : pose;
-					if (enemy.bomberSlot !== undefined && individual.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session,b.escapeCall ?? "The bombers are through."); return; }
-					const p = enemy.escortSlot !== undefined ? bomberEscortPose(pose.slots[0], enemy.escortSlot) : individual.slots[b.arrivalSeconds ? 0 : slot];
+					const individual =
+						b.arrivalSeconds && enemy.bomberSlot !== undefined
+							? BomberRules.Sample(
+									encounter.route,
+									routeElapsed - (b.arrivalSeconds?.[enemy.bomberSlot] ?? 0),
+									enemy.bomberSlot,
+								)
+							: pose;
+					if (enemy.bomberSlot !== undefined && individual.escaped) {
+						BlueprintRunner.EscapeBombers(bs);
+						radio(session, b.escapeCall ?? "The bombers are through.");
+						return;
+					}
+					const p =
+						enemy.escortSlot !== undefined
+							? bomberEscortPose(pose.slots[0], enemy.escortSlot)
+							: individual.slots[b.arrivalSeconds ? 0 : slot];
 					enemy.position = new Vector3(p.position.x, p.position.y, p.position.z);
 					enemy.direction = new Vector3(p.facing.x, p.facing.y, p.facing.z);
 					enemy.velocity = enemy.direction.mul(encounter.route.speed);
 					enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
 				}
 			}
-			const fraction=BlueprintRunner.Fraction(bs);
+			const fraction = BlueprintRunner.Fraction(bs);
 			// Anything held back by the live-aircraft budget takes the slots kills have freed.
 			drainAir(session);
 			// Mid-phase raider waves, in authored order (each one larger on Ace).
-			const waves=active.reinforce;
-			const waveFraction = reinforcementFraction(fraction, session.elapsed - (encounter?.startedAt ?? 0), encounter?.route);
+			const waves = active.reinforce;
+			const waveFraction = reinforcementFraction(
+				fraction,
+				session.elapsed - (encounter?.startedAt ?? 0),
+				encounter?.route,
+			);
 			while (waves && session.reinforceIndex < waves.size() && waveFraction >= waves[session.reinforceIndex].at) {
-				requestAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",true);
+				requestAir(session, raiderWave(session, waves[session.reinforceIndex].count), "raider", true);
 				session.reinforceIndex += 1;
 			}
 			// Staggered bandit groups: the next comes after `stagger` seconds, once half the last is down, or at its
 			// authored share of the phase. A group still waiting for slots holds the next one back.
-			const wave=session.wave;
-			if (wave && wave.phaseIndex === bs.phaseIndex && WavePlan.Queued(session.airQueue,"bandit") === 0
-				&& WavePlan.Due({next:wave.next,plan:wave.plan,sinceLast:session.elapsed-wave.lastAt,stagger:active.stagger ?? WavePlan.DefaultStagger,killed:bs.phaseProgress,groupAt:active.groupAt})) {
-				requestAir(session,wave.plan[wave.next],"bandit",active.flank === true,active.groupCalls?.[wave.next-1]);
-				wave.next += 1; wave.lastAt=session.elapsed;
+			const wave = session.wave;
+			if (
+				wave &&
+				wave.phaseIndex === bs.phaseIndex &&
+				WavePlan.Queued(session.airQueue, "bandit") === 0 &&
+				WavePlan.Due({
+					next: wave.next,
+					plan: wave.plan,
+					sinceLast: session.elapsed - wave.lastAt,
+					stagger: active.stagger ?? WavePlan.DefaultStagger,
+					killed: bs.phaseProgress,
+					groupAt: active.groupAt,
+				})
+			) {
+				requestAir(
+					session,
+					wave.plan[wave.next],
+					"bandit",
+					active.flank === true,
+					active.groupCalls?.[wave.next - 1],
+				);
+				wave.next += 1;
+				wave.lastAt = session.elapsed;
 			}
 			// A hazard lit by the runner (jammers, bank guns): reveal its ground targets and make them strikeable.
 			if (active.hazard && bs.hazardFired && session.hazardPhase !== bs.phaseIndex) {
-				session.hazardPhase=bs.phaseIndex;
-				activateGround(session,MissionCatalog.GroundStart(BlueprintRunner.Phases(bs),bs.phaseIndex),active.hazard.count);
+				session.hazardPhase = bs.phaseIndex;
+				activateGround(
+					session,
+					MissionCatalog.GroundStart(BlueprintRunner.Phases(bs), bs.phaseIndex),
+					active.hazard.count,
+				);
 				publishDamageable(session);
 				retargetIfLost(session);
 			}
-			const chatter=active.chatter;
-			if (chatter) while (session.chatterIndex < chatter.size() && fraction >= chatter[session.chatterIndex].at) {
-				radio(session,chatter[session.chatterIndex].text);
-				session.chatterIndex += 1;
-			}
+			const chatter = active.chatter;
+			if (chatter)
+				while (session.chatterIndex < chatter.size() && fraction >= chatter[session.chatterIndex].at) {
+					radio(session, chatter[session.chatterIndex].text);
+					session.chatterIndex += 1;
+				}
 		}
-		if (active?.interceptHold && session.navigationActor && session.navigationActor.GetAttribute("BroadcastActive") !== (bs.ignitionAnnounced===true)) {
-			session.navigationActor.SetAttribute("BroadcastActive",bs.ignitionAnnounced===true);
-			if(bs.ignitionAnnounced) for(const part of session.navigationActor.GetDescendants()) if(part.IsA("BasePart")) { part.Color=Color3.fromRGB(75,238,212); part.Material=Enum.Material.Neon; }
+		if (
+			active?.interceptHold &&
+			session.navigationActor &&
+			session.navigationActor.GetAttribute("BroadcastActive") !== (bs.ignitionAnnounced === true)
+		) {
+			session.navigationActor.SetAttribute("BroadcastActive", bs.ignitionAnnounced === true);
+			if (bs.ignitionAnnounced)
+				for (const part of session.navigationActor.GetDescendants())
+					if (part.IsA("BasePart")) {
+						part.Color = Color3.fromRGB(75, 238, 212);
+						part.Material = Enum.Material.Neon;
+					}
 		}
-		const point=BlueprintRunner.NavigationPoint(bs);
+		const point = BlueprintRunner.NavigationPoint(bs);
 		if (point && session.navigationMarker) {
-			const pos=new Vector3(point.x,point.y,point.z);
-			session.navigationMarker.Position=pos;
-			const actor=session.navigationActor;
+			const pos = new Vector3(point.x, point.y, point.z);
+			session.navigationMarker.Position = pos;
+			const actor = session.navigationActor;
 			// A defended site stays where it was grounded; an escorted vehicle re-grounds as it moves.
-			if(actor && BlueprintRunner.ActivePhase(bs)!.kind === "escort") {
-				const old=actor.GetPivot().Position;
-				const direction=new Vector3(pos.X-old.X,0,pos.Z-old.Z);
-				const y=session.actorFooting && session.groundParams ? ActorGrounding.PivotY(session.actorFooting,pos.X,pos.Z,session.groundParams,pos.Y) : pos.Y;
-				const current=new Vector3(pos.X,y,pos.Z);
-				session.actorFrame = direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current);
+			if (actor && BlueprintRunner.ActivePhase(bs)!.kind === "escort") {
+				const old = actor.GetPivot().Position;
+				const direction = new Vector3(pos.X - old.X, 0, pos.Z - old.Z);
+				const y =
+					session.actorFooting && session.groundParams
+						? ActorGrounding.PivotY(session.actorFooting, pos.X, pos.Z, session.groundParams, pos.Y)
+						: pos.Y;
+				const current = new Vector3(pos.X, y, pos.Z);
+				session.actorFrame =
+					direction.Magnitude > 0.01 ? CFrame.lookAt(current, current.add(direction)) : new CFrame(current);
 			}
 		}
 	}

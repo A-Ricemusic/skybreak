@@ -94,7 +94,10 @@ function isFiniteNumber(value: unknown): value is number {
 
 function slotAt(rawSlots: Map<string, StoredSlot> | StoredSlot[], index: number): unknown {
 	if (typeIs(rawSlots, "table")) {
-		return (rawSlots as unknown as Record<number, unknown>)[index] ?? (rawSlots as unknown as Record<string, unknown>)[tostring(index)];
+		return (
+			(rawSlots as unknown as Record<number, unknown>)[index] ??
+			(rawSlots as unknown as Record<string, unknown>)[tostring(index)]
+		);
 	}
 	return undefined;
 }
@@ -138,10 +141,7 @@ export function resolveMissionRequest(
 	if (!isValidMission(requested)) return $tuple(undefined, "Choose Practice or a mission (1-18).");
 	const unlocked = highestUnlocked(slot);
 	if (!canLaunchMission(requested, slot)) {
-		return $tuple(
-			undefined,
-			`Mission ${string.format("%02d", requested)} is locked or in development.`,
-		);
+		return $tuple(undefined, `Mission ${string.format("%02d", requested)} is locked or in development.`);
 	}
 	return $tuple(requested, undefined);
 }
@@ -182,7 +182,11 @@ function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
 		if (best !== undefined) record.bestTime = best;
 		const first = positiveTime(stored.firstCompletedAt);
 		if (first !== undefined) record.firstCompletedAt = first;
-		copyBests(record, readScore(stored.bestScore), MissionScore.IsRank(stored.bestRank) ? stored.bestRank : undefined);
+		copyBests(
+			record,
+			readScore(stored.bestScore),
+			MissionScore.IsRank(stored.bestRank) ? stored.bestRank : undefined,
+		);
 		const breakdown = readTargetScore(stored.bestTargetScore, record.bestScore);
 		if (record.bestScore !== undefined && breakdown !== undefined) record.bestTargetScore = breakdown;
 		if (record.completed || record.bestTime !== undefined) result[id] = record;
@@ -222,14 +226,20 @@ function refreshDerived(slot: SaveSlot): void {
 	slot.mission2BestTime = missions[2]?.bestTime;
 	let allComplete = true;
 	for (let id = 1; id <= MISSION_COUNT; id++) {
-		if (missions[id]?.completed !== true) { allComplete = false; break; }
+		if (missions[id]?.completed !== true) {
+			allComplete = false;
+			break;
+		}
 	}
 	slot.completed = allComplete;
 	slot.currentMission = resumeMission(slot);
 	// Keep the summary field useful: latest completed mission's best time, or earliest.
 	let latestBest: number | undefined;
 	for (let id = MISSION_COUNT; id >= 1; id--) {
-		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
+		if (missions[id]?.bestTime !== undefined) {
+			latestBest = missions[id]!.bestTime;
+			break;
+		}
 	}
 	slot.bestTime = latestBest;
 }
@@ -270,7 +280,11 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 
 	slot.missions = missions;
 	refreshDerived(slot);
-	slot.occupied = source.occupied === true || slot.kills > 0 || slot.mission1Completed === true || slot.mission2Completed === true;
+	slot.occupied =
+		source.occupied === true ||
+		slot.kills > 0 ||
+		slot.mission1Completed === true ||
+		slot.mission2Completed === true;
 	for (let id = 0; id <= MISSION_COUNT; id++) if (missions[id] !== undefined) slot.occupied = true;
 	if (isFiniteNumber(source.updatedAt) && source.updatedAt > 0) {
 		slot.updatedAt = math.floor(source.updatedAt);
@@ -298,7 +312,8 @@ export function normalizeProfile(raw: unknown): CampaignProfile {
 	if (!typeIs(rawSlots, "table")) return profile;
 	const storedVersion = isFiniteNumber(stored.version) ? stored.version : 1;
 	const legacyV1 = storedVersion < 2;
-	for (let index = 1; index <= SLOT_COUNT; index++) profile.slots[index - 1] = normalizeSlot(slotAt(rawSlots, index), index, legacyV1);
+	for (let index = 1; index <= SLOT_COUNT; index++)
+		profile.slots[index - 1] = normalizeSlot(slotAt(rawSlots, index), index, legacyV1);
 	return profile;
 }
 
@@ -310,7 +325,8 @@ function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): Save
 	const stored = normalizeSlot(storedRaw, index);
 	const desired = normalizeSlot(desiredRaw, index);
 	// A deleted slot starts a new generation; never merge progress back in from an older one.
-	if (stored.generation !== desired.generation) return (stored.generation ?? 0) > (desired.generation ?? 0) ? stored : desired;
+	if (stored.generation !== desired.generation)
+		return (stored.generation ?? 0) > (desired.generation ?? 0) ? stored : desired;
 	const merged = blankSlot(index);
 	merged.generation = stored.generation;
 	merged.occupied = stored.occupied || desired.occupied;
@@ -319,16 +335,21 @@ function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): Save
 		const a = stored.missions?.[id];
 		const b = desired.missions?.[id];
 		if (a === undefined && b === undefined) continue;
-		const completed = (a?.completed === true) || (b?.completed === true);
+		const completed = a?.completed === true || b?.completed === true;
 		const best = fastest(a?.bestTime, b?.bestTime);
 		const first = fastest(a?.firstCompletedAt, b?.firstCompletedAt);
 		const record: MissionRecord = { completed, timeVersion: MissionCatalog.TimeVersion(id) };
 		if (best !== undefined) record.bestTime = best;
 		if (first !== undefined) record.firstCompletedAt = first;
 		// Score bests only ever rise, like bestTime only ever falls.
-		copyBests(record, highest(a?.bestScore, b?.bestScore), MissionScore.BetterRank(rankOf(a?.bestRank), rankOf(b?.bestRank)));
+		copyBests(
+			record,
+			highest(a?.bestScore, b?.bestScore),
+			MissionScore.BetterRank(rankOf(a?.bestRank), rankOf(b?.bestRank)),
+		);
 		const scoreSource = (b?.bestScore ?? -1) > (a?.bestScore ?? -1) ? b : a;
-		const breakdown = scoreSource?.bestTargetScore ?? (a?.bestScore === b?.bestScore ? b?.bestTargetScore : undefined);
+		const breakdown =
+			scoreSource?.bestTargetScore ?? (a?.bestScore === b?.bestScore ? b?.bestTargetScore : undefined);
 		if (breakdown !== undefined) record.bestTargetScore = breakdown;
 		missions[id] = record;
 	}
@@ -338,7 +359,7 @@ function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): Save
 	if (stored.updatedAt !== undefined || desired.updatedAt !== undefined) {
 		merged.updatedAt = math.max(stored.updatedAt ?? 0, desired.updatedAt ?? 0);
 	}
-	merged.introSeen = (stored.introSeen === true) || (desired.introSeen === true);
+	merged.introSeen = stored.introSeen === true || desired.introSeen === true;
 	const seen = new Set<number>();
 	for (const id of stored.cutscenesSeen ?? []) seen.add(id);
 	for (const id of desired.cutscenesSeen ?? []) seen.add(id);
@@ -348,9 +369,11 @@ function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): Save
 	merged.cutscenesSeen = seenList;
 	// The loadout is a preference, not progress: the more recently updated side wins.
 	const desiredNewer = (desired.updatedAt ?? 0) >= (stored.updatedAt ?? 0);
-	const special = desiredNewer ? desired.special ?? stored.special : stored.special ?? desired.special;
+	const special = desiredNewer ? (desired.special ?? stored.special) : (stored.special ?? desired.special);
 	if (special !== undefined) merged.special = special;
-	const difficulty = desiredNewer ? desired.difficulty ?? stored.difficulty : stored.difficulty ?? desired.difficulty;
+	const difficulty = desiredNewer
+		? (desired.difficulty ?? stored.difficulty)
+		: (stored.difficulty ?? desired.difficulty);
 	if (difficulty !== undefined) merged.difficulty = difficulty;
 	return merged;
 }
@@ -359,7 +382,8 @@ export function mergeProfiles(storedRaw: unknown, desiredRaw: unknown): Campaign
 	const stored = normalizeProfile(storedRaw);
 	const desired = normalizeProfile(desiredRaw);
 	const merged = blankProfile();
-	for (let index = 1; index <= SLOT_COUNT; index++) merged.slots[index - 1] = mergeSlot(stored.slots[index - 1], desired.slots[index - 1], index);
+	for (let index = 1; index <= SLOT_COUNT; index++)
+		merged.slots[index - 1] = mergeSlot(stored.slots[index - 1], desired.slots[index - 1], index);
 	return merged;
 }
 
@@ -434,7 +458,8 @@ export function completeMission(
 		missionId !== activeMission ||
 		// Defence in depth: a result for a mission this slot has not unlocked is never recorded.
 		!canLaunchMission(missionId, coordinator.getSlots()[activeSlot - 1])
-	) return false;
+	)
+		return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
 	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	// Combat's kill tally includes ground targets; only the remainder can satisfy air objectives.
@@ -444,25 +469,40 @@ export function completeMission(
 	const blueprint = MissionCatalog.Get(missionId);
 	const requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
 	const requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
-	const objectivesMet = isFiniteNumber(stats.kills) && groundKills <= kills && airKills >= requiredAirKills && groundKills >= requiredGroundKills;
+	const objectivesMet =
+		isFiniteNumber(stats.kills) &&
+		groundKills <= kills &&
+		airKills >= requiredAirKills &&
+		groundKills >= requiredGroundKills;
 	const flightObjectivesMet = stats.completedPhases === MissionCatalog.TotalPhases(blueprint);
-	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.MaxMissionSeconds(missionId);
+	const qualifiedWin =
+		won &&
+		flightObjectivesMet &&
+		objectivesMet &&
+		elapsed > 0 &&
+		elapsed < MissionCatalog.MaxMissionSeconds(missionId);
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 	const policy = MissionCatalog.Scoring(missionId);
-	const scored = MissionScore.Compute({
-		won: qualifiedWin,
-		airKills,
-		groundKills,
-		elapsed,
-		par,
-		missilesFired: counter(stats.missilesFired),
-		missileHits: counter(stats.missileHits),
-		damageTaken: counter(stats.damageTaken),
-		difficulty: Difficulty.Coerce(stats.difficulty),
-		targetPoints: policy.basis === "points" ? stats.targetScore?.total : undefined,
-	}, policy);
-	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed, { score: scored.score, rank: scored.rank,
-		targetScore: policy.basis === "points" ? stats.targetScore : undefined });
+	const scored = MissionScore.Compute(
+		{
+			won: qualifiedWin,
+			airKills,
+			groundKills,
+			elapsed,
+			par,
+			missilesFired: counter(stats.missilesFired),
+			missileHits: counter(stats.missileHits),
+			damageTaken: counter(stats.damageTaken),
+			difficulty: Difficulty.Coerce(stats.difficulty),
+			targetPoints: policy.basis === "points" ? stats.targetScore?.total : undefined,
+		},
+		policy,
+	);
+	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed, {
+		score: scored.score,
+		rank: scored.rank,
+		targetScore: policy.basis === "points" ? stats.targetScore : undefined,
+	});
 	// Give the cloud write a short window so the result screen can confirm the save.
 	if (flushSeconds > 0) coordinator.flush(flushSeconds);
 	notify({
@@ -472,11 +512,15 @@ export function completeMission(
 		kills: result.kills,
 		groundKills,
 		elapsed: result.elapsed,
-		reason: result.completed ? undefined : stats.reason ?? (elapsed >= MissionCatalog.MaxMissionSeconds(missionId) ? "timeout" : undefined),
+		reason: result.completed
+			? undefined
+			: (stats.reason ?? (elapsed >= MissionCatalog.MaxMissionSeconds(missionId) ? "timeout" : undefined)),
 		saved: !coordinator.hasPendingSave(),
 		persistence: coordinator.getPersistence(),
 		optionalKills: counter(stats.optionalKills),
-		completedPhases: isFiniteNumber(stats.completedPhases) ? math.max(0, math.floor(stats.completedPhases)) : undefined,
+		completedPhases: isFiniteNumber(stats.completedPhases)
+			? math.max(0, math.floor(stats.completedPhases))
+			: undefined,
 		missilesFired: counter(stats.missilesFired),
 		missileHits: counter(stats.missileHits),
 		damageTaken: counter(stats.damageTaken),
@@ -516,9 +560,17 @@ export class CampaignCoordinator {
 	private readonly retryWait: (attempt: number) => void;
 	private readonly logWarning: (message: string) => void;
 
-	public constructor(private readonly key: string, private readonly store?: CampaignStore, options: CoordinatorOptions = {}) {
+	public constructor(
+		private readonly key: string,
+		private readonly store?: CampaignStore,
+		options: CoordinatorOptions = {},
+	) {
 		this.clock = options.clock ?? os.clock;
-		this.wait = options.wait ?? (() => { task.wait(0.05); });
+		this.wait =
+			options.wait ??
+			(() => {
+				task.wait(0.05);
+			});
 		this.persistence = store ? "unavailable" : "session";
 		this.defer = options.defer ?? task.defer;
 		this.now = options.now ?? os.time;
@@ -598,13 +650,17 @@ export class CampaignCoordinator {
 			const rank = debrief && MissionScore.IsRank(debrief.rank) ? debrief.rank : undefined;
 			const previousRank = rankOf(existing?.bestRank);
 			copyBests(record, highest(existing?.bestScore, score), MissionScore.BetterRank(previousRank, rank));
-			const improvesScore = score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
+			const improvesScore =
+				score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
 			const breakdown = improvesScore ? readTargetScore(debrief?.targetScore, score) : existing?.bestTargetScore;
 			if (breakdown !== undefined) record.bestTargetScore = breakdown;
 			missions[missionId] = record;
 			slot.missions = missions;
-			result.newBestScore = score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
-			result.newBestRank = rank !== undefined && (previousRank === undefined || RANK_ORDER.indexOf(rank) < RANK_ORDER.indexOf(previousRank));
+			result.newBestScore =
+				score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
+			result.newBestRank =
+				rank !== undefined &&
+				(previousRank === undefined || RANK_ORDER.indexOf(rank) < RANK_ORDER.indexOf(previousRank));
 		}
 		result.bestScore = slot.missions?.[missionId]?.bestScore;
 		result.bestRank = rankOf(slot.missions?.[missionId]?.bestRank);
@@ -618,8 +674,12 @@ export class CampaignCoordinator {
 		if (!isValidSlot(slotIndex)) return false;
 		const slot = this.getSlots()[slotIndex - 1];
 		const finale = missionId === MISSION_COUNT && playedChapter === MISSION_COUNT;
-		if (finale ? slot.missions?.[MISSION_COUNT]?.completed !== true :
-			!canLaunchMission(missionId, slot) || playedChapter !== chapterBeforeMission(missionId)) return false;
+		if (
+			finale
+				? slot.missions?.[MISSION_COUNT]?.completed !== true
+				: !canLaunchMission(missionId, slot) || playedChapter !== chapterBeforeMission(missionId)
+		)
+			return false;
 		this.recordCutsceneSeen(slotIndex, playedChapter as number);
 		return true;
 	}
@@ -729,8 +789,13 @@ export class CampaignCoordinator {
 			for (const [, deletion] of this.deletions) {
 				const sent = desired.slots[deletion.slot - 1];
 				const saved = persisted.slots[deletion.slot - 1];
-				if (sent.generation === deletion.generation && !sent.occupied &&
-					saved.generation === deletion.generation && !saved.occupied) deletion.status = "confirmed";
+				if (
+					sent.generation === deletion.generation &&
+					!sent.occupied &&
+					saved.generation === deletion.generation &&
+					!saved.occupied
+				)
+					deletion.status = "confirmed";
 			}
 			this.profile = mergeProfiles(stored, this.profile);
 			this.persistence = "cloud";

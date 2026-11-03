@@ -6,29 +6,61 @@ describe("Step guard (internal_error isolation)", () => {
 	it("runs a healthy step and reports success", () => {
 		const guard = StepGuard.New();
 		let steps = 0;
-		expect(StepGuard.Run(guard, () => { steps += 1; }, () => undefined)).toBe(true);
-		expect(StepGuard.Run(guard, () => { steps += 1; }, () => undefined)).toBe(true);
+		expect(
+			StepGuard.Run(
+				guard,
+				() => {
+					steps += 1;
+				},
+				() => undefined,
+			),
+		).toBe(true);
+		expect(
+			StepGuard.Run(
+				guard,
+				() => {
+					steps += 1;
+				},
+				() => undefined,
+			),
+		).toBe(true);
 		expect(steps).toBe(2);
 		expect(guard.failed).toBe(false);
 	});
 	it("isolates a throwing step: one failure callback, then the session never steps again", () => {
 		const guard = StepGuard.New();
-		let failures = 0, steps = 0;
+		let failures = 0,
+			steps = 0;
 		let message = "";
-		const throwing = () => { steps += 1; error("enemy warning was destroyed"); };
-		expect(StepGuard.Run(guard, throwing, (text) => { failures += 1; message = text; })).toBe(false);
+		const throwing = () => {
+			steps += 1;
+			error("enemy warning was destroyed");
+		};
+		expect(
+			StepGuard.Run(guard, throwing, (text) => {
+				failures += 1;
+				message = text;
+			}),
+		).toBe(false);
 		expect(failures).toBe(1);
 		expect(message.find("enemy warning was destroyed")[0] !== undefined).toBe(true);
 		expect(guard.failed).toBe(true);
 		// Every later frame is refused without running the step or calling back again.
-		for (let frame = 0; frame < 30; frame++) StepGuard.Run(guard, throwing, () => { failures += 1; });
+		for (let frame = 0; frame < 30; frame++)
+			StepGuard.Run(guard, throwing, () => {
+				failures += 1;
+			});
 		expect(steps).toBe(1);
 		expect(failures).toBe(1);
 		expect(guard.running).toBe(false);
 	});
 	it("survives a failure callback that itself throws", () => {
 		const guard = StepGuard.New();
-		const ok = StepGuard.Run(guard, () => error("step"), () => error("cleanup"));
+		const ok = StepGuard.Run(
+			guard,
+			() => error("step"),
+			() => error("cleanup"),
+		);
 		expect(ok).toBe(false);
 		expect(guard.failed).toBe(true);
 	});
@@ -36,14 +68,30 @@ describe("Step guard (internal_error isolation)", () => {
 		const guard = StepGuard.New();
 		let inner: boolean | undefined;
 		let outerSteps = 0;
-		StepGuard.Run(guard, () => {
-			outerSteps += 1;
-			inner = StepGuard.Run(guard, () => { outerSteps += 100; }, () => undefined);
-		}, () => undefined);
+		StepGuard.Run(
+			guard,
+			() => {
+				outerSteps += 1;
+				inner = StepGuard.Run(
+					guard,
+					() => {
+						outerSteps += 100;
+					},
+					() => undefined,
+				);
+			},
+			() => undefined,
+		);
 		expect(inner).toBe(false);
 		expect(outerSteps).toBe(1);
 		expect(guard.running).toBe(false);
-		expect(StepGuard.Run(guard, () => undefined, () => undefined)).toBe(true);
+		expect(
+			StepGuard.Run(
+				guard,
+				() => undefined,
+				() => undefined,
+			),
+		).toBe(true);
 	});
 });
 describe("Pause budget", () => {
@@ -81,7 +129,8 @@ describe("Pause budget", () => {
 	});
 	it("spends the budget across several pauses", () => {
 		const pause = PauseRules.New();
-		PauseRules.Pause(pause, 0); PauseRules.Resume(pause, 200);
+		PauseRules.Pause(pause, 0);
+		PauseRules.Resume(pause, 200);
 		PauseRules.Pause(pause, 300);
 		expect(PauseRules.Expired(pause, 399)).toBe(false);
 		expect(PauseRules.Expired(pause, 400)).toBe(true);
@@ -97,18 +146,51 @@ describe("Pause budget", () => {
  * can be made to throw.
  */
 function sortie(throwing: { [hook: string]: boolean } = {}) {
-	const log = { blocked: true, world: true, saved: 0, unsaved: 0, teardowns: 0, releases: 0, warnings: 0, deferred: [] as (() => void)[] };
-	const fail = (hook: string) => { if (throwing[hook]) error(`${hook} exploded`); };
+	const log = {
+		blocked: true,
+		world: true,
+		saved: 0,
+		unsaved: 0,
+		teardowns: 0,
+		releases: 0,
+		warnings: 0,
+		deferred: [] as (() => void)[],
+	};
+	const fail = (hook: string) => {
+		if (throwing[hook]) error(`${hook} exploded`);
+	};
 	const hooks: SettlementHooks = {
 		announce: () => fail("announce"),
-		schedule: (complete) => { fail("schedule"); log.deferred.push(complete); },
-		save: () => { fail("save"); log.saved += 1; },
-		unsaved: () => { fail("unsaved"); log.unsaved += 1; },
-		teardown: () => { log.teardowns += 1; fail("teardown"); log.world = false; },
-		release: () => { log.releases += 1; log.blocked = false; },
-		warn: () => { log.warnings += 1; },
+		schedule: (complete) => {
+			fail("schedule");
+			log.deferred.push(complete);
+		},
+		save: () => {
+			fail("save");
+			log.saved += 1;
+		},
+		unsaved: () => {
+			fail("unsaved");
+			log.unsaved += 1;
+		},
+		teardown: () => {
+			log.teardowns += 1;
+			fail("teardown");
+			log.world = false;
+		},
+		release: () => {
+			log.releases += 1;
+			log.blocked = false;
+		},
+		warn: () => {
+			log.warnings += 1;
+		},
 	};
-	const runDeferred = () => { const jobs = [...log.deferred]; log.deferred.clear(); for (const job of jobs) job(); };
+	const runDeferred = () => {
+		const jobs = [...log.deferred];
+		log.deferred.clear();
+		for (const job of jobs) job();
+	};
 	return { log, hooks, runDeferred, state: Settlement.New() };
 }
 describe("Settlement (a finished sortie never blocks the next one)", () => {
@@ -165,10 +247,14 @@ describe("Settlement (a finished sortie never blocks the next one)", () => {
 		// The review's second path: a step throws, the guard aborts, and settling that abort throws too.
 		const { log, hooks, state } = sortie({ announce: true, schedule: true });
 		const guard = StepGuard.New();
-		StepGuard.Run(guard, () => error("enemy warning was destroyed"), () => {
-			Settlement.Begin(state, hooks);
-			Settlement.Abandon(state, hooks);
-		});
+		StepGuard.Run(
+			guard,
+			() => error("enemy warning was destroyed"),
+			() => {
+				Settlement.Begin(state, hooks);
+				Settlement.Abandon(state, hooks);
+			},
+		);
 		expect(guard.failed).toBe(true);
 		expect(log.world).toBe(false);
 		expect(log.blocked).toBe(false);

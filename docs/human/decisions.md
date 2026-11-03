@@ -819,3 +819,8 @@ Validation for the speed repair: the prescribed LUAU_BIN bun run validate:offlin
 - No src/server changes in this reconciliation; existing #203 Studio adapters are retained. This agent runs offline validation only; Studio remains with the parent. No uploads or merge.
 
 Validation for this #203 update: prescribed-LUAU_BIN `bun run validate:offline` exited 0 (1,267 offline Luau checks, 36 planner cases, 518 compiled modules and 179 Python tests). Generated fixtures were current; no regeneration needed. Studio/Player not rerun.
+## D-674 — Prettier and ESLint offline gate
+
+Date: 2026-11-02. Decision maker: orchestrator on owner request 2026-11-02. Status: accepted.
+
+Use Prettier 3 (tabs, width 4, print width 120) and ESLint 9 flat config with typescript-eslint recommended and eslint-plugin-roblox-ts recommended for Roblox source; Bun/Node tools use a separate block. Alternatives considered: Biome and dprint. Rationale: Prettier+ESLint is the roblox-ts ecosystem standard with a roblox-ts lint plugin that detects Luau-incompatible TypeScript. eslint-config-prettier avoids conflicting formatting rules. Existing unsafe-to-autofix lint debt is explicitly downgraded in configuration; generated snapshots and tool outputs are excluded to preserve regeneration contracts. Both checks fail fast in validate:offline after the no-React-harness check. No intended runtime or Player change.

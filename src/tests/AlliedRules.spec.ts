@@ -10,11 +10,32 @@ import { RADAR_GLYPHS } from "../shared/RadarMath";
 import { WavePlan } from "../shared/WavePlan";
 import { LEGACY_PHASE_ROSTERS } from "./LegacyPhaseRosters";
 
-const policy: MissionAllies = { count: 4, formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: -360, y: 40, z: 320 }, { x: 360, y: 40, z: 320 }], model: "Kestrel", callsignPrefix: "LANTERN" };
+const policy: MissionAllies = {
+	count: 4,
+	formation: [
+		{ x: -180, y: 20, z: 160 },
+		{ x: 180, y: 20, z: 160 },
+		{ x: -360, y: 40, z: 320 },
+		{ x: 360, y: 40, z: 320 },
+	],
+	model: "Kestrel",
+	callsignPrefix: "LANTERN",
+};
 const raider = { role: "raider", kind: "air", enabled: true, health: 100, required: false };
 function sortie() {
-	const bp = { ...MissionCatalog.Get(3), phases: [{ kind: "required_air" as const, label: "Intercept", count: 6, optionalRaiders: 4 }] };
-	return { state: BlueprintRunner.NewState(bp, 0), ledger: new TargetScore({ basis: "points", points: { escort: 60, bomber: 100 }, rank: { S: 800, A: 700, B: 600, C: 0 } }), destroyed: [] as string[] };
+	const bp = {
+		...MissionCatalog.Get(3),
+		phases: [{ kind: "required_air" as const, label: "Intercept", count: 6, optionalRaiders: 4 }],
+	};
+	return {
+		state: BlueprintRunner.NewState(bp, 0),
+		ledger: new TargetScore({
+			basis: "points",
+			points: { escort: 60, bomber: 100 },
+			rank: { S: 800, A: 700, B: 600, C: 0 },
+		}),
+		destroyed: [] as string[],
+	};
 }
 describe("Dormant allied flight contracts", () => {
 	it("caps the entire allied group across phases, in-flight hits and fresh sorties", () => {
@@ -23,7 +44,8 @@ describe("Dormant allied flight contracts", () => {
 			const tuned = { ...policy, killBudget: budget };
 			for (let shot = 0; shot < 100; shot++) {
 				const damage = AlliedRules.ShotDamage(tuned, destroyed.size(), false, 100);
-				if (damage > 0) recordAlliedKill(state, ledger, destroyed, tuned, `enemy-${shot}`, "air", false, shot, "escort");
+				if (damage > 0)
+					recordAlliedKill(state, ledger, destroyed, tuned, `enemy-${shot}`, "air", false, shot, "escort");
 				expect(destroyed.size() <= budget).toBe(true);
 			}
 			expect(destroyed.size()).toBe(budget);
@@ -32,8 +54,12 @@ describe("Dormant allied flight contracts", () => {
 			expect(ledger.Total()).toBe(0);
 		}
 		const fresh = sortie();
-		expect(recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "fresh", "air", false, 1, "escort")).toBe(true);
-		expect(recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "second", "air", false, 2, "escort")).toBe(false);
+		expect(
+			recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "fresh", "air", false, 1, "escort"),
+		).toBe(true);
+		expect(
+			recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "second", "air", false, 2, "escort"),
+		).toBe(false);
 	});
 
 	it("only spawns on opt in and preserves every current phase roster", () => {
@@ -42,13 +68,32 @@ describe("Dormant allied flight contracts", () => {
 			const mission = MISSIONS[index];
 			expect(mission.allies).toBeUndefined();
 			expect(AlliedRules.Count(mission.allies)).toBe(0);
-			const signature = mission.phases.map((p) => `${p.kind}:${p.count ?? 0}:${p.optionalRaiders ?? 0}:${p.groups ?? 1}`).join("|");
+			const signature = mission.phases
+				.map((p) => `${p.kind}:${p.count ?? 0}:${p.optionalRaiders ?? 0}:${p.groups ?? 1}`)
+				.join("|");
 			expect(signature).toBe(LEGACY_PHASE_ROSTERS[index]);
 		}
 	});
 	it("validates bounded formations, friendly models and deliberate required-target credit", () => {
 		validateMissionPolicy({ allies: policy }, 99);
-		for (const invalid of [{ ...policy, killBudget: -1 }, { ...policy, killBudget: 0.5 }, { ...policy, killBudget: math.huge }, { ...policy, count: 0 }, { ...policy, count: 7 }, { ...policy, count: 1.5 }, { ...policy, formation: [] }, { ...policy, model: "Vanta" }, { ...policy, callsignPrefix: "" }, { ...policy, allowRequiredTargets: true }, { ...policy, mayKill: "yes" }, { ...policy, formation: [{ x: math.huge, y: 0, z: 80 }, ...policy.formation.filter((_, index) => index > 0)] }, { ...policy, formation: [{ x: 0, y: 0, z: 0 }, ...policy.formation.filter((_, index) => index > 0)] }]) {
+		for (const invalid of [
+			{ ...policy, killBudget: -1 },
+			{ ...policy, killBudget: 0.5 },
+			{ ...policy, killBudget: math.huge },
+			{ ...policy, count: 0 },
+			{ ...policy, count: 7 },
+			{ ...policy, count: 1.5 },
+			{ ...policy, formation: [] },
+			{ ...policy, model: "Vanta" },
+			{ ...policy, callsignPrefix: "" },
+			{ ...policy, allowRequiredTargets: true },
+			{ ...policy, mayKill: "yes" },
+			{
+				...policy,
+				formation: [{ x: math.huge, y: 0, z: 80 }, ...policy.formation.filter((_, index) => index > 0)],
+			},
+			{ ...policy, formation: [{ x: 0, y: 0, z: 0 }, ...policy.formation.filter((_, index) => index > 0)] },
+		]) {
 			const [ok] = pcall(() => validateMissionPolicy({ allies: invalid as MissionAllies }, 99));
 			expect(ok).toBe(false);
 		}
@@ -59,7 +104,12 @@ describe("Dormant allied flight contracts", () => {
 		expect(AlliedRules.CanEngage(policy, raider)).toBe(true);
 		expect(AlliedRules.CanEngage(policy, { ...raider, role: "escort" })).toBe(true);
 		expect(AlliedRules.CanEngage(policy, { ...raider, required: true, role: "bomber" })).toBe(false);
-		expect(AlliedRules.CanEngage({ ...policy, allowRequiredTargets: true, creditPlayerKills: true }, { ...raider, required: true, role: "bomber" })).toBe(false);
+		expect(
+			AlliedRules.CanEngage(
+				{ ...policy, allowRequiredTargets: true, creditPlayerKills: true },
+				{ ...raider, required: true, role: "bomber" },
+			),
+		).toBe(false);
 	});
 	it("keeps formation moving during launch while suppressing all wingman fire", () => {
 		expect(AlliedRules.CanEngage(policy, raider, false)).toBe(false);
@@ -69,13 +119,22 @@ describe("Dormant allied flight contracts", () => {
 	});
 	it("excludes friendlies from player selection, lock eligibility and hostile boxes", () => {
 		expect(AlliedRules.PlayerTarget({ ...raider, friendly: true })).toBe(false);
-		expect(TargetBoxes.Tone({ enemy: true, friendly: true, owner: 7, damageable: true, required: false }, 7)).toBeUndefined();
+		expect(
+			TargetBoxes.Tone({ enemy: true, friendly: true, owner: 7, damageable: true, required: false }, 7),
+		).toBeUndefined();
 		expect(RADAR_GLYPHS.friendly === RADAR_GLYPHS.optional).toBe(false);
 	});
 	it("keeps the hostile budget identical with six friendly fighters", () => {
 		const hostiles = [raider, { ...raider, role: "bomber" }, { ...raider, enabled: false }];
 		expect(AlliedRules.HostileBudget(hostiles)).toBe(1);
-		expect(AlliedRules.HostileBudget([...hostiles, ...policy.formation.map(() => ({ ...raider, friendly: true })), { ...raider, friendly: true }, { ...raider, friendly: true }])).toBe(1);
+		expect(
+			AlliedRules.HostileBudget([
+				...hostiles,
+				...policy.formation.map(() => ({ ...raider, friendly: true })),
+				{ ...raider, friendly: true },
+				{ ...raider, friendly: true },
+			]),
+		).toBe(1);
 	});
 	it("commits a windup target so its warning and launch destination cannot disagree", () => {
 		const wingman = { id: "ally_1" };
@@ -110,22 +169,38 @@ describe("Dormant allied flight contracts", () => {
 	});
 	it("preserves fixed-sortie hostile ids, bracket sides and player focus when allies are absent or inserted", () => {
 		function fixedSortie(withAllies: boolean): { ids: string; sides: string; targets: string } {
-			let hostileSerial = 0, alliedSerial = 0;
-			const ids: string[] = [], sides: number[] = [], targets: string[] = [];
+			let hostileSerial = 0,
+				alliedSerial = 0;
+			const ids: string[] = [],
+				sides: number[] = [],
+				targets: string[] = [];
 			function spawn(friendly: boolean, count: number): void {
 				const first = AlliedRules.AirSerial(friendly, hostileSerial, alliedSerial);
 				for (const side of WavePlan.BracketSides(first, count)) sides.push(side);
 				for (let index = 0; index < count; index++) {
 					if (friendly) alliedSerial += 1;
-					else { hostileSerial += 1; ids.push(`air_${hostileSerial}_77`); targets.push(AlliedRules.HostileTargetsWingman("air", "bandit", 1200, math.huge, false) ? "wingman" : "player"); }
+					else {
+						hostileSerial += 1;
+						ids.push(`air_${hostileSerial}_77`);
+						targets.push(
+							AlliedRules.HostileTargetsWingman("air", "bandit", 1200, math.huge, false)
+								? "wingman"
+								: "player",
+						);
+					}
 				}
 			}
 			spawn(false, 2);
 			if (withAllies) spawn(true, 4);
 			spawn(false, 3);
-			return { ids: ids.join(","), sides: sides.filter((_, index) => !withAllies || index < 2 || index >= 6).join(","), targets: targets.join(",") };
+			return {
+				ids: ids.join(","),
+				sides: sides.filter((_, index) => !withAllies || index < 2 || index >= 6).join(","),
+				targets: targets.join(","),
+			};
 		}
-		const legacy = fixedSortie(false), allied = fixedSortie(true);
+		const legacy = fixedSortie(false),
+			allied = fixedSortie(true);
 		expect(allied.ids).toBe(legacy.ids);
 		expect(allied.sides).toBe(legacy.sides);
 		expect(allied.targets).toBe("player,player,player,player,player");
@@ -136,66 +211,97 @@ describe("Dormant allied flight contracts", () => {
 		expect(recordAlliedKill(state, ledger, destroyed, policy, "escort-1", "air", false, 1, "escort")).toBe(false);
 		expect(recordScoredKill(state, ledger, "escort-1", "air", false, 1, "escort")).toBe(false);
 		expect(ledger.Total()).toBe(0);
-		expect(state.optionalAirKills).toBe(0); expect(state.requiredAirKills).toBe(0); expect(state.phaseProgress).toBe(0);
+		expect(state.optionalAirKills).toBe(0);
+		expect(state.requiredAirKills).toBe(0);
+		expect(state.phaseProgress).toBe(0);
 		expect(recordAlliedKill(state, ledger, destroyed, policy, "bomber-1", "air", true, 1, "bomber")).toBe(false);
-		expect(recordAlliedKill(state, ledger, destroyed, { ...policy, mayKill: false }, "escort-2", "air", false, 1, "escort")).toBe(false);
+		expect(
+			recordAlliedKill(
+				state,
+				ledger,
+				destroyed,
+				{ ...policy, mayKill: false },
+				"escort-2",
+				"air",
+				false,
+				1,
+				"escort",
+			),
+		).toBe(false);
 	});
 	it("protects required targets even if a legacy policy requests credit", () => {
 		const { state, ledger, destroyed } = sortie();
-		expect(recordAlliedKill(state, ledger, destroyed, { ...policy, creditPlayerKills: true, allowRequiredTargets: true }, "bomber-1", "air", true, 1, "bomber")).toBe(false);
-		expect(ledger.Total()).toBe(0); expect(state.requiredAirKills).toBe(0); expect(state.phaseProgress).toBe(0);
+		expect(
+			recordAlliedKill(
+				state,
+				ledger,
+				destroyed,
+				{ ...policy, creditPlayerKills: true, allowRequiredTargets: true },
+				"bomber-1",
+				"air",
+				true,
+				1,
+				"bomber",
+			),
+		).toBe(false);
+		expect(ledger.Total()).toBe(0);
+		expect(state.requiredAirKills).toBe(0);
+		expect(state.phaseProgress).toBe(0);
 	});
 });
 
-
 describe("Mission pressure opt in", () => {
-	const pressure = {playerPriority:0.8,forwardConeDegrees:25,tailDefence:true};
+	const pressure = { playerPriority: 0.8, forwardConeDegrees: 25, tailDefence: true };
 	it("reserves eight of ten slots for the player and rotates ally attention every eight seconds", () => {
-		for (const elapsed of [0,8,16,80]) {
+		for (const elapsed of [0, 8, 16, 80]) {
 			let player = 0;
-			for(let serial=0;serial<10;serial++) if(AlliedRules.PrioritisesPlayer(pressure,serial,elapsed,2000,1,false)) player++;
+			for (let serial = 0; serial < 10; serial++)
+				if (AlliedRules.PrioritisesPlayer(pressure, serial, elapsed, 2000, 1, false)) player++;
 			expect(player).toBe(8);
 		}
-		expect(AlliedRules.PrioritisesPlayer(pressure,4,7.99,2000,1,false)).toBe(false);
-		expect(AlliedRules.PrioritisesPlayer(pressure,4,8,2000,1,false)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(pressure, 4, 7.99, 2000, 1, false)).toBe(false);
+		expect(AlliedRules.PrioritisesPlayer(pressure, 4, 8, 2000, 1, false)).toBe(true);
 	});
 	it("overrides ally assignments for proximity, tails and player fire; omitted policy preserves legacy", () => {
-		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,699,1,false)).toBe(true);
-		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,1400,-0.8,false)).toBe(true);
-		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,2000,1,true)).toBe(true);
-		expect(AlliedRules.PrioritisesPlayer(undefined,9,0,100,-1,true)).toBe(false);
-		expect(AlliedRules.TailThreat(1499,-0.61)).toBe(true);
-		expect(AlliedRules.TailThreat(1500,-0.61)).toBe(false);
-		expect(AlliedRules.TailThreat(500,0.8)).toBe(false);
+		expect(AlliedRules.PrioritisesPlayer(pressure, 9, 0, 699, 1, false)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(pressure, 9, 0, 1400, -0.8, false)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(pressure, 9, 0, 2000, 1, true)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(undefined, 9, 0, 100, -1, true)).toBe(false);
+		expect(AlliedRules.TailThreat(1499, -0.61)).toBe(true);
+		expect(AlliedRules.TailThreat(1500, -0.61)).toBe(false);
+		expect(AlliedRules.TailThreat(500, 0.8)).toBe(false);
 	});
 	it("keeps Easy lock/inbound breaks probabilistic and pressure flares hostile-only on Normal/Ace", () => {
-		expect(AlliedRules.ForcePressureBreak(pressure,"easy",false,true)).toBe(false);
-		expect(AlliedRules.ForcePressureBreak(pressure,"easy",true,true)).toBe(true);
-		for (const difficulty of ["normal","ace"] as const) {
-			expect(AlliedRules.ForcePressureBreak(pressure,difficulty,false,true)).toBe(true);
-			expect(AlliedRules.PressureFlare(pressure,false,"raider",difficulty)).toBe(true);
-			expect(AlliedRules.PressureFlare(pressure,false,"escort",difficulty)).toBe(true);
-			expect(AlliedRules.PressureFlare(pressure,true,"raider",difficulty)).toBe(false);
+		expect(AlliedRules.ForcePressureBreak(pressure, "easy", false, true)).toBe(false);
+		expect(AlliedRules.ForcePressureBreak(pressure, "easy", true, true)).toBe(true);
+		for (const difficulty of ["normal", "ace"] as const) {
+			expect(AlliedRules.ForcePressureBreak(pressure, difficulty, false, true)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure, false, "raider", difficulty)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure, false, "escort", difficulty)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure, true, "raider", difficulty)).toBe(false);
 		}
-		expect(AlliedRules.PressureFlare(pressure,false,"raider","easy")).toBe(false);
-		expect(AlliedRules.PressureFlare(pressure,false,"escort","easy")).toBe(false);
-		expect(AlliedRules.PressureFlare(undefined,false,"raider","ace")).toBe(false);
-		expect(AlliedRules.ForcePressureBreak(undefined,"ace",true,true)).toBe(false);
+		expect(AlliedRules.PressureFlare(pressure, false, "raider", "easy")).toBe(false);
+		expect(AlliedRules.PressureFlare(pressure, false, "escort", "easy")).toBe(false);
+		expect(AlliedRules.PressureFlare(undefined, false, "raider", "ace")).toBe(false);
+		expect(AlliedRules.ForcePressureBreak(undefined, "ace", true, true)).toBe(false);
 	});
 	it("suppresses a tail break through overshoot extension and three seconds of recovery", () => {
-		const overshootAt = 10, extendSeconds = 3, tailBreakAfter = overshootAt + extendSeconds + 3;
-		for (const now of [10,12.99,13,15.99]) expect(AlliedRules.TailThreat(1000,-0.8,tailBreakAfter-now)).toBe(false);
-		expect(AlliedRules.TailThreat(1000,-0.8,tailBreakAfter-16)).toBe(true);
-		expect(AlliedRules.TailThreat(1000,0.8,tailBreakAfter-17)).toBe(false);
+		const overshootAt = 10,
+			extendSeconds = 3,
+			tailBreakAfter = overshootAt + extendSeconds + 3;
+		for (const now of [10, 12.99, 13, 15.99])
+			expect(AlliedRules.TailThreat(1000, -0.8, tailBreakAfter - now)).toBe(false);
+		expect(AlliedRules.TailThreat(1000, -0.8, tailBreakAfter - 16)).toBe(true);
+		expect(AlliedRules.TailThreat(1000, 0.8, tailBreakAfter - 17)).toBe(false);
 	});
 	it("keeps M01 opening screen ahead and preserves rear/legacy arrival angles", () => {
-		const p={playerPriority:0.8,forwardConeDegrees:25,tailDefence:true};
-		for(const roll of [0,0.5,1]) {
-			const angle=AlliedRules.ApproachDegrees(p,"raider",false,roll);
-			expect(angle>=10 && angle<=25).toBe(true);
-			expect(math.cos(math.rad(angle))*2600>2300).toBe(true);
-			expect(AlliedRules.ApproachDegrees(undefined,"raider",false,roll)).toBe(60+15*roll);
-			expect(AlliedRules.ApproachDegrees(p,"raider",true,roll)).toBe(150+20*roll);
+		const p = { playerPriority: 0.8, forwardConeDegrees: 25, tailDefence: true };
+		for (const roll of [0, 0.5, 1]) {
+			const angle = AlliedRules.ApproachDegrees(p, "raider", false, roll);
+			expect(angle >= 10 && angle <= 25).toBe(true);
+			expect(math.cos(math.rad(angle)) * 2600 > 2300).toBe(true);
+			expect(AlliedRules.ApproachDegrees(undefined, "raider", false, roll)).toBe(60 + 15 * roll);
+			expect(AlliedRules.ApproachDegrees(p, "raider", true, roll)).toBe(150 + 20 * roll);
 		}
 	});
 });

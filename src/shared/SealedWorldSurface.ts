@@ -8,16 +8,16 @@ import type { TerrainOp, TerrainMaterial, PartSpec } from "./WorldPlan";
  * shell's Studio build and clear time, measured in docs/specs/worlds/m04-composition.md).
  */
 export interface WorldSurface {
- height: (x: number, z: number) => number;
- detail: (x: number, z: number) => boolean;
- material: (x: number, z: number) => TerrainMaterial;
- /** Underwater cells are water alone from the cap's bottom (top - 8, never below Y=0) to Y=32, with no rock
-  * cap under it: one chunk pass instead of two. Only for opaque water: aircraft collide with water and
-  * nothing below its surface is seen, so the water itself seals the column (D-121).
-  */
- waterColumns?: boolean;
- /** Opaque open sea seals the column with a queryable Part instead of native voxels. */
- sea?: { color: [number, number, number]; reflectance: number; transparency: number };
+	height: (x: number, z: number) => number;
+	detail: (x: number, z: number) => boolean;
+	material: (x: number, z: number) => TerrainMaterial;
+	/** Underwater cells are water alone from the cap's bottom (top - 8, never below Y=0) to Y=32, with no rock
+	 * cap under it: one chunk pass instead of two. Only for opaque water: aircraft collide with water and
+	 * nothing below its surface is seen, so the water itself seals the column (D-121).
+	 */
+	waterColumns?: boolean;
+	/** Opaque open sea seals the column with a queryable Part instead of native voxels. */
+	sea?: { color: [number, number, number]; reflectance: number; transparency: number };
 }
 export const WORLD_HALF = 16384;
 export const WORLD_FILL_CHUNK = 262144;
@@ -28,70 +28,127 @@ export const WORLD_FILL_CHUNK = 262144;
  */
 export const WORLD_TERRAIN_BUDGET = 0.25;
 export function surfaceSide(surface: WorldSurface, x: number, z: number): number {
- const tx = math.floor(x / 1024) * 1024, tz = math.floor(z / 1024) * 1024;
- for (let dx = 0; dx <= 1024; dx += 256) for (let dz = 0; dz <= 1024; dz += 256)
-  if (surface.detail(tx + dx, tz + dz)) return 128;
- return 1024;
+	const tx = math.floor(x / 1024) * 1024,
+		tz = math.floor(z / 1024) * 1024;
+	for (let dx = 0; dx <= 1024; dx += 256)
+		for (let dz = 0; dz <= 1024; dz += 256) if (surface.detail(tx + dx, tz + dz)) return 128;
+	return 1024;
 }
 export function surfaceGround(surface: WorldSurface, x: number, z: number): number {
- const side = surfaceSide(surface, x, z);
- return surface.height(math.floor(x / side) * side + side / 2, math.floor(z / side) * side + side / 2);
+	const side = surfaceSide(surface, x, z);
+	return surface.height(math.floor(x / side) * side + side / 2, math.floor(z / side) * side + side / 2);
 }
 export function sealedSurface(surface: WorldSurface, checkpoint: (phase?: string) => void) {
- const half = WORLD_HALF, ops: TerrainOp[] = [];
- const seaParts: PartSpec[] = [];
- const p = { ops, seaParts, detailCells: 0, coarseCells: 0 };
- const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => {
-  if (top <= bottom) return;
-  const y = (bottom + top) / 2, sy = top - bottom, last = ops[ops.size() - 1];
-  // Consecutive identical-material boxes may be unioned exactly. Never reorder across
-  // a curtain or a different material: their overwrite order controls visible edges.
-  // Stay within the scheduler cap and its global 1024-stud tiles to avoid new splits.
-  if (last !== undefined && last.material === material && last.y === y && last.sy === sy
-   && (last.sx * last.sz + sx * sz) * sy / 64 <= WORLD_FILL_CHUNK) {
-   if (last.x === x && last.sx === sx && last.z + last.sz / 2 === z - sz / 2
-    && math.floor((z + sz / 2 - 0.01) / 1024) === math.floor((last.z - last.sz / 2) / 1024)) {
-    last.z = (last.z - last.sz / 2 + z + sz / 2) / 2; last.sz += sz; return;
-   }
-   if (last.z === z && last.sz === sz && last.x + last.sx / 2 === x - sx / 2
-    && math.floor((x + sx / 2 - 0.01) / 1024) === math.floor((last.x - last.sx / 2) / 1024)) {
-    last.x = (last.x - last.sx / 2 + x + sx / 2) / 2; last.sx += sx; return;
-   }
-  }
-  ops.push({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
- };
- const cells: Array<{x: number; z: number; sx: number; sz: number; top: number}> = [];
- const heights = new Map<number, number>();
- // Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
- const key = (x: number, z: number) => ((x + WORLD_HALF) / 128 + 1) * 258 + (z + WORLD_HALF) / 128 + 1;
- for (let x = -half; x < half; x += 1024) for (let z = -half; z < half; z += 1024) {
-  const side = surfaceSide(surface, x, z);
-  for (let dx = 0; dx < 1024; dx += side) for (let dz = 0; dz < 1024; dz += side) {
-   const c = {x: x + dx, z: z + dz, sx: side, sz: side, top: surface.height(x + dx + side / 2, z + dz + side / 2)};
-   cells.push(c);
-   for (let gx = c.x; gx < c.x + side; gx += 128) for (let gz = c.z; gz < c.z + side; gz += 128) heights.set(key(gx, gz), c.top);
-   if (side === 128) p.detailCells++; else p.coarseCells++;
-  }
-  checkpoint("surface.sample");
- }
+	const half = WORLD_HALF,
+		ops: TerrainOp[] = [];
+	const seaParts: PartSpec[] = [];
+	const p = { ops, seaParts, detailCells: 0, coarseCells: 0 };
+	const block = (
+		material: TerrainMaterial,
+		x: number,
+		z: number,
+		sx: number,
+		sz: number,
+		bottom: number,
+		top: number,
+	) => {
+		if (top <= bottom) return;
+		const y = (bottom + top) / 2,
+			sy = top - bottom,
+			last = ops[ops.size() - 1];
+		// Consecutive identical-material boxes may be unioned exactly. Never reorder across
+		// a curtain or a different material: their overwrite order controls visible edges.
+		// Stay within the scheduler cap and its global 1024-stud tiles to avoid new splits.
+		if (
+			last !== undefined &&
+			last.material === material &&
+			last.y === y &&
+			last.sy === sy &&
+			((last.sx * last.sz + sx * sz) * sy) / 64 <= WORLD_FILL_CHUNK
+		) {
+			if (
+				last.x === x &&
+				last.sx === sx &&
+				last.z + last.sz / 2 === z - sz / 2 &&
+				math.floor((z + sz / 2 - 0.01) / 1024) === math.floor((last.z - last.sz / 2) / 1024)
+			) {
+				last.z = (last.z - last.sz / 2 + z + sz / 2) / 2;
+				last.sz += sz;
+				return;
+			}
+			if (
+				last.z === z &&
+				last.sz === sz &&
+				last.x + last.sx / 2 === x - sx / 2 &&
+				math.floor((x + sx / 2 - 0.01) / 1024) === math.floor((last.x - last.sx / 2) / 1024)
+			) {
+				last.x = (last.x - last.sx / 2 + x + sx / 2) / 2;
+				last.sx += sx;
+				return;
+			}
+		}
+		ops.push({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
+	};
+	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
+	const heights = new Map<number, number>();
+	// Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+	const key = (x: number, z: number) => ((x + WORLD_HALF) / 128 + 1) * 258 + (z + WORLD_HALF) / 128 + 1;
+	for (let x = -half; x < half; x += 1024)
+		for (let z = -half; z < half; z += 1024) {
+			const side = surfaceSide(surface, x, z);
+			for (let dx = 0; dx < 1024; dx += side)
+				for (let dz = 0; dz < 1024; dz += side) {
+					const c = {
+						x: x + dx,
+						z: z + dz,
+						sx: side,
+						sz: side,
+						top: surface.height(x + dx + side / 2, z + dz + side / 2),
+					};
+					cells.push(c);
+					for (let gx = c.x; gx < c.x + side; gx += 128)
+						for (let gz = c.z; gz < c.z + side; gz += 128) heights.set(key(gx, gz), c.top);
+					if (side === 128) p.detailCells++;
+					else p.coarseCells++;
+				}
+			checkpoint("surface.sample");
+		}
 	for (const c of cells) {
-		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
+		const cx = c.x + c.sx / 2,
+			cz = c.z + c.sz / 2;
 		// One 8-stud cap replaces the rock body plus snow overlay.
-		if (!(surface.waterColumns === true && c.top < 32)) block(surface.material(cx, cz), cx, cz, c.sx, c.sz, c.top - 8, c.top);
+		if (!(surface.waterColumns === true && c.top < 32))
+			block(surface.material(cx, cz), cx, cz, c.sx, c.sz, c.top - 8, c.top);
 		// Each shared edge is emitted once, in equal-height runs. Four-stud
 		// vertical rock curtains close the hollow shell, including LOD joins.
 		const wall = (axis: "x" | "z", edge: number, start: number, length: number, negative = false) => {
-			let run = start, previous = -1;
+			let run = start,
+				previous = -1;
 			const flush = (finish: number) => {
 				if (previous === c.top || finish === run) return;
-				const lo = math.min(previous, c.top), hi = math.max(previous, c.top);
+				const lo = math.min(previous, c.top),
+					hi = math.max(previous, c.top);
 				const offset = (c.top > previous ? -2 : 2) * (negative ? -1 : 1);
-				block("Rock", axis === "x" ? edge + offset : (run + finish) / 2, axis === "z" ? edge + offset : (run + finish) / 2,
-					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 8), hi);
+				block(
+					"Rock",
+					axis === "x" ? edge + offset : (run + finish) / 2,
+					axis === "z" ? edge + offset : (run + finish) / 2,
+					axis === "x" ? 4 : finish - run,
+					axis === "z" ? 4 : finish - run,
+					math.max(0, lo - 8),
+					hi,
+				);
 			};
 			for (let v = start; v < start + length; v += 128) {
-				const neighbor = heights.get(axis === "x" ? key(negative ? edge - 128 : edge, v) : key(v, negative ? edge - 128 : edge)) ?? 0;
-				if (neighbor !== previous) { if (previous >= 0) flush(v); run = v; previous = neighbor; }
+				const neighbor =
+					heights.get(
+						axis === "x" ? key(negative ? edge - 128 : edge, v) : key(v, negative ? edge - 128 : edge),
+					) ?? 0;
+				if (neighbor !== previous) {
+					if (previous >= 0) flush(v);
+					run = v;
+					previous = neighbor;
+				}
 			}
 			flush(start + length);
 		};
@@ -102,36 +159,66 @@ export function sealedSurface(surface: WorldSurface, checkpoint: (phase?: string
 		checkpoint("surface.emit");
 	}
 
- // Native water exactly bounds each sampled shore tile. Ships use Y=32.
- // Keep each water tile whole; the scheduler tiles larger calls on voxel planes.
- for (const c of cells) if (c.top < 32) {
-  if (surface.sea !== undefined) {
-   seaParts.push({ name: "Sea", shape: "block", x: c.x + c.sx / 2, y: 30, z: c.z + c.sz / 2,
-    sx: c.sx, sy: 4, sz: c.sz, yaw: 0, material: "SmoothPlastic", color: surface.sea.color,
-    reflectance: surface.sea.reflectance, transparency: surface.sea.transparency, solid: true, grounded: false });
-   continue;
-  }
-  const bottom = surface.waterColumns === true ? math.max(0, c.top - 8) : c.top;
-  block("Water", c.x + c.sx / 2, c.z + c.sz / 2, c.sx, c.sz, bottom, 32);
- }
- // Exact rectangular unions: no rectangle crosses a land cell, and no Part exceeds 2048.
- for (const axis of ["x", "z", "x", "z"] as const) {
-  const other = axis === "x" ? "z" : "x", size = axis === "x" ? "sx" : "sz", otherSize = axis === "x" ? "sz" : "sx";
-  seaParts.sort((a, b) => a[other] !== b[other] ? a[other] < b[other]
-   : a[otherSize] !== b[otherSize] ? a[otherSize] < b[otherSize] : a[axis] < b[axis]);
-  let written = 0;
-  for (let i = 0; i < seaParts.size(); i++) {
-   const a = seaParts[i];
-   while (i + 1 < seaParts.size()) {
-    const b = seaParts[i + 1];
-    if (a[other] !== b[other] || a[otherSize] !== b[otherSize] || a[axis] + a[size] / 2 !== b[axis] - b[size] / 2 || a[size] + b[size] > 2048
-     || math.floor((a[axis] - a[size] / 2) / 2048) !== math.floor((b[axis] + b[size] / 2 - 0.01) / 2048)) break;
-    a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2; a[size] += b[size]; i++;
-   }
-   seaParts[written++] = a;
-   checkpoint("sea.merge");
-  }
-  while (seaParts.size() > written) seaParts.pop();
- }
- return p;
+	// Native water exactly bounds each sampled shore tile. Ships use Y=32.
+	// Keep each water tile whole; the scheduler tiles larger calls on voxel planes.
+	for (const c of cells)
+		if (c.top < 32) {
+			if (surface.sea !== undefined) {
+				seaParts.push({
+					name: "Sea",
+					shape: "block",
+					x: c.x + c.sx / 2,
+					y: 30,
+					z: c.z + c.sz / 2,
+					sx: c.sx,
+					sy: 4,
+					sz: c.sz,
+					yaw: 0,
+					material: "SmoothPlastic",
+					color: surface.sea.color,
+					reflectance: surface.sea.reflectance,
+					transparency: surface.sea.transparency,
+					solid: true,
+					grounded: false,
+				});
+				continue;
+			}
+			const bottom = surface.waterColumns === true ? math.max(0, c.top - 8) : c.top;
+			block("Water", c.x + c.sx / 2, c.z + c.sz / 2, c.sx, c.sz, bottom, 32);
+		}
+	// Exact rectangular unions: no rectangle crosses a land cell, and no Part exceeds 2048.
+	for (const axis of ["x", "z", "x", "z"] as const) {
+		const other = axis === "x" ? "z" : "x",
+			size = axis === "x" ? "sx" : "sz",
+			otherSize = axis === "x" ? "sz" : "sx";
+		seaParts.sort((a, b) =>
+			a[other] !== b[other]
+				? a[other] < b[other]
+				: a[otherSize] !== b[otherSize]
+					? a[otherSize] < b[otherSize]
+					: a[axis] < b[axis],
+		);
+		let written = 0;
+		for (let i = 0; i < seaParts.size(); i++) {
+			const a = seaParts[i];
+			while (i + 1 < seaParts.size()) {
+				const b = seaParts[i + 1];
+				if (
+					a[other] !== b[other] ||
+					a[otherSize] !== b[otherSize] ||
+					a[axis] + a[size] / 2 !== b[axis] - b[size] / 2 ||
+					a[size] + b[size] > 2048 ||
+					math.floor((a[axis] - a[size] / 2) / 2048) !== math.floor((b[axis] + b[size] / 2 - 0.01) / 2048)
+				)
+					break;
+				a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2;
+				a[size] += b[size];
+				i++;
+			}
+			seaParts[written++] = a;
+			checkpoint("sea.merge");
+		}
+		while (seaParts.size() > written) seaParts.pop();
+	}
+	return p;
 }
