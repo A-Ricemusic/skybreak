@@ -68,6 +68,11 @@ export function targetScoreStats(
 	return policy.basis === "points" ? { targetScore: ledger.Snapshot() } : {};
 }
 
+// The largest authored scoring policy (M10) has 22 roles; 32 leaves room for extensions.
+// Bound both maps and a conservative JSON byte estimate, including repeated keys and numbers.
+export const MAX_TARGET_SCORE_ROLES = 32;
+export const MAX_TARGET_SCORE_BYTES = 4096;
+
 /** Defensive copy for optional persisted breakdowns. Invalid/old fields are ignored. */
 export function readTargetScore(value: unknown, expectedTotal?: number): TargetScoreSnapshot | undefined {
 	if (!typeIs(value, "table")) return undefined;
@@ -82,8 +87,12 @@ export function readTargetScore(value: unknown, expectedTotal?: number): TargetS
 	const kills: { [role: string]: number } = {};
 	const points: { [role: string]: number } = {};
 	let total = 0;
+	let roles = 0;
+	let bytes = 64;
 	for (const [role, count] of pairs(raw.kills)) {
+		roles++;
 		if (
+			roles > MAX_TARGET_SCORE_ROLES ||
 			!typeIs(role, "string") ||
 			role.size() === 0 ||
 			role.size() > 32 ||
@@ -93,10 +102,17 @@ export function readTargetScore(value: unknown, expectedTotal?: number): TargetS
 			return undefined;
 		const awarded = raw.points[role];
 		if (!finiteNonnegative(awarded)) return undefined;
+		// JSON escapes may expand each role byte to six bytes; charge both repeated map keys.
+		bytes += role.size() * 12 + tostring(count).size() + tostring(awarded).size() + 16;
+		if (bytes > MAX_TARGET_SCORE_BYTES) return undefined;
 		kills[role] = count;
 		points[role] = awarded;
 		total += awarded;
 	}
-	for (const [role] of pairs(raw.points)) if (kills[role] === undefined) return undefined;
+	let pointRoles = 0;
+	for (const [role] of pairs(raw.points)) {
+		pointRoles++;
+		if (pointRoles > MAX_TARGET_SCORE_ROLES || kills[role] === undefined) return undefined;
+	}
 	return total === raw.total ? { total, kills, points } : undefined;
 }

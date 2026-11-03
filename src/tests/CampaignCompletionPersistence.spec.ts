@@ -55,6 +55,46 @@ function roundTrip(c: CampaignCoordinator) {
 }
 
 describe("Campaign completion persistence (offline and Roblox Jest)", () => {
+	it("drops an oversized saved breakdown while retaining independent completion and best score", () => {
+		const kills: { [role: string]: number } = {},
+			points: { [role: string]: number } = {};
+		for (let i = 0; i < 100; i++) {
+			kills[`r${i}`] = 1;
+			points[`r${i}`] = 0;
+		}
+		const slot = normalizeSlot(
+			{
+				missions: {
+					"1": {
+						completed: true,
+						bestTime: 100,
+						bestScore: 0,
+						bestRank: "B",
+						bestTargetScore: { total: 0, kills, points },
+					},
+				},
+			},
+			1,
+		);
+		expect(slot.missions?.[1]?.completed).toBe(true);
+		expect(slot.missions?.[1]?.bestScore).toBe(0);
+		expect(slot.missions?.[1]?.bestTime).toBe(100);
+		expect(slot.missions?.[1]?.bestRank).toBe("B");
+		expect(slot.missions?.[1]?.bestTargetScore).toBeUndefined();
+	});
+
+	it("bounds cutscene traversal and preserves progress when the optional set is oversized", () => {
+		const noise: number[] = [];
+		for (let i = 0; i < 100; i++) noise.push(1);
+		const slot = normalizeSlot({ cutscenesSeen: noise, missions: { "1": { completed: true, bestScore: 600 } } }, 1);
+		expect(slot.cutscenesSeen).toEqual([]);
+		expect(slot.missions?.[1]?.completed).toBe(true);
+		expect(slot.missions?.[1]?.bestScore).toBe(600);
+		const chapters: number[] = [];
+		for (let id = 0; id <= 18; id++) chapters.push(id);
+		expect(normalizeSlot({ cutscenesSeen: chapters }, 1).cutscenesSeen).toEqual(chapters);
+	});
+
 	for (const cleanup of ["ReturnToMenu", "CancelLaunch", "PlayerRemoving"])
 		it(`retains an admitted win after immediate ${cleanup} before deferred saving`, () => {
 			let stored: unknown;

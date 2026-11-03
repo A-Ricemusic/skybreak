@@ -197,7 +197,11 @@ function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
 function readCutsceneSet(raw: unknown): number[] {
 	const seen = new Set<number>();
 	if (typeIs(raw, "table")) {
+		let entries = 0;
 		for (const [, value] of pairs(raw as unknown as Record<string, unknown>)) {
+			// There are only 19 possible chapters. Allow compatibility noise, but bound traversal.
+			entries++;
+			if (entries > (MISSION_COUNT + 1) * 2) return [];
 			if (isFiniteNumber(value) && value % 1 === 0 && value >= 0 && value <= MISSION_COUNT) {
 				seen.add(value);
 			}
