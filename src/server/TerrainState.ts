@@ -5,7 +5,7 @@ import { TerrainWriteState } from "../shared/TerrainWriteState";
 // than asking native Clear to traverse the entire tall, hollow world's extent.
 // Keep the footprint until every write finishes: a failed/cancelled build or clear
 // must still be recoverable. Untracked legacy terrain retains native cleanup.
-import { alignedBlockRegion } from "../shared/TerrainSchedule";
+import { alignedBlockRegion, terrainBoundsOp } from "../shared/TerrainSchedule";
 import type { TerrainOp } from "../shared/WorldPlan";
 import { TerrainWriter } from "./TerrainWriter";
 let footprint: TerrainOp[] | undefined;
@@ -32,6 +32,13 @@ export function trackTerrainFootprint(ops: TerrainOp[]): void {
  canTrack = false;
  if (ops.some(o => alignedBlockRegion(o) === undefined)) return;
  footprint = ops.map(o => ({...o, material: "Air"}));
+}
+/** Conservative grid box for a legacy curved write. Terrain is exclusively owned,
+ * so erasing surrounding air is safe; never expand this to the campaign extent.
+ * Register before writing so a partial Practice build remains recoverable. */
+export function trackTerrainBounds(min: Vector3, max: Vector3): void {
+ if (footprint === undefined) footprint = [];
+ footprint.push(terrainBoundsOp([min.X, min.Y, min.Z], [max.X, max.Y, max.Z]));
 }
 /** Clear the owned sparse footprint, or native terrain when writes were untracked. */
 export function clearTerrainIfDirty(): void {

@@ -1,7 +1,7 @@
 import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
-import { terrainDirty } from "../server/TerrainState";
+import { clearTerrainIfDirty, terrainDirty } from "../server/TerrainState";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
@@ -44,7 +44,20 @@ function fakeUpload(assetId: number): Model {
 	return container;
 }
 function cleanup(fixture: Folder | undefined): void {
-	fixture?.Destroy();Workspace.Terrain.Clear();
+	fixture?.Destroy();
+    // Exercise the same sparse owner as production. Native Clear traverses the
+    // retained tall campaign bounds and leaves the owner's dirty bit stale.
+    clearTerrainIfDirty();
+    expect(terrainDirty()).toBe(false);
+    // Small samples cover Practice water, a curved island and the highest hill.
+    // This also catches a clean marker being set before the footprint is erased.
+    for (const [x,y,z] of [[3000,-20,3000],[-300,0,-400],[1250,120,-1400]]) {
+     const [materials,occupancy] = Workspace.Terrain.ReadVoxels(
+      new Region3(new Vector3(x,y,z),new Vector3(x+4,y+4,z+4)).ExpandToGrid(4),4);
+     for (let i=0;i<materials.Size.X;i++) for (let j=0;j<materials.Size.Y;j++) for (let k=0;k<materials.Size.Z;k++) {
+      expect(materials[i][j][k]).toBe(Enum.Material.Air); expect(occupancy[i][j][k]).toBe(0);
+     }
+    }
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	for(const name of ["MissionAtmosphere","MissionGrade","MissionSky","MissionBloom"])Lighting.FindFirstChild(name)?.Destroy();
 }

@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -166,5 +166,16 @@ describe("Full-voxel terrain execution", () => {
    expect(sample(jobs.map(j=>j.op))).toBe(sample(ops));
   }
   expect(coalesceTerrainJobs(terrainJobs(snapshot),1).size()).toBe(10);
+ });
+});
+
+describe("Legacy curved terrain cleanup bounds", () => {
+ it("covers negative and partial boundary cells with an aligned, bounded Air footprint", () => {
+  const op = terrainBoundsOp([-17.1,-379,-4], [15.5,127,18.1]);
+  expect(alignedBlockRegion(op)).toEqual({min: [-20,-380,-4], max: [16,128,20]});
+  expect(op.material).toBe("Air");
+  const jobs = terrainExecutionJobs([op], 128);
+  expect(jobs.reduce((n,j) => n+j.cells,0)).toBe(9*127*6);
+  for (const job of jobs) { expect(job.cells).toBeLessThanOrEqual(128); expect(alignedBlockRegion(job.op)).toBeDefined(); }
  });
 });

@@ -54,6 +54,14 @@ export function alignedBlockRegion(o: TerrainOp): GridRegion | undefined {
  return {min,max};
 }
 
+/** Conservative Air box for an exclusively owned curved write, including partial cells. */
+export function terrainBoundsOp(min: [number, number, number], max: [number, number, number]): TerrainOp {
+ const lo = min.map(floor4), hi = max.map(ceil4);
+ return {shape: "block", material: "Air", yaw: 0,
+  x: (lo[0]+hi[0])/2, y: (lo[1]+hi[1])/2, z: (lo[2]+hi[2])/2,
+  sx: hi[0]-lo[0], sy: hi[1]-lo[1], sz: hi[2]-lo[2]};
+}
+
 /** Voxels a Fill op touches (the same estimate the plan's voxel-write count uses). */
 export function fillVoxels(o: TerrainOp): number {
 	if (o.shape === "block") return o.sx * o.sy * o.sz / 64;
