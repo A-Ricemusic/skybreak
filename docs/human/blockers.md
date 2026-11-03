@@ -1,6 +1,8 @@
+2026-11-02 reconciliation against main `8dead0bf`: persistence audit row below is now **Resolved (merged #244)**; Studio Jest acceptance of the #242–#244 regressions on current main is the remaining acceptance step. Disk-full on the orchestrator machine (0 bytes free, 154 scratch worktrees) caused repeated delegate failures today; 46 merged/detached worktrees were pruned, 16 GB free now. Other open blockers (M3 phone crash retest, Player/phone acceptance of M6–M18, naval upload key, audio upload halt) are unchanged.
+
 | Date | Status | Finding | Resolution / remaining acceptance |
 | --- | --- | --- | --- |
-| 2026-11-02 | Resolved (unmerged candidate) | Independent campaign persistence audit F1–F4 | Synchronous session-bound result admission; retained closing coordinators and shared 28 s deadline; fail-closed schema reads/UpdateAsync; bounded optional breakdown/cutscene data. Regression specs added. Studio Jest and Player not run; no merge/live claim. |
+| 2026-11-02 | Resolved (merged #244, `8dead0bf`) | Independent campaign persistence audit F1–F4 | Synchronous session-bound result admission; retained closing coordinators and shared 28 s deadline; fail-closed schema reads/UpdateAsync; bounded optional breakdown/cutscene data. Regression specs added. Studio Jest and Player not run; no merge/live claim. |
 
 Smoke budget blocker: the old 20 s threshold is replaced in unmerged #203 using current-main evidence. All supplied rows fit the new ceilings; a passing revised Studio suite is not claimed. Slow-mission optimization and M07 timing parity remain open. Historical blocker entries below retain their original evidence.
 
