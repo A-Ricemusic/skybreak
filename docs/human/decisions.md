@@ -830,3 +830,27 @@ Use Prettier 3 (tabs, width 4, print width 120) and ESLint 9 flat config with ty
 Date: 2026-11-02. Decision maker: orchestrator on owner request 2026-11-02. Status: accepted.
 
 Only an absent DataStore key creates a fresh writable profile. Same-namespace v1 and v2 records migrate explicitly to v3; existing roots, slot containers and entries must be readable, and all other schema versions are refused. Apply the same check inside UpdateAsync so a newer record appearing after load cannot be downgraded. Preserve local earned progress, disable cloud writes, and return a clear client-facing protection message until a readable profile can be loaded. Alternative: normalize unsupported or malformed records to blank v3 and save them; rejected because it destroys existing or newer-deployment progress. This policy changes save durability and failure reporting only, with no gameplay/balance or mission-status change. Candidate implementation is unmerged; Studio/Player verification is not claimed.
+
+## D-676 — Two-phase rollout for deletion epochs (audit F1)
+
+Date: 2026-11-03. Decision maker: orchestrator, on independent (GPT-6 Astra) review; owner may revisit. Status: accepted; phase 1 is open in #271, not merged.
+
+Phase 1 only records the data. Each deletion gets a unique epoch id stored with the slot, merge behaviour is unchanged, and the conflict rules sit behind `DELETION_EPOCH_CONFLICTS = false`. Phase 2 turns on the conflict rules that fix competing equal-generation deletions. It needs the flag plus a rollout/drain plan, so that no server from before the epoch change and no flag-off writer with pending writes remains. Alternatives considered: (a) ship single-step conflict rules; rejected because independent review reproduced mixed-version data loss, where a flag-off server's pending generation-2 write emptied a slot; (b) a per-user session lease; deferred because it is a broader persistence change, now listed as a follow-up. Rationale: mixed server versions coexist during publishes, so new conflict semantics are only safe once every writer can read epochs. The F1 race stays live until phase 2.
+
+## D-677 — Mission-end presentation timing
+
+Date: 2026-11-03. Decision maker: orchestrator (merged in #267). Status: accepted.
+
+GameUI's existing 1.2 s results hold owns mission-end timing. The flight controller disables all controls as soon as the mission ends, but keeps the camera, jet and explosions running until GameUI stops presentation. Alternative: tear down the flight view the moment the mission ends (previous behaviour); rejected because the final explosion and camera were cut off during the hold. No gameplay or balance change. Not Player-tested.
+
+## D-678 — Studio world-cleanup hook timeout
+
+Date: 2026-11-03. Decision maker: orchestrator (merged in #265). Status: accepted.
+
+Heavyweight world-cleanup hooks in Studio integration specs get a 120 s Jest timeout, wrapping a 110 s cancellable cleanup worker, with instrumentation. Unit tests keep 20 s. Alternative: keep 20 s everywhere; rejected because M07WorldRuntime and MissionWorld cleanup timed out under load without a functional failure. Production cleanup and CampaignSmoke budgets (D-203-BOUNDS) are unchanged.
+
+## D-679 — Model usage for the 2026-11-03 cleanup sweep
+
+Date: 2026-11-03. Decision maker: owner. Status: recorded.
+
+At the owner's request, Fable 5.1 implemented cleanup PRs until it hit its usage limit (about 22:00 UTC). The owner then switched the session to Claude Opus 5.5 and said to continue, so the remaining implementers ran on Opus 5.5. At the owner's explicit request, GPT-6 Astra did three independent reviews (server/security, client/shared, tooling) and two pre-merge reviews of the save-data change. This was a session-specific exception to the reduced-Astra default in AGENTS.md, not a standing change.
