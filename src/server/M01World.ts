@@ -1,3 +1,4 @@
+import { trackTerrainFootprint } from "./TerrainState";
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
@@ -85,6 +86,7 @@ export const M01World = {
 		scene.Parent = parent;
 		WorldBuildScheduler.Pause();
 		parent.SetAttribute("WorldBuildPhase", "terrain");
+		trackTerrainFootprint(plan.ops);
 		const terrain = TerrainWriter.Write(plan.ops, 0.008, M01_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
