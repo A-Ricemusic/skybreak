@@ -54,3 +54,25 @@ export function recordAlliedKill(
 	destroyed.push(id);
 	return true;
 }
+
+/**
+ * Settlement kill totals, derived only from runner state: required air, the required ace, required
+ * ground, optional air (raiders, optional aces) and optional ground. Uncredited allied kills never reach
+ * these counters (recordAlliedKill marks the id only), and credited ones arrive through recordScoredKill.
+ */
+export function runnerAllKills(state: BlueprintState | undefined): number {
+	if (!state) return 0;
+	return (
+		state.requiredAirKills +
+		(state.aceKilled ? 1 : 0) +
+		state.requiredGroundKills +
+		state.optionalAirKills +
+		state.optionalGroundKills
+	);
+}
+
+/** The ground subset of runnerAllKills; settlement treats `kills - groundKills` as air kills. */
+export function runnerGroundKills(state: BlueprintState | undefined): number {
+	if (!state) return 0;
+	return state.requiredGroundKills + state.optionalGroundKills;
+}

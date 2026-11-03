@@ -167,6 +167,9 @@ const MODULES: string[] = [
 	"server/PhaseDirectorRules",
 	"tests/PhaseDirector.spec",
 	"server/SortieScore",
+	// Progression/scoring writes (audit F3); type-only CombatSession import, so pure.
+	"server/SessionProgress",
+	"tests/SettlementTally.spec",
 	"shared/OutcomePoints",
 	"tests/AuthoritativeScoring.spec",
 	"shared/BomberRules",

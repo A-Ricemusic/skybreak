@@ -62,7 +62,7 @@ export function forceSmokeVictory(s: CombatSession): void {
 			}
 		assert(bs.outcome === "won", "Required ground phase did not complete");
 	}
-	s.kills = bs.requiredAirKills + bs.requiredGroundKills;
+	// Settlement derives kills and ground kills from these runner counters (SessionQueries.sessionAllKills).
 	s.active = true;
 	s.finished = false;
 	s.crashReason = undefined;

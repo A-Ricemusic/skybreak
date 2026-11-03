@@ -14,15 +14,13 @@ import {
 	ownsEnemy,
 	targetMetrics,
 	sessionAllKills,
-	syncElapsed,
 	sessionGroundKills,
 	sessionCanDamage,
-	sessionRecordKill,
-	sessionTick,
 	sessionOutcome,
 	sessionReason,
 	steerAircraft,
 } from "./SessionQueries";
+import { syncElapsed, sessionRecordKill, sessionTick } from "./SessionProgress";
 import {
 	occludes,
 	enclosedPhase,
@@ -221,7 +219,8 @@ function cleanupSession(session: CombatSession, restore = true): void {
 function missionStats(session: CombatSession, won: boolean): MissionStats {
 	return {
 		...targetScoreStats(session.targetScore, MissionCatalog.Scoring(session.missionId)),
-		kills: session.kills,
+		// Total and ground kills share one source (the runner), so settlement's air = kills - groundKills holds.
+		kills: sessionAllKills(session),
 		groundKills: sessionGroundKills(session),
 		missionId: session.missionId,
 		elapsed: session.elapsed,
@@ -284,7 +283,7 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 							kind: won ? "Completed" : "Failed",
 							slot: session.slot,
 							missionId: session.missionId,
-							kills: session.kills,
+							kills: sessionAllKills(session),
 							elapsed: session.elapsed,
 							reason: sessionReason(session) ?? "internal_error",
 							saved: false,
@@ -772,8 +771,6 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
 	if (!SurfaceTargetRuntime.sinkNavalTarget(session, enemy))
 		destroyTargetVisual(enemy.model, Color3.fromRGB(35, 35, 35));
-	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
-	if (session.blueprintState) session.kills = sessionAllKills(session);
 	CruiseMissileRuntime.cruiseKilled(session, enemy);
 	phaseDirector.Apply(session);
 	// A kill can fill a raider cap or clear a hazard without a phase change.
