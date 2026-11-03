@@ -315,6 +315,29 @@ export function blankProfile(): CampaignProfile {
 	return { version: SAVE_VERSION, slots };
 }
 
+/**
+ * A present mission container must be a table, and every record readMissionsMap would read (ids 0..MISSION_COUNT,
+ * string or numeric key) must be a table; otherwise normalization would silently drop it and the next save would
+ * overwrite it. Absence stays legitimate (v1/v2 slots, fresh slots). Keys outside the current campaign are not read
+ * and are tolerated, so saves carrying retired-campaign records keep loading exactly as before. Scalar fields inside
+ * a record keep their intentional sanitization.
+ */
+function missionsReadError(raw: unknown): string | undefined {
+	if (raw === undefined) return undefined;
+	if (!typeIs(raw, "table"))
+		return "Campaign save has an invalid mission container; saving is disabled to protect it.";
+	for (let id = 0; id <= MISSION_COUNT; id++) {
+		const byString = (raw as Record<string, unknown>)[tostring(id)];
+		const byNumber = (raw as Record<number, unknown>)[id];
+		if (
+			(byString !== undefined && !typeIs(byString, "table")) ||
+			(byNumber !== undefined && !typeIs(byNumber, "table"))
+		)
+			return "Campaign save has invalid mission records; saving is disabled to protect it.";
+	}
+	return undefined;
+}
+
 /** Only a missing key is fresh. Existing unreadable data must never become a writable blank. */
 export function profileReadError(raw: unknown): string | undefined {
 	if (raw === undefined) return undefined;
@@ -334,6 +357,8 @@ export function profileReadError(raw: unknown): string | undefined {
 		let validKey = false;
 		for (let id = 1; id <= SLOT_COUNT; id++) if (key === tostring(id) || (key as unknown) === id) validKey = true;
 		if (!validKey) return "Campaign save has invalid slot keys; saving is disabled to protect it.";
+		const missionIssue = missionsReadError((slot as StoredSlot).missions);
+		if (missionIssue !== undefined) return missionIssue;
 	}
 	return undefined;
 }

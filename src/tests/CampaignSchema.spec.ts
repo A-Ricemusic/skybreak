@@ -69,6 +69,14 @@ describe("Campaign fail-closed schema", () => {
 		{ version: 3, slots: { unexpected: {} } },
 		{ version: 1.5, slots: {} },
 		{ slots: {} },
+		// A present mission container or a mission record the reader would consume must be a table.
+		{ version: 3, slots: { "1": { occupied: true, missions: "damaged-export" } } },
+		{
+			version: 3,
+			slots: { "1": { occupied: true, missions: { "1": "damaged-record", "2": { completed: true } } } },
+		},
+		{ version: 3, slots: { "2": { occupied: true, missions: [{ completed: true }, 7] } } },
+		{ version: 2, slots: { "1": { mission1Completed: true, missions: false } } },
 	]) {
 		it(`protects an unreadable existing profile (${tostring(raw)}) from load and save`, () => {
 			const f = fixture(raw);
@@ -98,6 +106,8 @@ describe("Campaign fail-closed schema", () => {
 	for (const replacement of [
 		{ version: 4, slots: {}, future: true },
 		{ version: 3, slots: false },
+		{ version: 3, slots: { "1": { occupied: true, kills: 9, missions: "damaged-export" } } },
+		{ version: 3, slots: { "1": { occupied: true, missions: { "0": { completed: true }, "3": 12 } } } },
 	])
 		it("protects an unreadable record appearing inside UpdateAsync after load", () => {
 			const f = fixture();
@@ -172,6 +182,22 @@ describe("Campaign fail-closed schema", () => {
 		expect(f.attempts()).toBe(2);
 		expect(f.writes()).toBe(1);
 		expect(normalizeProfile(f.stored()).slots[0].missions?.[1]?.completed).toBe(true);
+	});
+
+	it("keeps loading legitimate mission shapes: absent, empty, and retired-campaign keys it does not read", () => {
+		for (const slot of [
+			{ occupied: true },
+			{ occupied: true, missions: {} },
+			{ occupied: true, missions: { "27": "retired-campaign-noise", "4": { completed: true } } },
+		]) {
+			const f = fixture({ version: 3, slots: { "1": slot } });
+			expect(f.coordinator.load()).toBe(true);
+			expect(f.coordinator.getLoadError()).toBeUndefined();
+			f.coordinator.recordMissionStarted(1);
+			f.drain();
+			expect(f.writes()).toBe(1);
+			expect(normalizeProfile(f.stored()).slots[0].occupied).toBe(true);
+		}
 	});
 
 	for (const version of [1, 2, 3])
