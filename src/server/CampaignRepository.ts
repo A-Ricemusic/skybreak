@@ -34,6 +34,8 @@ export interface StoredSlot {
 	introSeen?: unknown;
 	cutscenesSeen?: unknown;
 	generation?: unknown;
+	/** Unique id of the deletion that started this generation (absent before any deletion and in legacy saves). */
+	epoch?: unknown;
 	/** Last special weapon equipped from this slot's briefing. */
 	special?: unknown;
 	/** Last difficulty chosen from this slot's briefing. */
@@ -63,6 +65,10 @@ export interface CoordinatorOptions {
 	maxAttempts?: number;
 	retryWait?: (attempt: number) => void;
 	warn?: (message: string) => void;
+	/** Issues a unique deletion epoch id; defaults to HttpService:GenerateGUID. Injectable for deterministic specs. */
+	newEpoch?: () => string;
+	/** Phase-2 epoch conflict rules; defaults to DELETION_EPOCH_CONFLICTS (off). Specs exercise both phases. */
+	epochConflicts?: boolean;
 	/** Minimum seconds between deferred (non-flush) writes, measured from the last successful write. */
 	writeSpacing?: number;
 	/** Schedules a spaced write; flush/recover promote it to an immediate one. */
@@ -94,6 +100,9 @@ export interface MissionDebriefScore {
 const SLOT_COUNT = GameConfig.Campaign.SlotCount;
 const MISSION_KILLS = GameConfig.Campaign.MaxRecordedKills;
 const SAVE_VERSION = GameConfig.Campaign.SaveVersion;
+
+/** A GUID is 36 characters; anything longer than this bound is not an epoch this game wrote. */
+const MAX_EPOCH_LENGTH = 64;
 
 function isFiniteNumber(value: unknown): value is number {
 	return typeIs(value, "number") && value === value && math.abs(value) < math.huge;
@@ -304,6 +313,8 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	slot.introSeen = source.introSeen === true;
 	slot.cutscenesSeen = readCutsceneSet(source.cutscenesSeen);
 	slot.generation = isFiniteNumber(source.generation) && source.generation > 0 ? math.floor(source.generation) : 0;
+	if (typeIs(source.epoch, "string") && source.epoch.size() > 0 && source.epoch.size() <= MAX_EPOCH_LENGTH)
+		slot.epoch = source.epoch;
 	if (SpecialWeapons.IsKind(source.special)) slot.special = source.special;
 	if (Difficulty.IsKind(source.difficulty)) slot.difficulty = source.difficulty;
 	return slot;
@@ -356,14 +367,77 @@ function rankOf(value: unknown): MissionRank | undefined {
 	return MissionScore.IsRank(value) ? value : undefined;
 }
 
-function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): SaveSlot {
+/**
+ * Phase 2 of the deletion-epoch rollout, deliberately OFF. Phase 1 (this deploy) only writes and preserves each slot's
+ * `epoch`; every merge decision stays on the pre-epoch generation rules, so servers that drop the field (every server
+ * running before this change) coexist exactly as before. Enable only in a later deploy, once no server that drops
+ * `epoch` can still write campaign records; then competing deletions stop merging (see resolveSlot).
+ */
+export const DELETION_EPOCH_CONFLICTS = false;
+
+/** A slot's exact deletion identity: its generation plus the epoch of the deletion that started it (if known). */
+export interface SlotLineage {
+	generation?: number;
+	epoch?: string;
+}
+
+/** Exact identity. An absent epoch matches only an absent epoch; it is never a wildcard. */
+function sameIdentity(left: SlotLineage, right: SlotLineage): boolean {
+	return (left.generation ?? 0) === (right.generation ?? 0) && left.epoch === right.epoch;
+}
+
+/** What a coordinator knows when it writes. Pure merges pass none and keep the pre-epoch rules. */
+export interface LineageContext {
+	/** Phase-2 conflict rules; false keeps the pre-epoch generation rules. */
+	conflicts: boolean;
+	/**
+	 * Per slot index, the exact identities a still-pending local deletion chain was built on (oldest first). A slot
+	 * with no pending deletion has no entry: having issued an epoch in the past never authorises a replacement.
+	 */
+	pending: ReadonlyMap<number, readonly SlotLineage[]>;
+}
+
+type Resolution = "merge" | "stored" | "desired";
+
+/**
+ * Phase 1 / pure merges: the higher generation replaces, equal generations merge (pre-epoch behaviour).
+ * Phase 2: progress merges are lossless, so only whole-slot replacement needs proof.
+ * - Exact same identity: merge.
+ * - Desired replaces stored only when desired holds a pending deletion whose chain was built on exactly the stored
+ *   identity: a causally newer deletion of that slot.
+ * - Otherwise a different generation keeps stored: either a deletion committed elsewhere, or a desired deletion that
+ *   did not start from what is in the cloud (refused, never merged, receipt not confirmed).
+ * - Equal generation with two different known epochs keeps stored. A defined epoch is written only by the deletion
+ *   that created its generation (merges keep the stored epoch and never assign one to an epoch-less record), so the
+ *   desired lineage was never committed and only its unsaved local progress is dropped.
+ * - Equal generation with an epoch missing on either side (legacy, or rewritten by a server that drops the field)
+ *   merges, exactly as before epochs existed.
+ */
+function resolveSlot(stored: SaveSlot, desired: SaveSlot, index: number, lineage?: LineageContext): Resolution {
+	const storedGeneration = stored.generation ?? 0;
+	const desiredGeneration = desired.generation ?? 0;
+	if (lineage === undefined || !lineage.conflicts) {
+		if (storedGeneration !== desiredGeneration) return storedGeneration > desiredGeneration ? "stored" : "desired";
+		return "merge";
+	}
+	if (sameIdentity(stored, desired)) return "merge";
+	const chain = lineage.pending.get(index);
+	if (chain !== undefined && chain.some((ancestor) => sameIdentity(stored, ancestor))) return "desired";
+	if (storedGeneration !== desiredGeneration) return "stored";
+	if (stored.epoch !== undefined && desired.epoch !== undefined) return "stored";
+	return "merge";
+}
+
+function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number, lineage?: LineageContext): SaveSlot {
 	const stored = normalizeSlot(storedRaw, index);
 	const desired = normalizeSlot(desiredRaw, index);
-	// A deleted slot starts a new generation; never merge progress back in from an older one.
-	if (stored.generation !== desired.generation)
-		return (stored.generation ?? 0) > (desired.generation ?? 0) ? stored : desired;
+	const resolution = resolveSlot(stored, desired, index, lineage);
+	if (resolution === "stored") return stored;
+	if (resolution === "desired") return desired;
 	const merged = blankSlot(index);
 	merged.generation = stored.generation;
+	// Keep the stored epoch exactly: a merge never assigns an epoch to an epoch-less cloud record.
+	if (stored.epoch !== undefined) merged.epoch = stored.epoch;
 	merged.occupied = stored.occupied || desired.occupied;
 	const missions: { [missionId: number]: MissionRecord } = {};
 	for (let id = 0; id <= MISSION_COUNT; id++) {
@@ -413,12 +487,12 @@ function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): Save
 	return merged;
 }
 
-export function mergeProfiles(storedRaw: unknown, desiredRaw: unknown): CampaignProfile {
+export function mergeProfiles(storedRaw: unknown, desiredRaw: unknown, lineage?: LineageContext): CampaignProfile {
 	const stored = normalizeProfile(storedRaw);
 	const desired = normalizeProfile(desiredRaw);
 	const merged = blankProfile();
 	for (let index = 1; index <= SLOT_COUNT; index++)
-		merged.slots[index - 1] = mergeSlot(stored.slots[index - 1], desired.slots[index - 1], index);
+		merged.slots[index - 1] = mergeSlot(stored.slots[index - 1], desired.slots[index - 1], index, lineage);
 	return merged;
 }
 
@@ -456,13 +530,19 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.updatedAt !== undefined) stored.updatedAt = source.updatedAt;
 		if (source.special !== undefined) stored.special = source.special;
 		if (source.difficulty !== undefined) stored.difficulty = source.difficulty;
+		if (source.epoch !== undefined) stored.epoch = source.epoch;
 		slots.set(tostring(index), stored);
 	}
 	return { version: SAVE_VERSION, slots };
 }
 
 function clientSlots(profile: CampaignProfile): SaveSlot[] {
-	return profile.slots.map((slot, offset) => normalizeSlot(slot, offset + 1));
+	return profile.slots.map((slot, offset) => {
+		const copy = normalizeSlot(slot, offset + 1);
+		// The deletion epoch is server-side merge bookkeeping; the client wire keeps its pre-epoch shape.
+		copy.epoch = undefined;
+		return copy;
+	});
 }
 
 export function isValidSlot(value: unknown): value is number {
@@ -584,9 +664,38 @@ interface OperationScope {
 	refused: boolean;
 }
 
+/** A deletion receipt plus the epoch that identifies its tombstone; the epoch never leaves the server. */
+interface DeletionReceipt extends SlotDeletion {
+	epoch: string;
+}
+
+let fallbackEpochs = 0;
+
+/** A GUID per deletion. Pure Luau (offline specs) has no HttpService, so it falls back to a process-local id. */
+function generateEpoch(): string {
+	const [ok, guid] = pcall(() => game.GetService("HttpService").GenerateGUID(false));
+	if (ok && typeIs(guid, "string") && guid.size() > 0) return guid;
+	fallbackEpochs++;
+	return `local-${fallbackEpochs}-${math.floor(os.clock() * 1000000)}-${math.random(0, 1000000000)}`;
+}
+
+function identityOf(slot: SaveSlot): SlotLineage {
+	return { generation: slot.generation ?? 0, epoch: slot.epoch };
+}
+
+/** A pending chain keeps its oldest ancestor (normally the cloud base) plus the most recent local deletions. */
+const MAX_PENDING_CHAIN = 16;
+
 export class CampaignCoordinator {
 	private profile = blankProfile();
-	private readonly deletions = new Map<number, SlotDeletion>();
+	private readonly deletions = new Map<number, DeletionReceipt>();
+	/**
+	 * Per slot, the exact identities a still-pending local deletion chain was built on. Cleared as soon as the local
+	 * slot settles on the committed cloud identity (its tombstone landed, or it adopted another record).
+	 */
+	private readonly pendingChains = new Map<number, SlotLineage[]>();
+	private readonly newEpoch: () => string;
+	private readonly epochConflicts: boolean;
 	private readonly clock: () => number;
 	private readonly wait: () => void;
 	private persistence: Persistence;
@@ -631,6 +740,8 @@ export class CampaignCoordinator {
 		this.maxAttempts = options.maxAttempts ?? 3;
 		this.retryWait = options.retryWait ?? ((attempt) => task.wait(attempt));
 		this.logWarning = options.warn ?? warn;
+		this.newEpoch = options.newEpoch ?? generateEpoch;
+		this.epochConflicts = options.epochConflicts ?? DELETION_EPOCH_CONFLICTS;
 	}
 
 	public load(): boolean {
@@ -647,7 +758,8 @@ export class CampaignCoordinator {
 			this.persistence = "unavailable";
 			return false;
 		}
-		this.profile = mergeProfiles(stored, this.profile);
+		this.profile = mergeProfiles(stored, this.profile, this.lineage());
+		this.settlePending(stored as CampaignProfile);
 		this.loadError = undefined;
 		this.cloudLoaded = true;
 		this.persistence = "cloud";
@@ -762,14 +874,30 @@ export class CampaignCoordinator {
 		this.markDirty();
 	}
 
-	/** Wipes a slot back to empty. The bumped generation keeps the old progress from merging back in on save. */
+	/**
+	 * Wipes a slot back to empty under a new generation and a fresh unique epoch, issued once here and never on a
+	 * write retry or transform re-run; later progress belongs to that epoch. The bumped generation keeps the old
+	 * progress from merging back in. In phase 2 the pending chain is the only proof that lets this tombstone replace
+	 * the cloud slot, and only if the cloud still holds exactly what the deletion was applied over.
+	 */
 	public deleteSlot(slotIndex: number): void {
 		assert(isValidSlot(slotIndex), "invalid campaign slot");
 		const generation = (this.profile.slots[slotIndex - 1].generation ?? 0) + 1;
+		const epoch = this.newEpoch();
+		// The chain records exactly what this deletion was applied over; only those identities may be replaced.
+		const chain = [...(this.pendingChains.get(slotIndex) ?? []), identityOf(this.profile.slots[slotIndex - 1])];
+		if (chain.size() > MAX_PENDING_CHAIN) chain.remove(1);
+		this.pendingChains.set(slotIndex, chain);
 		const slot = blankSlot(slotIndex);
 		slot.generation = generation;
+		slot.epoch = epoch;
 		this.profile.slots[slotIndex - 1] = slot;
-		this.deletions.set(slotIndex, { slot: slotIndex, generation, status: this.store ? "pending" : "session-only" });
+		this.deletions.set(slotIndex, {
+			slot: slotIndex,
+			generation,
+			epoch,
+			status: this.store ? "pending" : "session-only",
+		});
 		this.markDirty();
 	}
 
@@ -780,7 +908,7 @@ export class CampaignCoordinator {
 			if (status !== "confirmed" && status !== "session-only") {
 				status = this.writeRunning || this.writeScheduled ? "pending" : "failed";
 			}
-			result.push({ ...deletion, status });
+			result.push({ slot: deletion.slot, generation: deletion.generation, status });
 		}
 		return result;
 	}
@@ -862,11 +990,13 @@ export class CampaignCoordinator {
 			if (!urgent && this.clock() < this.lastWriteAt + this.writeSpacing) break;
 			this.dirty = false;
 			const desired = normalizeProfile(this.profile);
+			// Snapshot, like `desired`: every retry and transform re-run resolves against the same lineage.
+			const lineage = this.lineage();
 			const [success, stored] = this.tryOperation("profile save", (scope) => {
 				const saved = this.store!.update(this.key, (current) => {
 					// UpdateAsync can observe a newer deployment's record after our successful load.
 					this.checkReadable(current, scope);
-					return serializeProfile(mergeProfiles(current, desired));
+					return serializeProfile(mergeProfiles(current, desired, lineage));
 				});
 				this.checkReadable(saved, scope);
 				return normalizeProfile(saved);
@@ -878,26 +1008,46 @@ export class CampaignCoordinator {
 				break;
 			}
 			this.lastWriteAt = this.clock();
-			// Only a successful write carrying this tombstone confirms the deletion.
-			// Later progress can reuse its generation; never replay deleteSlot on retry.
+			// Only a successful write carrying this tombstone confirms the deletion: its generation, and in phase 2 its
+			// epoch too. Later progress reuses both; never replay deleteSlot on retry.
 			const persisted = normalizeProfile(stored);
 			for (const [, deletion] of this.deletions) {
 				const sent = desired.slots[deletion.slot - 1];
 				const saved = persisted.slots[deletion.slot - 1];
 				if (
 					sent.generation === deletion.generation &&
+					(!this.epochConflicts || sent.epoch === deletion.epoch) &&
 					!sent.occupied &&
 					saved.generation === deletion.generation &&
+					(!this.epochConflicts || saved.epoch === deletion.epoch) &&
 					!saved.occupied
 				)
 					deletion.status = "confirmed";
 			}
-			this.profile = mergeProfiles(stored, this.profile);
+			// Resolve local changes made during the write (including a newer pending deletion), then drop the
+			// chains of slots that now carry the committed identity.
+			this.profile = mergeProfiles(stored, this.profile, this.lineage());
+			this.settlePending(persisted);
 			this.persistence = "cloud";
 		}
 		this.writeRunning = false;
 		// A failed write is retried only by flush/recover, exactly as before; spaced-out dirt is rescheduled.
 		if (!failed && this.dirty) this.queueSave();
+	}
+
+	/** A true snapshot: the transform and every retry resolve against the chains as they were when the write began. */
+	private lineage(): LineageContext {
+		const pending = new Map<number, readonly SlotLineage[]>();
+		for (const [slot, chain] of this.pendingChains) pending.set(slot, [...chain]);
+		return { conflicts: this.epochConflicts, pending };
+	}
+
+	/** A local slot that now carries the committed identity has no pending deletion left to prove. */
+	private settlePending(committed: CampaignProfile): void {
+		for (const [slot] of this.pendingChains) {
+			if (sameIdentity(identityOf(this.profile.slots[slot - 1]), identityOf(committed.slots[slot - 1])))
+				this.pendingChains.delete(slot);
+		}
 	}
 
 	private tryOperation(name: string, callback: (scope: OperationScope) => unknown): LuaTuple<[boolean, unknown]> {

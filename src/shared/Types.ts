@@ -43,6 +43,11 @@ export interface SaveSlot {
 	cutscenesSeen?: number[];
 	/** Bumped each time the player deletes this slot; a higher generation replaces older data instead of merging. */
 	generation?: number;
+	/**
+	 * Server-side id of the deletion that started this generation; absent for never-deleted, legacy and
+	 * older-server-rewritten slots. Phase 1 only stores it; see DELETION_EPOCH_CONFLICTS in CampaignRepository.
+	 */
+	epoch?: string;
 	/** Last special weapon chosen on the briefing screen for this slot (SpecialWeapons kind). */
 	special?: string;
 	/** Last difficulty chosen on the briefing screen for this slot (Difficulty kind). */

@@ -14,6 +14,8 @@ function fixture(writeSpacing = CAMPAIGN_WRITE_SPACING) {
 	let clock = 0;
 	let updates = 0;
 	let duringWrite: (() => void) | undefined;
+	// Deterministic deletion epochs, so a spaced run and its unspaced reference serialize identically.
+	let epochs = 0;
 	const deferred: (() => void)[] = [];
 	const delayed: { at: number; callback: () => void }[] = [];
 	const store: CampaignStore = {
@@ -55,6 +57,7 @@ function fixture(writeSpacing = CAMPAIGN_WRITE_SPACING) {
 		now: () => 1000,
 		maxAttempts: 1,
 		warn: () => undefined,
+		newEpoch: () => `spacing-${++epochs}`,
 	});
 	coordinator.load();
 	return {
