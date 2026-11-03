@@ -1,4 +1,4 @@
-// Server adapters for FinaleDuelRules: duel activity, target permission and finale steps. Formerly EngineBatchD13Runtime.
+// Server adapters for FinaleDuelRules: duel activity, target permission and finale steps.
 import { clearCruise } from "./CruiseMissileRuntime";
 import { AircraftCollision } from "./AircraftCollision";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -7,46 +7,47 @@ import { WorldEnvironment } from "./WorldEnvironment";
 import type { CombatSession, Enemy } from "./CombatSession";
 
 /** Session-scoped ownership. New retry session restores the world through its normal builder. */
-export function duelActive(s: CombatSession): boolean {
-	return s.blueprintState !== undefined && BlueprintRunner.ActivePhase(s.blueprintState)?.finale?.duel !== undefined;
+export function duelActive(session: CombatSession): boolean {
+	return (
+		session.blueprintState !== undefined &&
+		BlueprintRunner.ActivePhase(session.blueprintState)?.finale?.duel !== undefined
+	);
 }
-export function finaleTargetAllowed(s: CombatSession, e: Enemy): boolean {
-	const bs = s.blueprintState,
-		d = bs && BlueprintRunner.ActivePhase(bs)?.finale;
-	if (d?.duel) return e.kind === "ace" && e.required && e.phaseOwner === bs!.phaseIndex;
-	if (d?.vent && e.id === d.vent.core)
+export function finaleTargetAllowed(session: CombatSession, enemy: Enemy): boolean {
+	const blueprintState = session.blueprintState;
+	const finale = blueprintState && BlueprintRunner.ActivePhase(blueprintState)?.finale;
+	if (finale?.duel) return enemy.kind === "ace" && enemy.required && enemy.phaseOwner === blueprintState!.phaseIndex;
+	if (finale?.vent && enemy.id === finale.vent.core)
 		return (
-			bs!.vent !== undefined &&
-			bs!.vent!.elapsed >= d.vent.openingSeconds &&
-			bs!.vent!.checkpoint >= d.vent.checkpoints.size()
+			blueprintState!.vent !== undefined &&
+			blueprintState!.vent!.elapsed >= finale.vent.openingSeconds &&
+			blueprintState!.vent!.checkpoint >= finale.vent.checkpoints.size()
 		);
 	return true;
 }
-export function stepFinaleDuel(s: CombatSession, say: (line: string) => void): void {
-	const bs = s.blueprintState,
-		d = bs && BlueprintRunner.ActivePhase(bs)?.finale;
-	if (!bs || !d) return;
-	if (s.d13Phase !== bs.phaseIndex) {
-		s.d13Gate?.Destroy();
-		s.d13Gate = undefined;
-		s.d13Beacon?.Destroy();
-		s.d13Beacon = undefined;
-		s.d13Phase = bs.phaseIndex;
-		if (d.vent) {
-			const g = d.vent.gate,
-				shutter = new Instance("Part");
+export function stepFinaleDuel(session: CombatSession, say: (line: string) => void): void {
+	const blueprintState = session.blueprintState;
+	const finale = blueprintState && BlueprintRunner.ActivePhase(blueprintState)?.finale;
+	if (!blueprintState || !finale) return;
+	if (session.finaleDuel?.phase !== blueprintState.phaseIndex) {
+		session.finaleDuel?.gate?.Destroy();
+		session.finaleDuel?.beacon?.Destroy();
+		session.finaleDuel = { phase: blueprintState.phaseIndex };
+		if (finale.vent) {
+			const gateVolume = finale.vent.gate;
+			const shutter = new Instance("Part");
 			shutter.Name = "Vent timed shutter";
 			shutter.Anchored = true;
 			shutter.CanCollide = false;
 			shutter.CanTouch = false;
-			shutter.Size = new Vector3(g.half.x * 2, g.half.y * 2, 4);
-			shutter.Position = new Vector3(g.center.x, g.center.y, g.center.z);
+			shutter.Size = new Vector3(gateVolume.half.x * 2, gateVolume.half.y * 2, 4);
+			shutter.Position = new Vector3(gateVolume.center.x, gateVolume.center.y, gateVolume.center.z);
 			shutter.Material = Enum.Material.Neon;
 			shutter.Color = Color3.fromRGB(255, 150, 50);
 			shutter.SetAttribute("FlightSolid", true);
-			shutter.Parent = s.folder;
-			s.d13Gate = shutter;
-			s.collisionParams = AircraftCollision.Parameters(s.folder);
+			shutter.Parent = session.folder;
+			session.finaleDuel.gate = shutter;
+			session.collisionParams = AircraftCollision.Parameters(session.folder);
 			const beacon = new Instance("Part");
 			beacon.Name = "Vent route beacon";
 			beacon.Anchored = true;
@@ -57,51 +58,51 @@ export function stepFinaleDuel(s: CombatSession, say: (line: string) => void): v
 			beacon.Shape = Enum.PartType.Ball;
 			beacon.Material = Enum.Material.Neon;
 			beacon.Color = Color3.fromRGB(70, 255, 230);
-			beacon.Parent = s.folder;
-			s.d13Beacon = beacon;
+			beacon.Parent = session.folder;
+			session.finaleDuel.beacon = beacon;
 			say("CORE ROUTE REVEALED · AMBER SHUTTER OPENS ON COUNTDOWN · FOLLOW CYAN BEACONS");
 		}
-		if ((d.environment ?? "") !== "") {
-			const environment = resolveEnvironment(d.environment);
+		if ((finale.environment ?? "") !== "") {
+			const environment = resolveEnvironment(finale.environment);
 			assert(environment !== undefined, "Validated environment missing");
 			// Replaces named atmosphere/clouds through the existing single world owner.
 			// NightLighting only owns local lamps and never writes Lighting.
-			WorldEnvironment.ApplySpec(environment, d.environment!);
+			WorldEnvironment.ApplySpec(environment, finale.environment!);
 		}
-		if (d.duel) {
-			clearCruise(s);
-			s.airQueue.clear();
-			for (let i = s.projectiles.size() - 1; i >= 0; i--) {
-				s.projectiles[i].part.Destroy();
-				s.projectiles.remove(i);
+		if (finale.duel) {
+			clearCruise(session);
+			session.airQueue.clear();
+			for (let i = session.projectiles.size() - 1; i >= 0; i--) {
+				session.projectiles[i].part.Destroy();
+				session.projectiles.remove(i);
 			}
-			for (const e of s.enemies) {
-				if (e.kind === "ace" && e.required && e.phaseOwner === bs.phaseIndex) continue;
-				e.enabled = false;
-				e.windup = 0;
-				e.model.SetAttribute("AttackWarning", false);
-				if (e.warning) e.warning.Enabled = false;
-				if (e.kind !== "ground") {
-					e.health = 0;
-					e.model.Destroy();
+			for (const enemy of session.enemies) {
+				if (enemy.kind === "ace" && enemy.required && enemy.phaseOwner === blueprintState.phaseIndex) continue;
+				enemy.enabled = false;
+				enemy.windup = 0;
+				enemy.model.SetAttribute("AttackWarning", false);
+				if (enemy.warning) enemy.warning.Enabled = false;
+				if (enemy.kind !== "ground") {
+					enemy.health = 0;
+					enemy.model.Destroy();
 				}
 			}
-			for (const ally of s.allies) {
+			for (const ally of session.allies) {
 				ally.windup = 0;
 				ally.combatTarget = undefined;
 			}
-			s.target = undefined;
-			s.lockProgress = 0;
+			session.target = undefined;
+			session.lockProgress = 0;
 			say("RUSK ALONE · ALLIES HOLD FIRE · FIVE MINUTES");
 		}
 	}
-	if (d.vent && bs.vent) {
-		if (bs.vent.elapsed >= d.vent.openingSeconds && s.d13Gate) {
-			s.d13Gate.Destroy();
-			s.d13Gate = undefined;
+	if (finale.vent && blueprintState.vent) {
+		if (blueprintState.vent.elapsed >= finale.vent.openingSeconds && session.finaleDuel?.gate) {
+			session.finaleDuel.gate.Destroy();
+			session.finaleDuel.gate = undefined;
 			say("VENT OPEN · FOLLOW CYAN CHECKPOINTS · EXIT REQUIRED AFTER CORE");
 		}
-		const target = d.vent.checkpoints[bs.vent.checkpoint]?.center ?? d.vent.exit.center;
-		if (s.d13Beacon) s.d13Beacon.Position = new Vector3(target.x, target.y, target.z);
+		const target = finale.vent.checkpoints[blueprintState.vent.checkpoint]?.center ?? finale.vent.exit.center;
+		if (session.finaleDuel?.beacon) session.finaleDuel.beacon.Position = new Vector3(target.x, target.y, target.z);
 	}
 }

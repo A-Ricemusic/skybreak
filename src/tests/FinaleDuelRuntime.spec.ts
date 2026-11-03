@@ -170,7 +170,7 @@ describe("D13 Roblox runtime contracts (compiled; execution pending)", () => {
 			expect(f.rusk.position.X).toBeLessThanOrEqual(2000);
 			expect(f.rusk.position.Y).toBe(800);
 			expect(f.rusk.frame).toBeDefined();
-			f.s.d13Phase = undefined;
+			f.s.finaleDuel = undefined;
 			f.gun.enabled = true;
 			stepFinaleDuel(f.s, () => {});
 			expect(f.gun.enabled).toBe(false);

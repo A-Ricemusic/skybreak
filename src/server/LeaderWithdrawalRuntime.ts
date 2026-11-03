@@ -1,4 +1,4 @@
-// Server adapters for LeaderWithdrawalRules: leader model, withdrawal steps, closed routes. Formerly EngineBatchD12Runtime.
+// Server adapters for LeaderWithdrawalRules: leader model, withdrawal steps, closed routes.
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import {
 	WithdrawalIdentities,
@@ -16,32 +16,38 @@ export interface LeaderRuntime {
 	model: Model;
 	state: WithdrawalState;
 }
-export function clearLeader(s: CombatSession): void {
-	s.leaderWithdrawal?.model.Destroy();
-	s.leaderWithdrawal = undefined;
+export function clearLeader(session: CombatSession): void {
+	session.leaderWithdrawal?.model.Destroy();
+	session.leaderWithdrawal = undefined;
 }
-export function closedBridgeRoute(s: CombatSession, id: string, kind: "sector" | "hull"): boolean {
-	const bs = s.blueprintState;
+export function closedBridgeRoute(session: CombatSession, id: string, kind: "sector" | "hull"): boolean {
+	const blueprintState = session.blueprintState;
 	return (
-		bs !== undefined && bridgeRouteClosed(BlueprintRunner.ActivePhase(bs)?.bridgeClosures, bs.killedIds, id, kind)
+		blueprintState !== undefined &&
+		bridgeRouteClosed(
+			BlueprintRunner.ActivePhase(blueprintState)?.bridgeClosures,
+			blueprintState.killedIds,
+			id,
+			kind,
+		)
 	);
 }
 /** Noncombat procedural silhouette, outside Enemy/target registries and all weapon hit paths. */
-function createLeader(s: CombatSession): Model {
+function createLeader(session: CombatSession): Model {
 	const model = new Instance("Model");
 	model.Name = "RUSK · COMMAND AIRCRAFT";
 	const part = (name: string, size: Vector3, offset: Vector3) => {
-		const p = new Instance("Part");
-		p.Name = name;
-		p.Size = size;
-		p.Position = offset;
-		p.Color = Color3.fromRGB(155, 70, 65);
-		p.Anchored = true;
-		p.CanCollide = false;
-		p.CanTouch = false;
-		p.CanQuery = false;
-		p.Parent = model;
-		return p;
+		const piece = new Instance("Part");
+		piece.Name = name;
+		piece.Size = size;
+		piece.Position = offset;
+		piece.Color = Color3.fromRGB(155, 70, 65);
+		piece.Anchored = true;
+		piece.CanCollide = false;
+		piece.CanTouch = false;
+		piece.CanQuery = false;
+		piece.Parent = model;
+		return piece;
 	};
 	model.PrimaryPart = part("Fuselage", new Vector3(7, 6, 42), Vector3.zero);
 	part("Wings", new Vector3(36, 2, 14), new Vector3(0, 0, 4));
@@ -64,40 +70,49 @@ function createLeader(s: CombatSession): Model {
 	label.TextColor3 = Color3.fromRGB(255, 190, 100);
 	label.TextSize = 14;
 	label.Parent = marker;
-	model.Parent = s.folder;
+	model.Parent = session.folder;
 	return model;
 }
 /** Active simulation only; withdrawal has no score, kill, warning, weapon or raycast path. */
-export function stepLeader(s: CombatSession, dt: number, say: (line: string) => void): void {
-	const bs = s.blueprintState,
-		plan = bs && BlueprintRunner.ActivePhase(bs)?.leaderWithdrawal;
-	if (!bs || !plan || (s.leaderWithdrawal && s.leaderWithdrawal.phase !== bs.phaseIndex)) clearLeader(s);
+export function stepLeader(session: CombatSession, dt: number, say: (line: string) => void): void {
+	const blueprintState = session.blueprintState;
+	const plan = blueprintState && BlueprintRunner.ActivePhase(blueprintState)?.leaderWithdrawal;
 	if (
-		!bs ||
+		!blueprintState ||
 		!plan ||
-		!s.active ||
-		s.cleaned ||
-		s.loading ||
-		s.launch ||
-		s.rearmElapsed !== undefined ||
-		s.cutInElapsed !== undefined ||
-		PauseRules.Paused(s.pause) ||
-		bs.outcome !== undefined ||
+		(session.leaderWithdrawal && session.leaderWithdrawal.phase !== blueprintState.phaseIndex)
+	)
+		clearLeader(session);
+	if (
+		!blueprintState ||
+		!plan ||
+		!session.active ||
+		session.cleaned ||
+		session.loading ||
+		session.launch ||
+		session.rearmElapsed !== undefined ||
+		session.cutInElapsed !== undefined ||
+		PauseRules.Paused(session.pause) ||
+		blueprintState.outcome !== undefined ||
 		!finiteNumber(dt) ||
 		dt <= 0
 	)
 		return;
-	s.leaderWithdrawal ??= { phase: bs.phaseIndex, model: createLeader(s), state: newWithdrawal() };
-	const runtime = s.leaderWithdrawal,
-		wasDeparting = runtime.state.departing;
-	const done = stepWithdrawal(runtime.state, plan, bs.phaseProgress, dt);
+	session.leaderWithdrawal ??= {
+		phase: blueprintState.phaseIndex,
+		model: createLeader(session),
+		state: newWithdrawal(),
+	};
+	const runtime = session.leaderWithdrawal;
+	const wasDeparting = runtime.state.departing;
+	const done = stepWithdrawal(runtime.state, plan, blueprintState.phaseProgress, dt);
 	if (!wasDeparting && runtime.state.departing) say("RUSK IS RUNNING FOR THE COAST · WING BROKEN");
-	const pose = leaderPose(plan, runtime.state),
-		p = pose.position;
-	runtime.model.PivotTo(new CFrame(p.x, p.y, p.z).mul(CFrame.Angles(0, math.rad(pose.yaw), 0)));
+	const pose = leaderPose(plan, runtime.state);
+	const position = pose.position;
+	runtime.model.PivotTo(new CFrame(position.x, position.y, position.z).mul(CFrame.Angles(0, math.rad(pose.yaw), 0)));
 	if (done) {
-		s.folder.SetAttribute("RuskDeparted", true);
-		BlueprintRunner.ObserveLeaderDeparture(bs);
-		clearLeader(s);
+		session.folder.SetAttribute("RuskDeparted", true);
+		BlueprintRunner.ObserveLeaderDeparture(blueprintState);
+		clearLeader(session);
 	}
 }
