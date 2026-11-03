@@ -32,6 +32,8 @@ bun run build:place
 bun run serve
 ```
 
+Before committing, run `bun run format && bun run lint`; `validate:offline` and CI fail on unformatted or lint-failing code. The Python tests (`python3 -m unittest discover -s tools/tests`) read `build/skybreak.rbxlx`, so run `bun run build:place` first.
+
 Open `build/skybreak.rbxlx` in Roblox Studio. Open the Rojo plugin in the Plugins toolbar and connect to `localhost:34872`. Publishing is automatic on merge to `main` (see “Play on your phone” below); nothing is published from Studio.
 
 ## Source files
@@ -84,7 +86,7 @@ The generation key needs sound-generation and subscription-read access. Final au
 
 Run `bun test:roblox` (or `bun run test:roblox`). Bun compiles the TypeScript, builds an isolated test place, launches authenticated Roblox Studio, and runs Jest in Roblox's Luau VM. This is not Bun's JavaScript test runner. Results are written to `build/jest-results.json`; full output is in `build/jest-output.log`.
 
-The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. The runner defaults to a 1,200-second Studio deadline; set `ROBLOX_TEST_TIMEOUT_MS` to a positive integer in milliseconds for a longer world-integration run. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
+The runner refuses to start while another Roblox Studio is running (`pgrep -x RobloxStudio`), because a second Studio makes the run hang until its deadline; close Studio first, or set `ROBLOX_TEST_ALLOW_RUNNING_STUDIO=1` to bypass the check deliberately. The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. The runner defaults to a 1,200-second Studio deadline; set `ROBLOX_TEST_TIMEOUT_MS` to a positive integer in milliseconds for a longer world-integration run. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
 
 Run `bun run test:roblox:perf` for the isolated, sequential 18-mission world timing test. It selects only `MissionWorldBuild.perf`, with a 60-minute Studio deadline (overridable with `ROBLOX_TEST_TIMEOUT_MS`) and a 55-minute Jest test timeout. Logs and summary use `build/jest-perf-output.log` and `build/jest-perf-results.json`. Each `MISSION_PERF_ROW` reports build time, heartbeat gap, terrain batch, planning CPU/slice, memory and phase durations. Every gap over 0.3 seconds prints all intervening timestamped phase spans, including previous-world cleanup and Sea parts. The test uses synthetic uploaded templates; it does not measure real asset downloads, replication or device load. GC memory deltas and the settling window are diagnostic evidence, not causal GC attribution. The default suite retains the calibrated plan bounds, Sea/corridor regressions and existing integration builds; `validate:offline` also checks all 18 deterministic plan fingerprints.
 
