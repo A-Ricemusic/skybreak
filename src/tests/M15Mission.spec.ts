@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { mission as bp, M15_TARGETS, M15_GROUND, M15_WAVES } from "../shared/missions/m15";
 import { buildM15ScenePlan, m15TargetLayout, M15_WORLD_KEY } from "../shared/M15WorldPlan";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
@@ -15,6 +15,7 @@ import { rearmDuration, rearmPose } from "../shared/RearmRules";
 import { SortieArmament } from "../shared/SortieArmament";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import { withEarlierMissions } from "./helpers/Progression";
 const policy = bp.scoring!;
 function strike() {
 	const s = R.NewState(bp, 0),
@@ -22,13 +23,7 @@ function strike() {
 	for (const t of M15_TARGETS) recordScoredKill(s, ledger, t.id, "ground", t.required, 100, t.scoreRole);
 	return { s, ledger };
 }
-function earlier(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 14; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	MISSIONS.forEach((m, i) => (m.available = before[i]));
-	if (!ok) error(err, 0);
-}
+const earlier = (fn: () => void) => withEarlierMissions(14, fn);
 describe("M15 SILENT STREETS", () => {
 	it("filters all fourteen airborne proxies before composition while retaining ground adoption geometry", () => {
 		const plan = buildM15ScenePlan(),

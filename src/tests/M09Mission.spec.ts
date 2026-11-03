@@ -16,8 +16,10 @@ import {
 import { landingDuration, landingPose } from "../shared/LandingRules";
 import { rearmDuration, rearmPose } from "../shared/RearmRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
-import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import { CampaignCoordinator, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { takeArrival } from "../shared/CampaignEncounters";
+import { withEarlierMissions } from "./helpers/Progression";
+import { finishMission } from "./helpers/Saves";
 const scoring = mission.scoring!;
 function winState() {
 	const s = BlueprintRunner.NewState(mission, 0);
@@ -25,38 +27,13 @@ function winState() {
 	BlueprintRunner.Tick(s, 600);
 	return s;
 }
-function withEarlier(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 8; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	MISSIONS.forEach((m, i) => (m.available = before[i]));
-	if (!ok) error(err, 0);
-}
-function finish(
+const withEarlier = (fn: () => void) => withEarlierMissions(8, fn);
+const finish = (
 	c: CampaignCoordinator,
 	id: number,
 	phases = MissionCatalog.TotalPhases(MissionCatalog.Get(id)),
 	ledger?: TargetScore,
-) {
-	const b = MissionCatalog.Get(id);
-	return completeMission(
-		c,
-		1,
-		id,
-		true,
-		{
-			slot: 1,
-			missionId: id,
-			kills: MissionCatalog.RequiredAirKills(b) + MissionCatalog.RequiredGroundKills(b),
-			groundKills: MissionCatalog.RequiredGroundKills(b),
-			completedPhases: phases,
-			elapsed: id === 9 ? 900 : 100,
-			targetScore: ledger?.Snapshot(),
-		},
-		() => undefined,
-		0,
-	);
-}
+) => finishMission(c, id, { phases, elapsed: id === 9 ? 900 : 100, score: ledger });
 describe("M09 GREEN BEACON", () => {
 	it("validates the released world, original story and phase-owned clocks", () => {
 		MissionCatalog.ValidatePolicy(mission);

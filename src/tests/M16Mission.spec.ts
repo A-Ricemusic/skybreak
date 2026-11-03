@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M16_TARGETS, M16_COLUMN, M16_WAVES } from "../shared/missions/m16";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { buildM16ScenePlan, m16TargetLayout } from "../shared/M16WorldPlan";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { newGroundProgress, stepGroundProgress, damageSector, groundProgressPose } from "../shared/GroundSectorRules";
@@ -21,14 +21,9 @@ import { createCombatSession } from "../server/CombatSessionFactory";
 import { FlightMath } from "../shared/FlightMath";
 import { SortieArmament } from "../shared/SortieArmament";
 import { rearmClock, rearmMenuDue } from "../shared/SortieCutaways";
+import { withEarlierMissions } from "./helpers/Progression";
 const phase = bp.phases[0];
-function earlier(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 15; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = before[i];
-	if (!ok) error(err, 0);
-}
+const earlier = (fn: () => void) => withEarlierMissions(15, fn);
 describe("M16 Dust Road", () => {
 	it("removes airborne contact blocks and column placeholders from runtime scenery", () => {
 		const plan = buildM16ScenePlan();

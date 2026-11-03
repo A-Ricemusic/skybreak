@@ -13,7 +13,7 @@ import { recordAlliedKill, recordScoredKill } from "../server/SortieScore";
 import { MissionScore } from "../shared/MissionScore";
 import { AlliedRules } from "../shared/AlliedRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
-import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import { normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { landingDuration, landingPose, validateLandingPhases } from "../shared/LandingRules";
 import { rearmDuration, validateRearmPhases } from "../shared/RearmRules";
 import { validateNightLighting } from "../shared/NightLighting";
@@ -48,6 +48,9 @@ import {
 	m05LightPoint,
 } from "../shared/missions/m05";
 import type { MissionFinished } from "../shared/Types";
+import { rejects } from "./helpers/Rejects";
+import { withMissionsAvailable } from "./helpers/Progression";
+import { finishMission as finish, freshCoordinator } from "./helpers/Saves";
 
 const bp = MissionCatalog.Get(5);
 const strike = bp.phases[0],
@@ -60,50 +63,9 @@ const group = (name: string) => targets.filter((t) => t.group === name);
 function context(elapsed: number, phase: number, x = M05_START.x, z = M05_START.z): TriggerContext {
 	return { elapsed, phase, requiredKills: 0, destroyed: new Set<string>(), targets, player: { x, z } };
 }
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
-}
 /** Mission 4 (and mission 3 on older bases) is released by its own PR; fixtures open them so mission 5's unlock can be exercised. */
-function withEarlierMissions(fn: () => void): void {
-	const before = [MISSIONS[2].available, MISSIONS[3].available];
-	MISSIONS[2].available = true;
-	MISSIONS[3].available = true;
-	const [ok, err] = pcall(fn);
-	MISSIONS[2].available = before[0];
-	MISSIONS[3].available = before[1];
-	if (!ok) error(err, 0);
-}
-function fresh() {
-	const c = new CampaignCoordinator("m05-unlock", undefined, { now: () => 1000, defer: () => undefined });
-	c.load();
-	return c;
-}
-function finish(
-	c: CampaignCoordinator,
-	missionId: number,
-	extra: { elapsed?: number; score?: TargetScore; phases?: number } = {},
-	notify: (m: MissionFinished) => void = () => undefined,
-): boolean {
-	const m = MissionCatalog.Get(missionId);
-	return completeMission(
-		c,
-		1,
-		missionId,
-		true,
-		{
-			slot: 1,
-			missionId,
-			kills: MissionCatalog.RequiredAirKills(m) + MissionCatalog.RequiredGroundKills(m),
-			groundKills: MissionCatalog.RequiredGroundKills(m),
-			completedPhases: extra.phases ?? MissionCatalog.TotalPhases(m),
-			elapsed: extra.elapsed ?? 100,
-			targetScore: extra.score?.Snapshot(),
-		},
-		notify,
-		0,
-	);
-}
+const withEarlierMissions = (fn: () => void) => withMissionsAvailable([2, 3], fn);
+const fresh = () => freshCoordinator("m05-unlock");
 
 describe("Mission 5 data: the night fuel works", () => {
 	it("is released on the night refinery world with a 10:00 strike, airborne start, night lights and points scoring", () => {

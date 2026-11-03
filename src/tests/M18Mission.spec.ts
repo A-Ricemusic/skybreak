@@ -1,7 +1,7 @@
 import { crossesVolume as crosses } from "../shared/FinaleDuelRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M18_TARGETS, M18_VENT as v } from "../shared/missions/m18";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { buildM18Plan, m18Ground, m18TargetLayout, m18VentRoute } from "../shared/M18WorldPlan";
 import { M18_ASCENDING, ascendingPose } from "../shared/M18FinaleRules";
@@ -17,6 +17,7 @@ import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfil
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { Settlement } from "../shared/SessionGuard";
 import { STORY, chapterBeforeMission } from "../shared/RelayStory";
+import { withEarlierMissions } from "./helpers/Progression";
 function generators() {
 	const s = R.NewState(bp, 0);
 	for (const t of M18_TARGETS.filter((t) => t.type === "generator")) R.RecordKill(s, t.id, "ground", true, 1);
@@ -30,13 +31,7 @@ function duel() {
 	R.ObserveFlight(s, { x: 0, y: 174, z: -6900 }, { x: 0, y: 174, z: -7100 }, 0.1, 10);
 	return s;
 }
-function prerequisites(fn: () => void) {
-	const old = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 17; i++) MISSIONS[i].available = true;
-	const [ok, e] = pcall(fn);
-	for (let i = 0; i < 18; i++) MISSIONS[i].available = old[i];
-	if (!ok) error(e, 0);
-}
+const prerequisites = (fn: () => void) => withEarlierMissions(17, fn);
 describe("M18 playable finale", () => {
 	it("validates authored ids, adopted world targets, phase clocks, original story and raw ledger", () => {
 		MissionCatalog.ValidatePolicy(bp);

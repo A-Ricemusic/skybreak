@@ -20,12 +20,7 @@ import { CombatBalance } from "../shared/CombatBalance";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { AlliedRules } from "../shared/AlliedRules";
 import { m16Height } from "../shared/M16WorldPlan";
-const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
-const mul = (a: Point, n: number): Point => ({ x: a.x * n, y: a.y * n, z: a.z * n });
-const sub = (a: Point, b: Point) => add(a, mul(b, -1));
-const len = (a: Point) => math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-const unit = (a: Point) => mul(a, 1 / math.max(1e-9, len(a)));
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y + a.z * b.z;
+import { add, dot, length as len, mul, sub, unit } from "./helpers/Points";
 const steer = (a: Point, b: Point, n: number) => unit(add(mul(a, 1 - n), mul(b, n)));
 // Terrain LOS only. Authored props/actors are an explicit remaining Player acceptance gap.
 function los(a: Point, b: Point): boolean {

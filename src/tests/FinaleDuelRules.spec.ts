@@ -14,6 +14,7 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { resolveEnvironment } from "../shared/WorldEnvironments";
 import { SortieArmament } from "../shared/SortieArmament";
+import { rejects } from "./helpers/Rejects";
 const box = (z: number) => ({ center: { x: 0, y: 174, z }, half: { x: 70, y: 50, z: 40 } });
 const vent = (): VentRun => ({
 	generators: ["g1", "g2", "g3"],
@@ -71,10 +72,6 @@ function fixture(): MissionBlueprint {
 			},
 		],
 	};
-}
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
 }
 describe("D13 dormant finale contracts", () => {
 	it("leaves practice and missions 1–17 dormant", () => {

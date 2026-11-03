@@ -1,7 +1,7 @@
 import { BomberRules } from "../shared/BomberRules";
 import { FlightMath } from "../shared/FlightMath";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { M07_TARGETS, M07_SCENERY_ID } from "../shared/missions/m07";
 import { M07, m07TargetLayout, m07Height, m07Ground } from "../shared/M07WorldPlan";
 import {
@@ -14,9 +14,11 @@ import {
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
-import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import { CampaignCoordinator, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
+import { withEarlierMissions } from "./helpers/Progression";
+import { finishMission } from "./helpers/Saves";
 const bp = MissionCatalog.Get(7),
 	strike = bp.phases[0],
 	escape = bp.phases[1],
@@ -25,40 +27,14 @@ const required = M07_TARGETS.filter((t) => t.required);
 function clear(s: ReturnType<typeof Runner.NewState>, ledger: TargetScore, time = 400) {
 	for (const t of required) recordScoredKill(s, ledger, t.id, "ground", true, time, t.scoreRole);
 }
-function earlier(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 6; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = before[i];
-	if (!ok) error(err, 0);
-}
-function finish(
+const earlier = (fn: () => void) => withEarlierMissions(6, fn);
+const finish = (
 	c: CampaignCoordinator,
 	id: number,
 	phases = MissionCatalog.TotalPhases(MissionCatalog.Get(id)),
 	elapsed = 100,
 	ledger?: TargetScore,
-) {
-	return completeMission(
-		c,
-		1,
-		id,
-		true,
-		{
-			slot: 1,
-			missionId: id,
-			kills:
-				MissionCatalog.RequiredAirKills(MissionCatalog.Get(id)) +
-				MissionCatalog.RequiredGroundKills(MissionCatalog.Get(id)),
-			groundKills: MissionCatalog.RequiredGroundKills(MissionCatalog.Get(id)),
-			completedPhases: phases,
-			elapsed,
-			targetScore: ledger?.Snapshot(),
-		},
-		() => undefined,
-		0,
-	);
-}
+) => finishMission(c, id, { phases, elapsed, score: ledger });
 describe("Mission 7 array strike and canyon escape", () => {
 	it("validates 51 unique adopted ground ids, all installation roles and original subtitle story", () => {
 		MissionCatalog.ValidatePolicy(bp);

@@ -10,6 +10,7 @@ import { recordScoredKill, recordAlliedKill } from "../server/SortieScore";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
+import { withEarlierMissions } from "./helpers/Progression";
 const bp = MissionCatalog.Get(8),
 	battle = bp.phases[0],
 	hold = bp.phases[1];
@@ -19,12 +20,8 @@ function ready() {
 	R.Tick(s, 420);
 	return s;
 }
-function prerequisites(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	const [ok, err] = pcall(fn);
-	MISSIONS.forEach((m, i) => (m.available = before[i]));
-	if (!ok) error(err, 0);
-}
+// Opens nothing: only snapshots and restores availability around the unlock test.
+const prerequisites = (fn: () => void) => withEarlierMissions(0, fn);
 describe("Mission 8 OPEN FREQUENCY", () => {
 	it("validates air-only data and adopts the world's protected mast pose", () => {
 		MissionCatalog.ValidatePolicy(bp);
