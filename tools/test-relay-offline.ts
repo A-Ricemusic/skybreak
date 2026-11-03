@@ -8,9 +8,10 @@
 //   - pure Luau: no Roblox services or globals (GameConfig and UploadedAssetSpecs get Vector3/CFrame shims);
 //   - every module it requires at runtime is also listed (type-only imports are erased by rbxtsc).
 // Studio-only runtime specs stay out of this list and run through `bun run test:roblox`.
-import { mkdir } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { resolveImports } from "./luau-require-graph";
 import { spawnWithTimeout } from "./spawn";
 
 const root = resolve(import.meta.dir, "..");
@@ -361,6 +362,27 @@ const SPECS = MODULES.filter((entry) => entry.endsWith(".spec"));
 function stagedName(entry: string): string {
 	return entry === "shared/missions/index" ? "MissionIndex" : entry.split("/").at(-1)!;
 }
+/** out/-relative compiled file for a MODULES entry. */
+function compiledFile(entry: string): string {
+	return `${entry === "shared/missions/index" ? "shared/missions/init" : entry}.luau`;
+}
+
+// Staged files share one flat directory, so two entries with the same final segment
+// would overwrite each other. Reserve the runner's own file names too.
+const RESERVED = [
+	"OfflineAssertions",
+	"run",
+	"guard-run",
+	"guard-parse",
+	"guard-string",
+	"guard-runtime",
+	"guard-nested",
+];
+const stagedNames = [...MODULES.map(stagedName), ...RESERVED];
+const clashes = stagedNames.filter((name, index) => stagedNames.indexOf(name) !== index);
+if (clashes.length > 0) throw new Error(`Duplicate staged offline module names: ${clashes.join(", ")}`);
+const manifest = new Map(MODULES.map((entry) => [compiledFile(entry), entry]));
+const compiledFiles = new Set(new Bun.Glob("**/*.luau").scanSync({ cwd: resolve(root, "out") }));
 
 // Some standalone Luau versions return a module's load error as a string.
 // Guard every import, including transitive dependencies, and every top-level spec.
@@ -372,10 +394,12 @@ local function require(path)
 end
 `;
 
+// Stage into an empty directory every run: a module dropped from MODULES must not
+// keep resolving from a previous run's copy. The directory is owned by this tool.
+await rm(dest, { recursive: true, force: true });
 await mkdir(dest, { recursive: true });
 for (const entry of MODULES) {
-	const compiled = entry === "shared/missions/index" ? "shared/missions/init" : entry;
-	let source = await Bun.file(resolve(root, `out/${compiled}.luau`)).text();
+	let source = await Bun.file(resolve(root, `out/${compiledFile(entry)}`)).text();
 	source = source
 		.split("\n")
 		.filter((line) => !line.startsWith("local TS = require("))
@@ -385,10 +409,19 @@ for (const entry of MODULES) {
 			const rawName = strings.at(-1)?.[1];
 			const name = rawName === "missions" || rawName === "index" ? "MissionIndex" : rawName;
 			if (!name) throw new Error(`Cannot adapt dependency: ${line}`);
-			return line.replace(
-				/TS\.import\(.*\)/,
-				`require("./${line.includes('"jest-globals"') ? "OfflineAssertions" : name}")`,
-			);
+			const imports = resolveImports(compiledFile(entry), line, compiledFiles);
+			if (imports.length !== 1) throw new Error(`Expected one TS.import in ${entry}: ${line}`);
+			const [target] = imports;
+			if (target.kind === "external") {
+				if (!line.includes('"jest-globals"'))
+					throw new Error(`Unsupported offline package import in ${entry}: ${target.path}`);
+				return line.replace(/TS\.import\(.*\)/, 'require("./OfflineAssertions")');
+			}
+			// Every rewritten require must point at a module this run stages from MODULES.
+			const owner = manifest.get(target.file);
+			if (owner === undefined) throw new Error(`${entry} imports ${target.file}, which is not listed in MODULES`);
+			if (stagedName(owner) !== name) throw new Error(`Import in ${entry} resolves to ${owner}, not ${name}`);
+			return line.replace(/TS\.import\(.*\)/, `require("./${name}")`);
 		})
 		.join("\n");
 	if (source.includes("TS.")) throw new Error(`Unadapted runtime dependency in ${entry}`);
