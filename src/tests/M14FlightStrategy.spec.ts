@@ -15,13 +15,8 @@ import { WavePlan } from "../shared/WavePlan";
 import { CombatBalance } from "../shared/CombatBalance";
 import { EvadeRules } from "../shared/EvadeRules";
 import { ThreatRules } from "../shared/ThreatRules";
+import { add, dot, length, mul, sub, unit } from "./helpers/Points";
 
-const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
-const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
-const mul = (a: Point, n: number): Point => ({ x: a.x * n, y: a.y * n, z: a.z * n });
-const length = (a: Point) => math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
-const unit = (a: Point) => mul(a, 1 / math.max(length(a), 1e-9));
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y + a.z * b.z;
 // Invert the shared half-linear/half-quadratic stick shaping. Inputs remain within [-1,1].
 function stick(rate: number): number {
 	const v = math.clamp(rate, -1, 1);

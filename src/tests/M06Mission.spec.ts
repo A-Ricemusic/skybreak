@@ -7,7 +7,7 @@ import { recordAlliedKill, recordScoredKill } from "../server/SortieScore";
 import { MissionScore } from "../shared/MissionScore";
 import { AlliedRules } from "../shared/AlliedRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
-import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import { normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { landingDuration, landingPose, validateLandingPhases } from "../shared/LandingRules";
 import { validateRearmPhases } from "../shared/RearmRules";
 import { AntiShipRules, navalHull, SamRules, surfacePose, validateNavalTargets } from "../shared/SurfaceTargetRules";
@@ -27,6 +27,9 @@ import {
 	m06MountParent,
 } from "../shared/missions/m06";
 import type { MissionFinished } from "../shared/Types";
+import { rejects } from "./helpers/Rejects";
+import { withMissionsAvailable } from "./helpers/Progression";
+import { finishMission as finish, freshCoordinator } from "./helpers/Saves";
 
 const bp = MissionCatalog.Get(6);
 const strike = bp.phases[0];
@@ -41,52 +44,9 @@ const countOf = (list: TypedGroundTarget[], role: string) => list.filter((t) => 
 function context(elapsed: number, x = M06_START.x, z = M06_START.z): TriggerContext {
 	return { elapsed, phase: 0, requiredKills: 0, destroyed: new Set<string>(), targets, player: { x, z } };
 }
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
-}
 /** Missions 3 and 4 may be released by their own PRs on older bases; fixtures open them so mission 6's unlock can be exercised. */
-function withEarlierMissions(fn: () => void): void {
-	const before = [MISSIONS[2].available, MISSIONS[3].available, MISSIONS[4].available];
-	MISSIONS[2].available = true;
-	MISSIONS[3].available = true;
-	MISSIONS[4].available = true;
-	const [ok, err] = pcall(fn);
-	MISSIONS[2].available = before[0];
-	MISSIONS[3].available = before[1];
-	MISSIONS[4].available = before[2];
-	if (!ok) error(err, 0);
-}
-function fresh() {
-	const c = new CampaignCoordinator("m06-unlock", undefined, { now: () => 1000, defer: () => undefined });
-	c.load();
-	return c;
-}
-function finish(
-	c: CampaignCoordinator,
-	missionId: number,
-	extra: { elapsed?: number; score?: TargetScore; phases?: number } = {},
-	notify: (m: MissionFinished) => void = () => undefined,
-): boolean {
-	const m = MissionCatalog.Get(missionId);
-	return completeMission(
-		c,
-		1,
-		missionId,
-		true,
-		{
-			slot: 1,
-			missionId,
-			kills: MissionCatalog.RequiredAirKills(m) + MissionCatalog.RequiredGroundKills(m),
-			groundKills: MissionCatalog.RequiredGroundKills(m),
-			completedPhases: extra.phases ?? MissionCatalog.TotalPhases(m),
-			elapsed: extra.elapsed ?? 100,
-			targetScore: extra.score?.Snapshot(),
-		},
-		notify,
-		0,
-	);
-}
+const withEarlierMissions = (fn: () => void) => withMissionsAvailable([2, 3, 4], fn);
+const fresh = () => freshCoordinator("m06-unlock");
 
 describe("Mission 6 data: the Iron Coast military quays", () => {
 	it("is released on the harbour world with one 15:00 score phase, an airborne start and points scoring", () => {

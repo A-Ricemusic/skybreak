@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { mission as bp, M11_AIRCRAFT, M11_WAVES, M11_SAFE_SECONDS, M11_AIRCRAFT_HEALTH } from "../shared/missions/m11";
 import { m11CivilianLayout, m11Ground } from "../shared/M11WorldPlan";
 import {
@@ -18,14 +18,9 @@ import { AlliedRules } from "../shared/AlliedRules";
 import { CampaignCoordinator, completeMission, serializeProfile, normalizeProfile } from "../server/CampaignRepository";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
+import { withEarlierMissions } from "./helpers/Progression";
 const fresh = (): ProtectedState => ({ health: M11_AIRCRAFT_HEALTH, elapsed: 0, safe: false, warned: false });
-function prerequisites(fn: () => void) {
-	const before = MISSIONS.map((b) => b.available);
-	for (let i = 0; i < 10; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = before[i];
-	if (!ok) error(err, 0);
-}
+const prerequisites = (fn: () => void) => withEarlierMissions(10, fn);
 describe("M11 High Crossing", () => {
 	it("validates stable civilian identities, separate bands, finite waves and original story", () => {
 		MissionCatalog.ValidatePolicy(bp);

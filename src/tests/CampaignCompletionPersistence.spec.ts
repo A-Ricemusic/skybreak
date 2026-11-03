@@ -10,46 +10,21 @@ import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } fro
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { TargetScore, TargetScoreSnapshot } from "../shared/TargetScore";
 import { MissionFinished } from "../shared/Types";
+import { finishMission, freshCoordinator } from "./helpers/Saves";
 
-function fresh() {
-	const coordinator = new CampaignCoordinator("completion-regression", undefined, {
-		now: () => 1000,
-		defer: () => undefined,
-	});
-	coordinator.load();
-	return coordinator;
-}
+const fresh = () => freshCoordinator("completion-regression");
 function breakdown(extraEscort = false): TargetScoreSnapshot {
 	const ledger = new TargetScore(MissionCatalog.Scoring(1));
 	for (let i = 0; i < 6; i++) ledger.RecordKill(`b${i}`, "bomber");
 	if (extraEscort) ledger.RecordKill("escort", "escort");
 	return ledger.Snapshot();
 }
-function finish(
+const finish = (
 	c: CampaignCoordinator,
 	missionId: number,
 	score?: TargetScoreSnapshot,
-	notify: (message: MissionFinished) => void = () => undefined,
-) {
-	const bp = MissionCatalog.Get(missionId);
-	return completeMission(
-		c,
-		1,
-		missionId,
-		true,
-		{
-			slot: 1,
-			missionId,
-			kills: MissionCatalog.RequiredAirKills(bp) + MissionCatalog.RequiredGroundKills(bp),
-			groundKills: MissionCatalog.RequiredGroundKills(bp),
-			completedPhases: MissionCatalog.TotalPhases(bp),
-			elapsed: 100,
-			targetScore: score,
-		},
-		notify,
-		0,
-	);
-}
+	notify?: (message: MissionFinished) => void,
+) => finishMission(c, missionId, { snapshot: score }, notify);
 function roundTrip(c: CampaignCoordinator) {
 	return normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() })).slots[0];
 }

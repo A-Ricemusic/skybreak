@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { mission as bp, M10_TARGETS, M10_WORLD_TARGETS, M10_ARTILLERY as plan } from "../shared/missions/m10";
 import { M10, m10TargetLayout, m10Height, m10Ground } from "../shared/M10WorldPlan";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
@@ -14,17 +14,12 @@ import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { takeArrival } from "../shared/CampaignEncounters";
 import { BomberRules } from "../shared/BomberRules";
+import { withEarlierMissions } from "./helpers/Progression";
 const strike = bp.phases[0];
 function groundScore() {
 	return M10_TARGETS.reduce((n, t) => n + bp.scoring!.points[t.scoreRole], 0);
 }
-function earlier(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 9; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = before[i];
-	if (!ok) error(err, 0);
-}
+const earlier = (fn: () => void) => withEarlierMissions(9, fn);
 function result(c: CampaignCoordinator, phases: number, elapsed: number, ledger?: TargetScore) {
 	return completeMission(
 		c,

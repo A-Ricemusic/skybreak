@@ -8,12 +8,7 @@ import { CombatBalance as B } from "../shared/CombatBalance";
 import { ThreatRules as T, Point } from "../shared/ThreatRules";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { WeaponRules } from "../shared/WeaponRules";
-const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
-const mul = (a: Point, n: number): Point => ({ x: a.x * n, y: a.y * n, z: a.z * n });
-const sub = (a: Point, b: Point) => add(a, mul(b, -1));
-const dot = (a: Point, b: Point) => a.x * b.x + a.y * b.y + a.z * b.z;
-const length = (a: Point) => math.sqrt(dot(a, a));
-const unit = (a: Point) => mul(a, 1 / math.max(0.000001, length(a)));
+import { add, dot, length, mul, sub, unit } from "./helpers/Points";
 const steer = (a: Point, b: Point, rate: number, dt: number) => dampedSteer(a, unit(b), rate, dt);
 interface Attacker {
 	p: Point;

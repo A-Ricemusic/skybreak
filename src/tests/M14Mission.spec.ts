@@ -5,7 +5,7 @@ import { CombatBalance } from "../shared/CombatBalance";
 import { ThreatRules } from "../shared/ThreatRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M14_SALVOS, M14_SITE } from "../shared/missions/m14";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { cruiseRoute, cruiseDestroyed, cruiseComplete, newCruiseStates } from "../shared/CruiseMissileRules";
 import { BomberRules } from "../shared/BomberRules";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
@@ -16,13 +16,8 @@ import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfil
 import { AlliedRules } from "../shared/AlliedRules";
 import { m14Ground, m14TargetLayout } from "../shared/M14WorldPlan";
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
-function prerequisites(fn: () => void) {
-	const before = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 13; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = before[i];
-	if (!ok) error(err, 0);
-}
+import { withEarlierMissions } from "./helpers/Progression";
+const prerequisites = (fn: () => void) => withEarlierMissions(13, fn);
 function fullLedger() {
 	const ledger = new TargetScore(bp.scoring!);
 	for (const p of M14_SALVOS)

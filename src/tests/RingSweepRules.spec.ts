@@ -6,6 +6,7 @@ import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog"
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
+import { rejects } from "./helpers/Rejects";
 const source = { x: 0, y: 50, z: 0 };
 function strike(): MissionPhaseBlueprint {
 	return {
@@ -38,10 +39,6 @@ const sweep = (): RingSweep => ({
 	halfWidth: 10,
 	range: 45000,
 });
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
-}
 describe("D8 dormant rules", () => {
 	it("accepts ground-only ECM and keeps visual lock restriction until the last source dies", () => {
 		validateRearmPhases([strike()], 15360);

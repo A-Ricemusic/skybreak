@@ -6,7 +6,6 @@ import { MissionCatalog, MISSIONS, MISSION_COUNT, PRACTICE } from "../shared/Mis
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import {
-	CampaignCoordinator,
 	completeMission,
 	resolveMissionRequest,
 	normalizeProfile,
@@ -32,12 +31,9 @@ import {
 	reachableStoryChapters,
 } from "../shared/RelayStory";
 import { MissionCatalog as Legacy } from "./LegacyCatalog";
+import { freshCoordinator } from "./helpers/Saves";
 const bp = MissionCatalog.Get(1);
-function fresh() {
-	const c = new CampaignCoordinator("campaign18", undefined, { now: () => 1000, defer: () => undefined });
-	c.load();
-	return c;
-}
+const fresh = () => freshCoordinator("campaign18");
 describe("Released 18-mission campaign", () => {
 	it("contains 18 ordered numbered missions and optional practice outside the count", () => {
 		expect(MISSION_COUNT).toBe(18);

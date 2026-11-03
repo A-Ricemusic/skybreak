@@ -24,11 +24,8 @@ import {
 	JOYSTICK_SIZE,
 	type Rectangle,
 } from "../shared/UILayout";
+import { rejects } from "./helpers/Rejects";
 
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
-}
 const rearm: RearmPlan = {
 	zone: { x: 0, y: 145.7786702793, z: 2400 },
 	radius: 200,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M17_TARGETS, M17_WAVES } from "../shared/missions/m17";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
@@ -19,6 +19,7 @@ import { BomberRules } from "../shared/BomberRules";
 import { FlightMath } from "../shared/FlightMath";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { canLaunchMission } from "../shared/CampaignProgress";
+import { withEarlierMissions } from "./helpers/Progression";
 const strike = bp.phases[0],
 	elite = bp.phases[1];
 function score() {
@@ -27,13 +28,7 @@ function score() {
 	for (const t of M17_TARGETS) recordScoredKill(s, ledger, t.id, "ground", false, 1, t.scoreRole);
 	return { s, ledger };
 }
-function earlier(fn: () => void) {
-	const saved = MISSIONS.map((m) => m.available);
-	for (let i = 0; i < 16; i++) MISSIONS[i].available = true;
-	const [ok, err] = pcall(fn);
-	for (let i = 0; i < MISSIONS.size(); i++) MISSIONS[i].available = saved[i];
-	if (!ok) error(err, 0);
-}
+const earlier = (fn: () => void) => withEarlierMissions(16, fn);
 describe("M17 Last Wing", () => {
 	it("validates adopted world ids, ledger, ranks and allied eligibility", () => {
 		MissionCatalog.ValidatePolicy(bp);

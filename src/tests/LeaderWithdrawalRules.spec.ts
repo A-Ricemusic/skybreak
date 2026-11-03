@@ -14,6 +14,7 @@ import { AlliedRules } from "../shared/AlliedRules";
 import { newGroundProgress, stepGroundProgress } from "../shared/GroundSectorRules";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
+import { rejects } from "./helpers/Rejects";
 const departure = {
 	waypoints: [
 		{ x: 0, y: 500, z: 0 },
@@ -30,10 +31,6 @@ function phase(): MissionPhaseBlueprint {
 		update: { objective: "Defeat four wingmen; Rusk will depart", radio: [], countdownSeconds: 1080 },
 		leaderWithdrawal: { departure },
 	};
-}
-function rejects(fn: () => void): boolean {
-	const [ok] = pcall(fn);
-	return !ok;
 }
 describe("D12 protected leader and bridge rules", () => {
 	it("requires four credited wingmen then departure, never pays for Rusk or repeated kills", () => {
