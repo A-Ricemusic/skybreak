@@ -54,6 +54,7 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 		spec.kind === "aircraft"
 			? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts, spec.rotors)
 			: [spec.folder];
+	// eslint-disable-next-line roblox-ts/no-array-pairs -- Preserve unordered fixture insertion and one-based body index; order is not a contract.
 	for (const [index, partName] of pairs(names)) {
 		if (partName === options.omit) continue;
 		const part = new Instance(options.surface === "parts" ? "Part" : "MeshPart");

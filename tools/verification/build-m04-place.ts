@@ -4,17 +4,19 @@ import { resolve } from "node:path";
 import { readdir } from "node:fs/promises";
 const root = resolve(import.meta.dir, "../..");
 const project = await Bun.file(resolve(root, "default.project.json")).json();
-function absolute(v: any) {
-	if (v && typeof v === "object")
-		for (const [k, x] of Object.entries(v)) {
-			if (k === "$path") v[k] = resolve(root, x as string);
+function absolute(v: unknown) {
+	if (v && typeof v === "object") {
+		const record = v as Record<string, unknown>;
+		for (const [k, x] of Object.entries(record)) {
+			if (k === "$path") record[k] = resolve(root, x as string);
 			else absolute(x);
 		}
+	}
 }
 absolute(project);
 const entry = resolve(root, "build/m04-init.server.luau");
 await Bun.write(entry, await Bun.file(resolve(root, "out/server/init.server.luau")).text());
-const serverTree: any = { $path: entry };
+const serverTree: Record<string, string | { $path: string }> = { $path: entry };
 for (const file of await readdir(resolve(root, "out/server")))
 	if (file.endsWith(".luau") && file !== "init.server.luau") {
 		const name = file.replace(/\.luau$/, "").replace(/\.server$/, "");

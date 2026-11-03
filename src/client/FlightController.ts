@@ -509,6 +509,7 @@ export class FlightController {
 				}
 			}),
 		);
+		// eslint-disable-next-line @typescript-eslint/no-this-alias -- Publish this instance to the module-level active-controller reference.
 		activeController = this;
 	}
 	/** Subscribe to merged telemetry (10 Hz numbers + HUD text changes). Returns an unsubscribe function. */
@@ -1427,6 +1428,7 @@ export class FlightController {
 		}
 		this.aircraft = missionData.aircraft;
 		this.active = true;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias -- Publish this instance to the module-level active-controller reference.
 		activeController = this;
 		this.telemetry = initialTelemetry(missionData.missionId);
 		this.telemetrySequence = -1;

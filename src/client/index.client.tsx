@@ -16,6 +16,7 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	const player = Players.LocalPlayer;
 	const playerModule = player.WaitForChild("PlayerScripts").WaitForChild("PlayerModule", 10);
 	if (playerModule?.IsA("ModuleScript")) {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports -- Roblox PlayerModule is discovered at runtime to disable default controls.
 		const [loaded, module] = pcall(() => require(playerModule) as { GetControls?(): { Disable?(): void } });
 		if (loaded && module.GetControls) {
 			const controls = module.GetControls();

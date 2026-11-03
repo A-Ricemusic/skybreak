@@ -3,6 +3,7 @@ import { finiteNumber } from "./LandingRules";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 import type { AreaAttack } from "./ArtilleryRules";
 /** Precision fit on SALVO: one locked ground victim through D3's shared special path. */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Named domain marker intentionally shares AreaAttack structure.
 export interface GuidedBomb extends AreaAttack {}
 export interface EliteFormation {
 	ejectionFlag: "vulture_two_recovered";
