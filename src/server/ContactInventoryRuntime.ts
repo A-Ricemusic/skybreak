@@ -14,7 +14,7 @@ export function cheapEligible(spec: TypedGroundTarget, missionId?: number): bool
 		(cheapArmourAllowed(missionId) && cheapArmourEligible(spec)) ||
 		(["container", "containers", "watchtower", "antenna", "barracks", "sub_pen", "storage"].includes(spec.type) &&
 			!spec.route &&
-			spec.parentId === undefined &&
+			(spec.parentId ?? "") === "" &&
 			!spec.sam)
 	);
 }

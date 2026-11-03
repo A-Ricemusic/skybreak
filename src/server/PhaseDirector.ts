@@ -335,8 +335,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				const name = phase.interceptHold?.siteName ?? actorName(session, phase.kind === "defend", coast);
 				const siteId = phase.interceptHold?.siteId;
 				const world =
-					siteId !== undefined ? Workspace.FindFirstChild(session.blueprint.worldKey ?? "", true) : undefined;
-				const existing = siteId !== undefined ? world?.FindFirstChild(siteId) : undefined;
+					(siteId ?? "") !== ""
+						? Workspace.FindFirstChild(session.blueprint.worldKey ?? "", true)
+						: undefined;
+				const existing = (siteId ?? "") !== "" ? world?.FindFirstChild(siteId!) : undefined;
 				const adopted = existing?.IsA("Model") ? existing : undefined;
 				const actor =
 					adopted ??

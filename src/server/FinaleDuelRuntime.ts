@@ -61,12 +61,12 @@ export function stepFinaleDuel(s: CombatSession, say: (line: string) => void): v
 			s.d13Beacon = beacon;
 			say("CORE ROUTE REVEALED · AMBER SHUTTER OPENS ON COUNTDOWN · FOLLOW CYAN BEACONS");
 		}
-		if (d.environment !== undefined) {
+		if ((d.environment ?? "") !== "") {
 			const environment = resolveEnvironment(d.environment);
 			assert(environment !== undefined, "Validated environment missing");
 			// Replaces named atmosphere/clouds through the existing single world owner.
 			// NightLighting only owns local lamps and never writes Lighting.
-			WorldEnvironment.ApplySpec(environment, d.environment);
+			WorldEnvironment.ApplySpec(environment, d.environment!);
 		}
 		if (d.duel) {
 			clearCruise(s);

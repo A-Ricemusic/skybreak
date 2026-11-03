@@ -29,7 +29,7 @@ export function cheapArmourEligible(spec: TypedGroundTarget): boolean {
 	return (
 		["tank", "vehicle", "artillery", "bunker"].includes(spec.type) &&
 		!spec.route &&
-		spec.parentId === undefined &&
+		(spec.parentId ?? "") === "" &&
 		!spec.sam
 	);
 }

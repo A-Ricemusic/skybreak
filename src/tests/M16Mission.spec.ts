@@ -131,7 +131,7 @@ describe("M16 Dust Road", () => {
 		expect(BomberRules.Sample(actor, 100).escaped).toBe(true);
 		expect(entries.get("m16_low_cover")).toEqual([0, 0, 100, 100, 200]);
 		for (const w of M16_WAVES)
-			if (w.attackSector !== undefined)
+			if ((w.attackSector ?? "") !== "")
 				expect(entries.get(w.id)).toEqual(
 					[0, 1, 2].map(() => (w.trigger.kind === "time" ? w.trigger.seconds : 0)),
 				);
@@ -155,7 +155,7 @@ describe("M16 Dust Road", () => {
 					math.ceil(Difficulty.SupportHealth(difficulty, 100) / SpecialWeapons.StandardDamage) +
 					(AlliedRules.PressureFlare(bp.pressure, false, "raider", difficulty) ? 1 : 0);
 				for (const w of M16_WAVES)
-					if (w.attackSector !== undefined) {
+					if ((w.attackSector ?? "") !== "") {
 						const index = M16_COLUMN.sectors.findIndex((s) => s.id === w.attackSector);
 						for (let t = 1; t <= 120; t++)
 							for (let k = 0; k < w.count; k++) {

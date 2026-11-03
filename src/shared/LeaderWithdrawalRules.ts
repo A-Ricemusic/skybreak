@@ -83,7 +83,9 @@ export function validateLeaderWithdrawalPhases(phases: MissionPhaseBlueprint[], 
 					!p.twist &&
 					!p.execution.preservePursuers &&
 					!p.standaloneAce &&
-					p.concurrentFighters === undefined &&
+					(p.concurrentFighters === undefined ||
+						p.concurrentFighters === 0 ||
+						p.concurrentFighters !== p.concurrentFighters) &&
 					(p.fighterWaves?.size() ?? 0) === 0,
 				"Withdrawal owns its five-aircraft budget and cleanup",
 			);
@@ -130,7 +132,7 @@ export function validateLeaderWithdrawalPhases(phases: MissionPhaseBlueprint[], 
 			assert(
 				targets.some(
 					(t) =>
-						t.id === link.targetId && t.type === "bridge_section" && t.parentId === undefined && !t.route,
+						t.id === link.targetId && t.type === "bridge_section" && (t.parentId ?? "") === "" && !t.route,
 				),
 				"Closure needs same-phase bridge target",
 			);
@@ -148,7 +150,7 @@ export function validateLeaderWithdrawalPhases(phases: MissionPhaseBlueprint[], 
 			for (const id of link.hullIds) {
 				assert(
 					!owners.has(id) &&
-						targets.some((t) => t.id === id && t.route !== undefined && t.parentId === undefined),
+						targets.some((t) => t.id === id && t.route !== undefined && (t.parentId ?? "") === ""),
 					"Unknown/duplicate bridge hull",
 				);
 				owners.add(id);
