@@ -19,6 +19,8 @@ async function run(command: string[], summary?: RegExp, minimum = 0) {
 }
 
 await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TESTING passed tracked=(\d+)$/gm, 1);
+await run(["bun", "run", "format:check"]);
+await run(["bun", "run", "lint"]);
 await run(["bun", "run", "build:place"]);
 // Inventory is structural validation only; publish always runs strict authorization.
 await run(["python3", "tools/check-place-assets.py", "build/skybreak.rbxlx", "--inventory"]);

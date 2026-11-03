@@ -14,7 +14,7 @@ assert.doesNotMatch(text, /\bbuildM\d+(?:Scene)?Plan\s*\(|\bM\d+World\.Build\s*\
 assert.match(text, /UploadedAssets\.Template\(\[name\]\)/);
 assert.match(text, /coroutine\.resume\(worker\)/);
 assert.match(text, /task\.cancel\(worker\)/);
-assert.match(text, /afterEach\(\(\) => \{ stopWork\(\); parent\?\.Destroy\(\); UploadedAssets\.Configure\(\); \}\)/);
+assert.match(text, /afterEach\(\(\) => \{\s*stopWork\(\);\s*parent\?\.Destroy\(\);\s*UploadedAssets\.Configure\(\);\s*\}\)/);
 assert.match(text, /SUITE_LIMIT = 90/);
 assert.match(text, /expect\(coroutine\.status\(suspended!\)\)\.toBe\("dead"\)/);
 console.log("WORLD_BUDGET_FIXTURES passed=1 failed=0; source contract only, Studio timing unverified");

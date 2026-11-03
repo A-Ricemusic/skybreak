@@ -6,6 +6,8 @@
 
 # Agent workflow
 
+- Run `bun run format && bun run lint` before committing; `validate:offline` and CI fail on unformatted or lint-failing code.
+
 - Try to involve the human as little as possible; work autonomously within the authorized scope.
 - Always try to unblock blockers while preserving existing work and respecting authorization boundaries. Ask the user only when required information or authorization cannot otherwise be obtained.
 - Always spin up a subagent to investigate blockers, within the authorized scope and subject to higher-priority instructions.

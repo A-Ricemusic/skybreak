@@ -1,0 +1,30 @@
+# Only hand-authored TypeScript in src and tools is formatted.
+**/*
+!src/
+!src/**/
+!src/**/*.ts
+!src/**/*.tsx
+!tools/
+!tools/**/
+!tools/**/*.ts
+
+node_modules/
+out/
+build/
+include/
+docs/
+assets/
+reference/
+bun.lock
+patches/
+*.rbxlx
+docs/**/*.json
+assets/**/*.json
+# Historical machine-captured mission snapshots.
+src/tests/legacy/*.ts
+# Voice pack/upload outputs; preserve exact generator formatting.
+src/shared/VoiceCues.ts
+src/shared/VoiceBanks.ts
+# Audio upload and asset-manifest generator outputs.
+src/shared/SoundBank.ts
+src/shared/UploadedAssetSpecs.ts
