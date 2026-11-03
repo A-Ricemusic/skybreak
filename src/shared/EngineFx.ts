@@ -9,8 +9,24 @@ export interface EngineLook {
 	lightRange: number;
 	trailLifetime: number;
 }
-const IDLE: EngineLook = { flameRate: 14, flameSpeed: 10, flameSize: 0.9, glowSize: 1.6, lightBrightness: 0.4, lightRange: 5, trailLifetime: 0.3 };
-const MAX: EngineLook = { flameRate: 60, flameSpeed: 70, flameSize: 2.6, glowSize: 4.2, lightBrightness: 3, lightRange: 16, trailLifetime: 0.55 };
+const IDLE: EngineLook = {
+	flameRate: 14,
+	flameSpeed: 10,
+	flameSize: 0.9,
+	glowSize: 1.6,
+	lightBrightness: 0.4,
+	lightRange: 5,
+	trailLifetime: 0.3,
+};
+const MAX: EngineLook = {
+	flameRate: 60,
+	flameSpeed: 70,
+	flameSize: 2.6,
+	glowSize: 4.2,
+	lightBrightness: 3,
+	lightRange: 16,
+	trailLifetime: 0.55,
+};
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export const EngineFx = {

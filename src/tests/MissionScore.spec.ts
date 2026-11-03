@@ -1,12 +1,27 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { MissionScore, ScoreInput, ScoreResult } from "../shared/MissionScore";
-import { CampaignCoordinator, completeMission, mergeProfiles, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
+import {
+	CampaignCoordinator,
+	completeMission,
+	mergeProfiles,
+	normalizeProfile,
+	serializeProfile,
+} from "../server/CampaignRepository";
 import { MissionFinished } from "../shared/Types";
 import { GameConfig } from "../shared/GameConfig";
 import { LEGACY_MISSION_SCORING, MissionScoringPolicy } from "../shared/MissionPolicy";
 
-const perfect: ScoreInput = { won: true, airKills: 4, groundKills: 1, elapsed: 60, par: 120, missilesFired: 8, missileHits: 8, damageTaken: 0 };
+const perfect: ScoreInput = {
+	won: true,
+	airKills: 4,
+	groundKills: 1,
+	elapsed: 60,
+	par: 120,
+	missilesFired: 8,
+	missileHits: 8,
+	damageTaken: 0,
+};
 const pointsPolicy: MissionScoringPolicy = {
 	points: { bomber: 100, escort: 60, ace: 240 },
 	basis: "points",
@@ -19,12 +34,28 @@ function coordinator(): CampaignCoordinator {
 	return c;
 }
 
-function finishMission3(c: CampaignCoordinator, extra: { elapsed: number; missilesFired: number; missileHits: number; damageTaken: number }): MissionFinished {
+function finishMission3(
+	c: CampaignCoordinator,
+	extra: { elapsed: number; missilesFired: number; missileHits: number; damageTaken: number },
+): MissionFinished {
 	const bp = MissionCatalog.Get(3);
 	let message: MissionFinished | undefined;
-	completeMission(c, 1, 3, true, {
-		slot: 1, missionId: 3, kills: MissionCatalog.RequiredAirKills(bp), groundKills: 0, completedPhases: bp.phases.size(), ...extra,
-	}, (m) => message = m, 0);
+	completeMission(
+		c,
+		1,
+		3,
+		true,
+		{
+			slot: 1,
+			missionId: 3,
+			kills: MissionCatalog.RequiredAirKills(bp),
+			groundKills: 0,
+			completedPhases: bp.phases.size(),
+			...extra,
+		},
+		(m) => (message = m),
+		0,
+	);
 	return message!;
 }
 
@@ -78,13 +109,26 @@ describe("MissionScore", () => {
 			expect(score >= previous).toBe(true);
 			previous = score;
 		}
-		expect(MissionScore.Compute({ ...perfect, missileHits: 7 }).score < MissionScore.Compute(perfect).score).toBe(true);
-		expect(MissionScore.Compute({ ...perfect, damageTaken: 10 }).score < MissionScore.Compute(perfect).score).toBe(true);
+		expect(MissionScore.Compute({ ...perfect, missileHits: 7 }).score < MissionScore.Compute(perfect).score).toBe(
+			true,
+		);
+		expect(MissionScore.Compute({ ...perfect, damageTaken: 10 }).score < MissionScore.Compute(perfect).score).toBe(
+			true,
+		);
 	});
 
 	it("does not penalise accuracy when nothing was fired and sanitises hostile input", () => {
 		expect(MissionScore.Compute({ ...perfect, missilesFired: 0, missileHits: 0 }).accuracy).toBe(1);
-		const odd = MissionScore.Compute({ won: true, airKills: -3, groundKills: 0 / 0, elapsed: math.huge, par: 0, missilesFired: 2, missileHits: 9, damageTaken: 500 });
+		const odd = MissionScore.Compute({
+			won: true,
+			airKills: -3,
+			groundKills: 0 / 0,
+			elapsed: math.huge,
+			par: 0,
+			missilesFired: 2,
+			missileHits: 9,
+			damageTaken: 500,
+		});
 		expect(odd.accuracy).toBe(1);
 		expect(odd.survival).toBe(0);
 		expect(odd.score >= 0).toBe(true);
@@ -110,8 +154,14 @@ describe("MissionScore", () => {
 
 	it("cuts points-basis ranks at every boundary and one point below", () => {
 		for (const [total, rank] of [
-			[800, "S"], [799, "A"], [700, "A"], [699, "B"],
-			[600, "B"], [599, "C"], [500, "C"], [499, "D"],
+			[800, "S"],
+			[799, "A"],
+			[700, "A"],
+			[699, "B"],
+			[600, "B"],
+			[599, "C"],
+			[500, "C"],
+			[499, "D"],
 		] as [number, "S" | "A" | "B" | "C" | "D"][]) {
 			expect(MissionScore.RankPoints(total, true, pointsPolicy)).toBe(rank);
 		}
@@ -123,7 +173,10 @@ describe("MissionScore", () => {
 			expect(result.score).toBe(960);
 			expect(result.rank).toBe("S");
 		}
-		const failed = MissionScore.Compute({ ...perfect, won: false, targetPoints: 960, difficulty: "ace" }, pointsPolicy);
+		const failed = MissionScore.Compute(
+			{ ...perfect, won: false, targetPoints: 960, difficulty: "ace" },
+			pointsPolicy,
+		);
 		expect(failed.score).toBe(960);
 		expect(failed.rank).toBe("D");
 		expect(MissionScore.RankPoints(960, false, pointsPolicy)).toBe("D");
@@ -139,11 +192,18 @@ describe("MissionScore", () => {
 });
 
 describe("Mission debrief results", () => {
-
 	it("does not record a best for a failed sortie", () => {
 		const c = coordinator();
 		let message: MissionFinished | undefined;
-		completeMission(c, 1, 1, false, { slot: 1, missionId: 1, kills: 1, groundKills: 0, completedPhases: 1, elapsed: 90, reason: "destroyed" }, (m) => message = m, 0);
+		completeMission(
+			c,
+			1,
+			1,
+			false,
+			{ slot: 1, missionId: 1, kills: 1, groundKills: 0, completedPhases: 1, elapsed: 90, reason: "destroyed" },
+			(m) => (message = m),
+			0,
+		);
 		expect(message!.kind).toBe("Failed");
 		expect(message!.rank).toBe("D");
 		expect(message!.completedPhases).toBe(1);
@@ -173,18 +233,26 @@ describe("MissionScore round-2 calibration", () => {
 			else expect(value >= 200 && value <= 480).toBe(true);
 		}
 		// Historical scripted times predate the added objective work and remain shorter than the new good-run pars.
-		const qaSeconds = [14.5, 36.3, 28.5, 33.1, 56.4, 37.1, 32.9, 61.8, 53.5, 34.5, 37, 66.6, 47, 38.6, 50.9, 34, 46.9, 55.5, 49, 86.8, 33.6, 70.9, 78.5, 42.4, 102.8, 64.3, 99.6];
+		const qaSeconds = [
+			14.5, 36.3, 28.5, 33.1, 56.4, 37.1, 32.9, 61.8, 53.5, 34.5, 37, 66.6, 47, 38.6, 50.9, 34, 46.9, 55.5, 49,
+			86.8, 33.6, 70.9, 78.5, 42.4, 102.8, 64.3, 99.6,
+		];
 		let longer = 0;
 		for (let index = 0; index < qaSeconds.size(); index++) if (par(index + 1) > qaSeconds[index] * 2) longer += 1;
 		expect(longer >= 24).toBe(true);
 		// Act finales run longer than their act's average sortie.
-		for (const [finale, first, last] of [[9, 3, 8], [18, 10, 17], [27, 19, 26]] as [number, number, number][]) {
+		for (const [finale, first, last] of [
+			[9, 3, 8],
+			[18, 10, 17],
+			[27, 19, 26],
+		] as [number, number, number][]) {
 			let sum = 0;
 			for (let id = first; id <= last; id++) sum += par(id);
 			expect(par(finale) >= sum / (last - first + 1)).toBe(true);
 		}
 	});
 	it("keeps every par well inside the sortie deadline", () => {
-		for (const bp of MISSIONS) expect(MissionScore.ParSeconds(bp) * 1.6 < GameConfig.Campaign.MissionTimeLimit).toBe(true);
+		for (const bp of MISSIONS)
+			expect(MissionScore.ParSeconds(bp) * 1.6 < GameConfig.Campaign.MissionTimeLimit).toBe(true);
 	});
 });

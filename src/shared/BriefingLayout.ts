@@ -61,7 +61,15 @@ export function getBriefingLayout(panelWidth: number, panelHeight: number): Brie
 
 /** Height of the hero block (eyebrow, title, meta, story) from measured title and story text heights. */
 export function getBriefingHeroHeight(titleHeight: number, storyHeight: number): number {
-	return BRIEFING_LINE_HEIGHT + BRIEFING_HEADER_SPACING + titleHeight + BRIEFING_HEADER_SPACING + BRIEFING_LINE_HEIGHT + BRIEFING_GAP + storyHeight;
+	return (
+		BRIEFING_LINE_HEIGHT +
+		BRIEFING_HEADER_SPACING +
+		titleHeight +
+		BRIEFING_HEADER_SPACING +
+		BRIEFING_LINE_HEIGHT +
+		BRIEFING_GAP +
+		storyHeight
+	);
 }
 
 export const ARCHIVE_HEADER_HEIGHT = MIN_TOUCH_TARGET;

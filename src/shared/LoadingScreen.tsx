@@ -82,7 +82,7 @@ function LoadText(props: {
 		<textlabel
 			key={props.name}
 			BackgroundTransparency={1}
-			Font={props.fontFace ? undefined : props.font ?? Enum.Font.GothamBold}
+			Font={props.fontFace ? undefined : (props.font ?? Enum.Font.GothamBold)}
 			FontFace={props.fontFace}
 			Position={UDim2.fromOffset(props.rect.x, props.rect.y)}
 			Size={UDim2.fromOffset(props.rect.width, props.rect.height)}
@@ -99,22 +99,55 @@ function LoadText(props: {
 			TextYAlignment={props.yAlign ?? Enum.TextYAlignment.Center}
 			ZIndex={props.zIndex ?? 2}
 		>
-			{props.scaled === true && <uitextsizeconstraint MaxTextSize={props.size} MinTextSize={math.min(props.size, 14)} />}
+			{props.scaled === true && (
+				<uitextsizeconstraint MaxTextSize={props.size} MinTextSize={math.min(props.size, 14)} />
+			)}
 		</textlabel>
 	);
 }
 
 /** Four L-shaped HUD corners framing the jet. */
 function Brackets({ alpha }: { alpha: Binding<number> }) {
-	const arm = 22, thick = 2;
-	const corners: [string, number, number][] = [["TL", 0, 0], ["TR", 1, 0], ["BL", 0, 1], ["BR", 1, 1]];
+	const arm = 22,
+		thick = 2;
+	const corners: [string, number, number][] = [
+		["TL", 0, 0],
+		["TR", 1, 0],
+		["BL", 0, 1],
+		["BR", 1, 1],
+	];
 	const transparency = faded(alpha, 0.35);
 	return (
 		<>
 			{corners.map(([name, x, y]) => (
-				<frame key={`Bracket${name}`} AnchorPoint={new Vector2(x, y)} BackgroundTransparency={1} Position={UDim2.fromScale(x, y)} Size={UDim2.fromOffset(arm, arm)} ZIndex={4}>
-					<frame key="H" AnchorPoint={new Vector2(x, y)} BackgroundColor3={C.Accent} BackgroundTransparency={transparency} BorderSizePixel={0} Position={UDim2.fromScale(x, y)} Size={UDim2.fromOffset(arm, thick)} ZIndex={4} />
-					<frame key="V" AnchorPoint={new Vector2(x, y)} BackgroundColor3={C.Accent} BackgroundTransparency={transparency} BorderSizePixel={0} Position={UDim2.fromScale(x, y)} Size={UDim2.fromOffset(thick, arm)} ZIndex={4} />
+				<frame
+					key={`Bracket${name}`}
+					AnchorPoint={new Vector2(x, y)}
+					BackgroundTransparency={1}
+					Position={UDim2.fromScale(x, y)}
+					Size={UDim2.fromOffset(arm, arm)}
+					ZIndex={4}
+				>
+					<frame
+						key="H"
+						AnchorPoint={new Vector2(x, y)}
+						BackgroundColor3={C.Accent}
+						BackgroundTransparency={transparency}
+						BorderSizePixel={0}
+						Position={UDim2.fromScale(x, y)}
+						Size={UDim2.fromOffset(arm, thick)}
+						ZIndex={4}
+					/>
+					<frame
+						key="V"
+						AnchorPoint={new Vector2(x, y)}
+						BackgroundColor3={C.Accent}
+						BackgroundTransparency={transparency}
+						BorderSizePixel={0}
+						Position={UDim2.fromScale(x, y)}
+						Size={UDim2.fromOffset(thick, arm)}
+						ZIndex={4}
+					/>
 				</frame>
 			))}
 		</>
@@ -124,7 +157,17 @@ function Brackets({ alpha }: { alpha: Binding<number> }) {
 // Full-bleed mission loading screen (D-200). Lives in shared only so the Jest place can mount it
 // (the client container is isolated); only the client renders it. Two ScreenGuis: decoration covers the whole
 // screen, behind the top bar and notches; all text sits in a CoreUISafeInsets layer.
-function LoadingScreenComponent({ visible, launched, missionId, progress, viewport, phase, buildFolder, inputMode, motion }: LoadingScreenProps) {
+function LoadingScreenComponent({
+	visible,
+	launched,
+	missionId,
+	progress,
+	viewport,
+	phase,
+	buildFolder,
+	inputMode,
+	motion,
+}: LoadingScreenProps) {
 	const [mounted, setMounted] = useState(visible);
 	const [curtain, setCurtain] = useBinding(visible ? 1 : 0);
 	const [alpha, setAlpha] = useBinding(0);
@@ -137,15 +180,47 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 	const glintRef = useRef<Frame>();
 	const rigRef = useRef<JetRig>();
 	const model = useMemo(() => new LoadingProgress(), []);
-	const live = useRef({ phase, progress, worldPhase, world: buildFolder !== undefined, launched, inputMode, missionId, motion, shownAt: os.clock() });
-	live.current = { ...live.current, phase, progress, worldPhase, world: buildFolder !== undefined, launched, inputMode, missionId, motion };
+	const live = useRef({
+		phase,
+		progress,
+		worldPhase,
+		world: buildFolder !== undefined,
+		launched,
+		inputMode,
+		missionId,
+		motion,
+		shownAt: os.clock(),
+	});
+	live.current = {
+		...live.current,
+		phase,
+		progress,
+		worldPhase,
+		world: buildFolder !== undefined,
+		launched,
+		inputMode,
+		missionId,
+		motion,
+	};
 
 	// Fades: the ink curtain covers instantly on launch; content eases in over it.
-	const faders = useMemo(() => ({
-		curtain: new Fader(visible ? 1 : 0, setCurtain),
-		content: new Fader(0, (value) => { setAlpha(value); rigRef.current?.SetAlpha(value); }),
-	}), []);
-	useEffect(() => () => { faders.curtain.Destroy(); faders.content.Destroy(); }, []);
+	const faders = useMemo(
+		() => ({
+			curtain: new Fader(visible ? 1 : 0, setCurtain),
+			content: new Fader(0, (value) => {
+				setAlpha(value);
+				rigRef.current?.SetAlpha(value);
+			}),
+		}),
+		[],
+	);
+	useEffect(
+		() => () => {
+			faders.curtain.Destroy();
+			faders.content.Destroy();
+		},
+		[],
+	);
 
 	const fillTween = useRef<Tween>();
 	const setFill = (value: number, animate: boolean) => {
@@ -154,16 +229,27 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 		fillTween.current?.Cancel();
 		fillTween.current?.Destroy();
 		fillTween.current = undefined;
-		if (!animate) { fill.Size = UDim2.fromScale(value, 1); return; }
+		if (!animate) {
+			fill.Size = UDim2.fromScale(value, 1);
+			return;
+		}
 		const tween = TweenService.Create(fill, FILL_TWEEN, { Size: UDim2.fromScale(value, 1) });
 		fillTween.current = tween;
 		tween.Play();
 	};
-	useEffect(() => () => { fillTween.current?.Cancel(); fillTween.current?.Destroy(); }, []);
+	useEffect(
+		() => () => {
+			fillTween.current?.Cancel();
+			fillTween.current?.Destroy();
+		},
+		[],
+	);
 
 	useEffect(() => {
 		setWorldPhase(buildFolder?.GetAttribute("WorldBuildPhase"));
-		const connection = buildFolder?.GetAttributeChangedSignal("WorldBuildPhase").Connect(() => setWorldPhase(buildFolder.GetAttribute("WorldBuildPhase")));
+		const connection = buildFolder
+			?.GetAttributeChangedSignal("WorldBuildPhase")
+			.Connect(() => setWorldPhase(buildFolder.GetAttribute("WorldBuildPhase")));
 		return () => connection?.Disconnect();
 	}, [buildFolder]);
 
@@ -192,7 +278,9 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 		}
 		if (!showing.current) return;
 		showing.current = false;
-		const finish = () => { if (hideSerial.current === serial) setMounted(false); };
+		const finish = () => {
+			if (hideSerial.current === serial) setMounted(false);
+		};
 		if (live.current.launched) {
 			model.Complete();
 			setActive(LOADING_SEGMENT_COUNT - 1);
@@ -218,7 +306,10 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 			rigRef.current = rig;
 		};
 		let found = false;
-		const stop = whenJetTemplate((template) => { found = true; build(template); });
+		const stop = whenJetTemplate((template) => {
+			found = true;
+			build(template);
+		});
 		// Until the server's cinematic models replicate, the HUD frame stands alone.
 		if (!found) build(undefined);
 		return () => {
@@ -241,9 +332,17 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 		pulse.Size = UDim2.fromScale(1, 1);
 		pulse.ZIndex = 4;
 		pulse.Parent = holder;
-		const tween = TweenService.Create(pulse, new TweenInfo(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundTransparency: 0.35 });
+		const tween = TweenService.Create(
+			pulse,
+			new TweenInfo(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ BackgroundTransparency: 0.35 },
+		);
 		if (live.current.motion) tween.Play();
-		return () => { tween.Cancel(); tween.Destroy(); pulse.Destroy(); };
+		return () => {
+			tween.Cancel();
+			tween.Destroy();
+			pulse.Destroy();
+		};
 	}, [mounted, queued]);
 
 	// One slow loop drives the fill target, elapsed clock and tip rotation (no per-frame work).
@@ -251,22 +350,45 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 		if (!mounted) return;
 		let running = true;
 		const tips = loadingTips(live.current.inputMode, { rearm: hasRearm(live.current.missionId) });
-		let tipsMode = live.current.inputMode, tipsMission = live.current.missionId;
+		let tipsMode = live.current.inputMode,
+			tipsMission = live.current.missionId;
 		let current = tips;
 		const step = () => {
 			const state = live.current;
 			const now = os.clock();
 			const elapsed = now - state.shownAt;
 			if (showing.current) {
-				const value = model.Update(loadingStage({ phase: state.phase, worldPhase: state.worldPhase, world: state.world, preload: state.progress }), now);
-				if (value - tick.current.fill > 0.0005) { tick.current.fill = value; setFill(value, true); }
+				const value = model.Update(
+					loadingStage({
+						phase: state.phase,
+						worldPhase: state.worldPhase,
+						world: state.world,
+						preload: state.progress,
+					}),
+					now,
+				);
+				if (value - tick.current.fill > 0.0005) {
+					tick.current.fill = value;
+					setFill(value, true);
+				}
 				setActive(model.ActiveSegment());
 			}
 			const second = math.floor(elapsed);
-			if (second !== tick.current.second) { tick.current.second = second; setElapsedText(formatElapsed(elapsed)); }
-			if (state.inputMode !== tipsMode || state.missionId !== tipsMission) { tipsMode = state.inputMode; tipsMission = state.missionId; current = loadingTips(tipsMode, { rearm: hasRearm(state.missionId) }); tick.current.tip = -1; }
+			if (second !== tick.current.second) {
+				tick.current.second = second;
+				setElapsedText(formatElapsed(elapsed));
+			}
+			if (state.inputMode !== tipsMode || state.missionId !== tipsMission) {
+				tipsMode = state.inputMode;
+				tipsMission = state.missionId;
+				current = loadingTips(tipsMode, { rearm: hasRearm(state.missionId) });
+				tick.current.tip = -1;
+			}
 			const index = tipIndex(current.size(), elapsed);
-			if (index !== tick.current.tip) { tick.current.tip = index; setTipText(`<font color="${HEX.Accent}">TIP</font>   ${current[index]}`); }
+			if (index !== tick.current.tip) {
+				tick.current.tip = index;
+				setTipText(`<font color="${HEX.Accent}">TIP</font>   ${current[index]}`);
+			}
 		};
 		step();
 		const thread = task.spawn(() => {
@@ -275,7 +397,10 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 				if (running) step();
 			}
 		});
-		return () => { running = false; if (coroutine.status(thread) === "suspended") task.cancel(thread); };
+		return () => {
+			running = false;
+			if (coroutine.status(thread) === "suspended") task.cancel(thread);
+		};
 	}, [mounted]);
 
 	const layout = useMemo(() => getLoadingLayout(viewport.X, viewport.Y), [viewport]);
@@ -283,17 +408,29 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 	const title = mission?.title ?? "SORTIE";
 	const codename = mission ? string.upper(mission.codename) : "";
 	const meta = mission ? `${REGION_NAMES[mission.region] ?? ""}  ·  ${environmentName(mission.environment)}` : "";
-	const actLine = mission === undefined ? "" : missionId === 0 ? "TRAINING SORTIE" : `ACT ${ACT_NUMERALS[mission.act] ?? ""}  ·  ${ACT_NAMES[mission.act] ?? ""}`;
+	const actLine =
+		mission === undefined
+			? ""
+			: missionId === 0
+				? "TRAINING SORTIE"
+				: `ACT ${ACT_NUMERALS[mission.act] ?? ""}  ·  ${ACT_NAMES[mission.act] ?? ""}`;
 	const stage = loadingStage({ phase, worldPhase, world: buildFolder !== undefined, preload: progress });
 	const statusWords = launched && !visible ? "Cleared for launch" : stage.words;
 	const excerpt = useMemo(() => {
 		if (!mission || !layout.brief || layout.excerptLines === 0) return "";
-		return briefingExcerpt(mission.briefing, excerptBudget(layout.brief.width, layout.bodySize, layout.excerptLines));
+		return briefingExcerpt(
+			mission.briefing,
+			excerptBudget(layout.brief.width, layout.bodySize, layout.excerptLines),
+		);
 	}, [mission, layout]);
 
 	const header = layout.header;
 	let y = header.y;
-	const row = (height: number) => { const r = { x: header.x, y, width: header.width, height }; y += height + HEADER_ROW_GAP; return r; };
+	const row = (height: number) => {
+		const r = { x: header.x, y, width: header.width, height };
+		y += height + HEADER_ROW_GAP;
+		return r;
+	};
 	const eyebrowRect = row(layout.eyebrowSize + 4);
 	const titleRect = row(layout.titleSize + 6);
 	const codenameRect = row(layout.codenameSize + 4);
@@ -306,92 +443,397 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 	const barTop = band.y + layout.labelsHeight;
 	const statusTop = barTop + layout.barHeight + 6;
 	const jet = layout.jet;
-	const gridX = 16, gridY = 9;
+	const gridX = 16,
+		gridY = 9;
 
 	return (
 		<>
-			<screengui key="SkybreakLoadingBackdrop" DisplayOrder={LOADING_DISPLAY_ORDER} Enabled={mounted} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
-				<frame key="LoadingBackdrop" BackgroundColor3={C.Ink} BackgroundTransparency={curtain.map((a) => 1 - a)} BorderSizePixel={0} Interactable={false} Size={UDim2.fromScale(1, 1)}>
-					<frame key="SkyWash" BackgroundColor3={Color3.fromRGB(22, 46, 66)} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} Size={UDim2.fromScale(1, 0.7)} ZIndex={1}>
-						<uigradient Rotation={90} Transparency={new NumberSequence([new NumberSequenceKeypoint(0, 0.35), new NumberSequenceKeypoint(1, 1)])} />
+			<screengui
+				key="SkybreakLoadingBackdrop"
+				DisplayOrder={LOADING_DISPLAY_ORDER}
+				Enabled={mounted}
+				IgnoreGuiInset={true}
+				ResetOnSpawn={false}
+				ScreenInsets={Enum.ScreenInsets.None}
+				ZIndexBehavior={Enum.ZIndexBehavior.Sibling}
+			>
+				<frame
+					key="LoadingBackdrop"
+					BackgroundColor3={C.Ink}
+					BackgroundTransparency={curtain.map((a) => 1 - a)}
+					BorderSizePixel={0}
+					Interactable={false}
+					Size={UDim2.fromScale(1, 1)}
+				>
+					<frame
+						key="SkyWash"
+						BackgroundColor3={Color3.fromRGB(22, 46, 66)}
+						BackgroundTransparency={faded(alpha, 0)}
+						BorderSizePixel={0}
+						Size={UDim2.fromScale(1, 0.7)}
+						ZIndex={1}
+					>
+						<uigradient
+							Rotation={90}
+							Transparency={
+								new NumberSequence([
+									new NumberSequenceKeypoint(0, 0.35),
+									new NumberSequenceKeypoint(1, 1),
+								])
+							}
+						/>
 					</frame>
 					<frame key="Grid" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} ZIndex={1}>
 						{range(gridX - 1).map((i) => (
-							<frame key={`V${i + 1}`} BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0.94)} BorderSizePixel={0} Position={UDim2.fromScale((i + 1) / gridX, 0)} Size={new UDim2(0, 1, 1, 0)} ZIndex={1} />
+							<frame
+								key={`V${i + 1}`}
+								BackgroundColor3={C.Accent}
+								BackgroundTransparency={faded(alpha, 0.94)}
+								BorderSizePixel={0}
+								Position={UDim2.fromScale((i + 1) / gridX, 0)}
+								Size={new UDim2(0, 1, 1, 0)}
+								ZIndex={1}
+							/>
 						))}
 						{range(gridY - 1).map((i) => (
-							<frame key={`H${i + 1}`} BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0.94)} BorderSizePixel={0} Position={UDim2.fromScale(0, (i + 1) / gridY)} Size={new UDim2(1, 0, 0, 1)} ZIndex={1} />
+							<frame
+								key={`H${i + 1}`}
+								BackgroundColor3={C.Accent}
+								BackgroundTransparency={faded(alpha, 0.94)}
+								BorderSizePixel={0}
+								Position={UDim2.fromScale(0, (i + 1) / gridY)}
+								Size={new UDim2(1, 0, 0, 1)}
+								ZIndex={1}
+							/>
 						))}
 					</frame>
 					{missionId > 0 && (
-						<textlabel key="MissionNumber" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Position={UDim2.fromScale(0.98, layout.mode === "tall" ? 0.46 : 0.86)} Size={UDim2.fromScale(layout.mode === "tall" ? 0.4 : 0.3, layout.mode === "tall" ? 0.16 : 0.34)} Text={string.format("%02d", missionId)} TextColor3={C.Ivory} TextScaled={true} TextTransparency={faded(alpha, 0.95)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={1} />
+						<textlabel
+							key="MissionNumber"
+							AnchorPoint={new Vector2(1, 1)}
+							BackgroundTransparency={1}
+							Font={Enum.Font.GothamBlack}
+							Position={UDim2.fromScale(0.98, layout.mode === "tall" ? 0.46 : 0.86)}
+							Size={UDim2.fromScale(
+								layout.mode === "tall" ? 0.4 : 0.3,
+								layout.mode === "tall" ? 0.16 : 0.34,
+							)}
+							Text={string.format("%02d", missionId)}
+							TextColor3={C.Ivory}
+							TextScaled={true}
+							TextTransparency={faded(alpha, 0.95)}
+							TextXAlignment={Enum.TextXAlignment.Right}
+							ZIndex={1}
+						/>
 					)}
-					<frame key="JetFrame" ref={holderRef} BackgroundTransparency={1} ClipsDescendants={true} Position={UDim2.fromScale(jet.x, jet.y)} Size={UDim2.fromScale(jet.width, jet.height)} ZIndex={2}>
+					<frame
+						key="JetFrame"
+						ref={holderRef}
+						BackgroundTransparency={1}
+						ClipsDescendants={true}
+						Position={UDim2.fromScale(jet.x, jet.y)}
+						Size={UDim2.fromScale(jet.width, jet.height)}
+						ZIndex={2}
+					>
 						<Brackets alpha={alpha} />
-						<frame key="Horizon" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0.8)} BorderSizePixel={0} Position={UDim2.fromScale(0.5, 0.5)} Size={new UDim2(0.7, 0, 0, 1)} ZIndex={1} />
+						<frame
+							key="Horizon"
+							AnchorPoint={new Vector2(0.5, 0.5)}
+							BackgroundColor3={C.Accent}
+							BackgroundTransparency={faded(alpha, 0.8)}
+							BorderSizePixel={0}
+							Position={UDim2.fromScale(0.5, 0.5)}
+							Size={new UDim2(0.7, 0, 0, 1)}
+							ZIndex={1}
+						/>
 						{[-1, 1].map((side) => (
-							<frame key={side < 0 ? "LadderUp" : "LadderDown"} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0.85)} BorderSizePixel={0} Position={UDim2.fromScale(0.5, 0.5 + side * 0.22)} Size={new UDim2(0.24, 0, 0, 1)} ZIndex={1} />
+							<frame
+								key={side < 0 ? "LadderUp" : "LadderDown"}
+								AnchorPoint={new Vector2(0.5, 0.5)}
+								BackgroundColor3={C.Accent}
+								BackgroundTransparency={faded(alpha, 0.85)}
+								BorderSizePixel={0}
+								Position={UDim2.fromScale(0.5, 0.5 + side * 0.22)}
+								Size={new UDim2(0.24, 0, 0, 1)}
+								ZIndex={1}
+							/>
 						))}
-						<textlabel key="AircraftTag" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} FontFace={HUD_FONT} Position={new UDim2(1, -8, 1, -6)} Size={UDim2.fromOffset(160, 14)} Text="KESTREL // READY ROOM" TextColor3={C.Accent} TextSize={11} TextTransparency={faded(alpha, 0.45)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={4} />
+						<textlabel
+							key="AircraftTag"
+							AnchorPoint={new Vector2(1, 1)}
+							BackgroundTransparency={1}
+							FontFace={HUD_FONT}
+							Position={new UDim2(1, -8, 1, -6)}
+							Size={UDim2.fromOffset(160, 14)}
+							Text="KESTREL // READY ROOM"
+							TextColor3={C.Accent}
+							TextSize={11}
+							TextTransparency={faded(alpha, 0.45)}
+							TextXAlignment={Enum.TextXAlignment.Right}
+							ZIndex={4}
+						/>
 					</frame>
-					<frame key="LeftShade" BackgroundColor3={C.Ink} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} Size={UDim2.fromScale(layout.mode === "tall" ? 0 : 0.62, 1)} Visible={layout.mode !== "tall"} ZIndex={3}>
-						<uigradient Transparency={new NumberSequence([new NumberSequenceKeypoint(0, 0.1), new NumberSequenceKeypoint(0.55, 0.45), new NumberSequenceKeypoint(1, 1)])} />
+					<frame
+						key="LeftShade"
+						BackgroundColor3={C.Ink}
+						BackgroundTransparency={faded(alpha, 0)}
+						BorderSizePixel={0}
+						Size={UDim2.fromScale(layout.mode === "tall" ? 0 : 0.62, 1)}
+						Visible={layout.mode !== "tall"}
+						ZIndex={3}
+					>
+						<uigradient
+							Transparency={
+								new NumberSequence([
+									new NumberSequenceKeypoint(0, 0.1),
+									new NumberSequenceKeypoint(0.55, 0.45),
+									new NumberSequenceKeypoint(1, 1),
+								])
+							}
+						/>
 					</frame>
-					<frame key="BottomShade" AnchorPoint={new Vector2(0, 1)} BackgroundColor3={C.Ink} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} Position={UDim2.fromScale(0, 1)} Size={UDim2.fromScale(1, layout.mode === "tall" ? 0.62 : 0.4)} ZIndex={3}>
-						<uigradient Rotation={-90} Transparency={new NumberSequence([new NumberSequenceKeypoint(0, 0), new NumberSequenceKeypoint(0.6, 0.35), new NumberSequenceKeypoint(1, 1)])} />
+					<frame
+						key="BottomShade"
+						AnchorPoint={new Vector2(0, 1)}
+						BackgroundColor3={C.Ink}
+						BackgroundTransparency={faded(alpha, 0)}
+						BorderSizePixel={0}
+						Position={UDim2.fromScale(0, 1)}
+						Size={UDim2.fromScale(1, layout.mode === "tall" ? 0.62 : 0.4)}
+						ZIndex={3}
+					>
+						<uigradient
+							Rotation={-90}
+							Transparency={
+								new NumberSequence([
+									new NumberSequenceKeypoint(0, 0),
+									new NumberSequenceKeypoint(0.6, 0.35),
+									new NumberSequenceKeypoint(1, 1),
+								])
+							}
+						/>
 					</frame>
 				</frame>
 			</screengui>
-			<screengui key="SkybreakLoadingContent" DisplayOrder={LOADING_DISPLAY_ORDER + 1} Enabled={mounted} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
+			<screengui
+				key="SkybreakLoadingContent"
+				DisplayOrder={LOADING_DISPLAY_ORDER + 1}
+				Enabled={mounted}
+				IgnoreGuiInset={false}
+				ResetOnSpawn={false}
+				ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets}
+				ZIndexBehavior={Enum.ZIndexBehavior.Sibling}
+			>
 				<frame key="LoadingScreen" BackgroundTransparency={1} Interactable={false} Size={UDim2.fromScale(1, 1)}>
-					<frame key="AccentBar" BackgroundColor3={C.Orange} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} Position={UDim2.fromOffset(math.max(2, header.x - 10), eyebrowRect.y + 2)} Size={UDim2.fromOffset(3, header.height - HEADER_ROW_GAP - 4)} />
-					<LoadText name="Eyebrow" text={missionEyebrow(missionId)} rect={eyebrowRect} size={layout.eyebrowSize} color={C.Orange} alpha={alpha} />
-					<LoadText name="Title" text={title} rect={titleRect} size={layout.titleSize} color={C.Ivory} alpha={alpha} font={Enum.Font.GothamBlack} scaled={true} />
-					<LoadText name="Codename" text={codename} rect={codenameRect} size={layout.codenameSize} color={C.Accent} alpha={alpha} />
-					<LoadText name="Meta" text={meta} rect={metaRect} size={layout.metaSize} color={C.Muted} alpha={alpha} font={Enum.Font.GothamMedium} />
-					{layout.act && <LoadText name="Act" text={actLine} rect={layout.act} size={layout.smallSize} color={C.Faint} alpha={alpha} align={Enum.TextXAlignment.Right} />}
+					<frame
+						key="AccentBar"
+						BackgroundColor3={C.Orange}
+						BackgroundTransparency={faded(alpha, 0)}
+						BorderSizePixel={0}
+						Position={UDim2.fromOffset(math.max(2, header.x - 10), eyebrowRect.y + 2)}
+						Size={UDim2.fromOffset(3, header.height - HEADER_ROW_GAP - 4)}
+					/>
+					<LoadText
+						name="Eyebrow"
+						text={missionEyebrow(missionId)}
+						rect={eyebrowRect}
+						size={layout.eyebrowSize}
+						color={C.Orange}
+						alpha={alpha}
+					/>
+					<LoadText
+						name="Title"
+						text={title}
+						rect={titleRect}
+						size={layout.titleSize}
+						color={C.Ivory}
+						alpha={alpha}
+						font={Enum.Font.GothamBlack}
+						scaled={true}
+					/>
+					<LoadText
+						name="Codename"
+						text={codename}
+						rect={codenameRect}
+						size={layout.codenameSize}
+						color={C.Accent}
+						alpha={alpha}
+					/>
+					<LoadText
+						name="Meta"
+						text={meta}
+						rect={metaRect}
+						size={layout.metaSize}
+						color={C.Muted}
+						alpha={alpha}
+						font={Enum.Font.GothamMedium}
+					/>
+					{layout.act && (
+						<LoadText
+							name="Act"
+							text={actLine}
+							rect={layout.act}
+							size={layout.smallSize}
+							color={C.Faint}
+							alpha={alpha}
+							align={Enum.TextXAlignment.Right}
+						/>
+					)}
 					{brief && mission && (
-						<frame key="Brief" BackgroundTransparency={1} Position={UDim2.fromOffset(brief.x, brief.y)} Size={UDim2.fromOffset(brief.width, brief.height)}>
-							<frame key="Rule" BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0.4)} BorderSizePixel={0} Size={UDim2.fromOffset(48, 1)} />
-							<LoadText name="ObjectiveLabel" text="OBJECTIVE" rect={{ x: 0, y: 2, width: brief.width, height: labelRow }} size={layout.smallSize} color={C.Faint} alpha={alpha} />
-							<LoadText name="Objective" text={mission.primary} rect={{ x: 0, y: labelRow, width: brief.width, height: layout.objectiveLines * line }} size={layout.bodySize} color={C.Ivory} alpha={alpha} font={Enum.Font.GothamMedium} wrapped={true} yAlign={Enum.TextYAlignment.Top} lineHeight={1.15} />
+						<frame
+							key="Brief"
+							BackgroundTransparency={1}
+							Position={UDim2.fromOffset(brief.x, brief.y)}
+							Size={UDim2.fromOffset(brief.width, brief.height)}
+						>
+							<frame
+								key="Rule"
+								BackgroundColor3={C.Accent}
+								BackgroundTransparency={faded(alpha, 0.4)}
+								BorderSizePixel={0}
+								Size={UDim2.fromOffset(48, 1)}
+							/>
+							<LoadText
+								name="ObjectiveLabel"
+								text="OBJECTIVE"
+								rect={{ x: 0, y: 2, width: brief.width, height: labelRow }}
+								size={layout.smallSize}
+								color={C.Faint}
+								alpha={alpha}
+							/>
+							<LoadText
+								name="Objective"
+								text={mission.primary}
+								rect={{ x: 0, y: labelRow, width: brief.width, height: layout.objectiveLines * line }}
+								size={layout.bodySize}
+								color={C.Ivory}
+								alpha={alpha}
+								font={Enum.Font.GothamMedium}
+								wrapped={true}
+								yAlign={Enum.TextYAlignment.Top}
+								lineHeight={1.15}
+							/>
 							{layout.excerptLines > 0 && (
-								<LoadText name="Excerpt" text={excerpt} rect={{ x: 0, y: labelRow + layout.objectiveLines * line + 6, width: brief.width, height: layout.excerptLines * line }} size={layout.bodySize} color={C.Muted} alpha={alpha} font={Enum.Font.Gotham} wrapped={true} yAlign={Enum.TextYAlignment.Top} lineHeight={1.15} />
+								<LoadText
+									name="Excerpt"
+									text={excerpt}
+									rect={{
+										x: 0,
+										y: labelRow + layout.objectiveLines * line + 6,
+										width: brief.width,
+										height: layout.excerptLines * line,
+									}}
+									size={layout.bodySize}
+									color={C.Muted}
+									alpha={alpha}
+									font={Enum.Font.Gotham}
+									wrapped={true}
+									yAlign={Enum.TextYAlignment.Top}
+									lineHeight={1.15}
+								/>
 							)}
 						</frame>
 					)}
-					{layout.tip && <LoadText name="Tip" text={tipText} rect={layout.tip} size={layout.smallSize} color={C.Muted} alpha={alpha} font={Enum.Font.GothamMedium} rich={true} />}
-					<frame key="Progress" BackgroundTransparency={1} Position={UDim2.fromOffset(band.x, band.y)} Size={UDim2.fromOffset(band.width, band.height)}>
-						{layout.labelsHeight > 0 && LOADING_SEGMENTS.map((name, i) => (
-							<LoadText
-								name={`Segment${name}`}
-								text={name}
-								rect={{ x: i * (layout.segmentWidth + layout.segmentGap), y: 0, width: layout.segmentWidth, height: layout.labelsHeight - 4 }}
-								size={layout.smallSize}
-								color={i < active ? C.Accent : i === active ? C.Ivory : C.Faint}
-								alpha={alpha}
-								base={i <= active ? 0 : 0.2}
-							/>
-						))}
-						<frame key="Track" BackgroundColor3={C.PanelHot} BackgroundTransparency={faded(alpha, 0.15)} BorderSizePixel={0} Position={UDim2.fromOffset(0, layout.labelsHeight)} Size={UDim2.fromOffset(band.width, layout.barHeight)}>
-							<frame key="Fill" ref={fillRef} BackgroundColor3={C.Accent} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} ZIndex={2}>
+					{layout.tip && (
+						<LoadText
+							name="Tip"
+							text={tipText}
+							rect={layout.tip}
+							size={layout.smallSize}
+							color={C.Muted}
+							alpha={alpha}
+							font={Enum.Font.GothamMedium}
+							rich={true}
+						/>
+					)}
+					<frame
+						key="Progress"
+						BackgroundTransparency={1}
+						Position={UDim2.fromOffset(band.x, band.y)}
+						Size={UDim2.fromOffset(band.width, band.height)}
+					>
+						{layout.labelsHeight > 0 &&
+							LOADING_SEGMENTS.map((name, i) => (
+								<LoadText
+									name={`Segment${name}`}
+									text={name}
+									rect={{
+										x: i * (layout.segmentWidth + layout.segmentGap),
+										y: 0,
+										width: layout.segmentWidth,
+										height: layout.labelsHeight - 4,
+									}}
+									size={layout.smallSize}
+									color={i < active ? C.Accent : i === active ? C.Ivory : C.Faint}
+									alpha={alpha}
+									base={i <= active ? 0 : 0.2}
+								/>
+							))}
+						<frame
+							key="Track"
+							BackgroundColor3={C.PanelHot}
+							BackgroundTransparency={faded(alpha, 0.15)}
+							BorderSizePixel={0}
+							Position={UDim2.fromOffset(0, layout.labelsHeight)}
+							Size={UDim2.fromOffset(band.width, layout.barHeight)}
+						>
+							<frame
+								key="Fill"
+								ref={fillRef}
+								BackgroundColor3={C.Accent}
+								BackgroundTransparency={faded(alpha, 0)}
+								BorderSizePixel={0}
+								ZIndex={2}
+							>
 								<uigradient Color={new ColorSequence(C.Accent, C.AccentHot)} />
 							</frame>
 							{range(LOADING_SEGMENT_COUNT - 1).map((i) => (
-								<frame key={`Gap${i + 1}`} BackgroundColor3={C.Ink} BackgroundTransparency={faded(alpha, 0)} BorderSizePixel={0} Position={UDim2.fromOffset(math.floor((i + 1) * (layout.segmentWidth + layout.segmentGap) - layout.segmentGap), 0)} Size={new UDim2(0, layout.segmentGap, 1, 0)} ZIndex={3} />
+								<frame
+									key={`Gap${i + 1}`}
+									BackgroundColor3={C.Ink}
+									BackgroundTransparency={faded(alpha, 0)}
+									BorderSizePixel={0}
+									Position={UDim2.fromOffset(
+										math.floor(
+											(i + 1) * (layout.segmentWidth + layout.segmentGap) - layout.segmentGap,
+										),
+										0,
+									)}
+									Size={new UDim2(0, layout.segmentGap, 1, 0)}
+									ZIndex={3}
+								/>
 							))}
 							<frame
 								key="ActiveGlint"
 								ref={glintRef}
 								BackgroundTransparency={1}
-								Position={UDim2.fromOffset(math.floor(active * (layout.segmentWidth + layout.segmentGap)), 0)}
+								Position={UDim2.fromOffset(
+									math.floor(active * (layout.segmentWidth + layout.segmentGap)),
+									0,
+								)}
 								Size={new UDim2(0, math.floor(layout.segmentWidth), 1, 0)}
 								Visible={alpha.map((a) => a > 0.98)}
 								ZIndex={4}
 							/>
 						</frame>
-						<LoadText name="Status" text={statusWords} rect={{ x: 0, y: statusTop - band.y, width: band.width - 90, height: layout.statusHeight }} size={layout.smallSize + 1} color={stage.queued ? C.Orange : C.Ivory} alpha={alpha} />
-						<LoadText name="Elapsed" text={elapsedText.map((t) => `T+ ${t}`)} rect={{ x: band.width - 90, y: statusTop - band.y, width: 90, height: layout.statusHeight }} size={layout.smallSize + 1} color={C.Muted} alpha={alpha} fontFace={HUD_FONT} align={Enum.TextXAlignment.Right} />
+						<LoadText
+							name="Status"
+							text={statusWords}
+							rect={{ x: 0, y: statusTop - band.y, width: band.width - 90, height: layout.statusHeight }}
+							size={layout.smallSize + 1}
+							color={stage.queued ? C.Orange : C.Ivory}
+							alpha={alpha}
+						/>
+						<LoadText
+							name="Elapsed"
+							text={elapsedText.map((t) => `T+ ${t}`)}
+							rect={{ x: band.width - 90, y: statusTop - band.y, width: 90, height: layout.statusHeight }}
+							size={layout.smallSize + 1}
+							color={C.Muted}
+							alpha={alpha}
+							fontFace={HUD_FONT}
+							align={Enum.TextXAlignment.Right}
+						/>
 					</frame>
 				</frame>
 			</screengui>

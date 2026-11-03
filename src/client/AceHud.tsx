@@ -7,12 +7,24 @@ import { HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
 // Ace-style flight HUD pieces: thin green line work and tabular type with a dark
 // outline. Every piece is built once per size; updates only change text/colour.
 
-export const TONE_COLOR: { [tone in HudTone]: Color3 } = { normal: HUD.Green, dim: HUD.Dim, warn: HUD.Amber, danger: HUD.Red };
+export const TONE_COLOR: { [tone in HudTone]: Color3 } = {
+	normal: HUD.Green,
+	dim: HUD.Dim,
+	warn: HUD.Amber,
+	danger: HUD.Red,
+};
 const LINE = 1.5;
 const OUTLINE = 0.55;
 
-const at = (rectangle: Rectangle) => ({ Position: UDim2.fromOffset(rectangle.x, rectangle.y), Size: UDim2.fromOffset(rectangle.width, rectangle.height) });
-const relative = (rectangle: Rectangle, origin: Rectangle): Rectangle => ({ ...rectangle, x: rectangle.x - origin.x, y: rectangle.y - origin.y });
+const at = (rectangle: Rectangle) => ({
+	Position: UDim2.fromOffset(rectangle.x, rectangle.y),
+	Size: UDim2.fromOffset(rectangle.width, rectangle.height),
+});
+const relative = (rectangle: Rectangle, origin: Rectangle): Rectangle => ({
+	...rectangle,
+	x: rectangle.x - origin.x,
+	y: rectangle.y - origin.y,
+});
 
 /** One straight stroke of line art: centre, length and rotation (degrees), in pixels of its parent. */
 interface LineSegment {
@@ -23,11 +35,28 @@ interface LineSegment {
 }
 
 function between(x1: number, y1: number, x2: number, y2: number): LineSegment {
-	return { x: (x1 + x2) / 2, y: (y1 + y2) / 2, length: math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), rotation: math.deg(math.atan2(y2 - y1, x2 - x1)) };
+	return {
+		x: (x1 + x2) / 2,
+		y: (y1 + y2) / 2,
+		length: math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2),
+		rotation: math.deg(math.atan2(y2 - y1, x2 - x1)),
+	};
 }
 
 /** One stroke of line art: a thin frame with a soft dark outline for bright sky. */
-function Line({ name, segment, color, thickness = LINE, transparency = 0 }: { name: string; segment: LineSegment; color: Color3; thickness?: number; transparency?: number }) {
+function Line({
+	name,
+	segment,
+	color,
+	thickness = LINE,
+	transparency = 0,
+}: {
+	name: string;
+	segment: LineSegment;
+	color: Color3;
+	thickness?: number;
+	transparency?: number;
+}) {
 	return (
 		<frame
 			key={name}
@@ -102,13 +131,23 @@ function ReticleImpl({ rectangle }: { rectangle: Rectangle }) {
 	const ring = math.floor(size * 0.36);
 	return (
 		<frame key="Reticle" BackgroundTransparency={1} {...at(rectangle)}>
-			<frame key="Ring" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromOffset(centre, centre)} Size={UDim2.fromOffset(ring, ring)}>
+			<frame
+				key="Ring"
+				AnchorPoint={new Vector2(0.5, 0.5)}
+				BackgroundTransparency={1}
+				Position={UDim2.fromOffset(centre, centre)}
+				Size={UDim2.fromOffset(ring, ring)}
+			>
 				<uicorner CornerRadius={new UDim(0.5, 0)} />
 				<uistroke Color={HUD.Green} Thickness={LINE} />
 			</frame>
 			<Line name="WingLeft" segment={between(0, centre, centre - ring / 2, centre)} color={HUD.Green} />
 			<Line name="WingRight" segment={between(centre + ring / 2, centre, size, centre)} color={HUD.Green} />
-			<Line name="Stem" segment={between(centre, centre - ring / 2, centre, centre - ring / 2 - size * 0.22)} color={HUD.Green} />
+			<Line
+				name="Stem"
+				segment={between(centre, centre - ring / 2, centre, centre - ring / 2 - size * 0.22)}
+				color={HUD.Green}
+			/>
 		</frame>
 	);
 }
@@ -119,8 +158,22 @@ export const Reticle = React.memo(ReticleImpl);
  * (SPEED points right, ALT points left). Short compact rects drop the caption
  * row and prefix the value with its initial instead.
  */
-export function InstrumentBox({ name, caption, value, rectangle, metrics, pointsRight, color = HUD.Green }: {
-	name: string; caption: string; value: string; rectangle: Rectangle; metrics: HudMetrics; pointsRight: boolean; color?: Color3;
+export function InstrumentBox({
+	name,
+	caption,
+	value,
+	rectangle,
+	metrics,
+	pointsRight,
+	color = HUD.Green,
+}: {
+	name: string;
+	caption: string;
+	value: string;
+	rectangle: Rectangle;
+	metrics: HudMetrics;
+	pointsRight: boolean;
+	color?: Color3;
 }) {
 	const captioned = rectangle.height >= metrics.caption + metrics.box;
 	const top = captioned ? metrics.caption : 0;
@@ -145,16 +198,42 @@ export function InstrumentBox({ name, caption, value, rectangle, metrics, points
 	const valueRect = { x: pointsRight ? 2 : tip + 2, y: 0, width: width - tip - 4, height: box };
 	return (
 		<frame key={name} BackgroundTransparency={1} {...at(rectangle)}>
-			{captioned && <HudLabel name="Caption" text={caption} rectangle={{ x: pointsRight ? 0 : tip, y: 0, width: width - tip, height: top }} textSize={metrics.instrumentLabel} color={color} />}
-			<frame key="Box" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.8} BorderSizePixel={0} Position={UDim2.fromOffset(pointsRight ? 0 : tip, top)} Size={UDim2.fromOffset(width - tip, box)} />
-			<frame key="Edges" BackgroundTransparency={1} Position={UDim2.fromOffset(0, top)} Size={UDim2.fromOffset(width, box)}>
-				{edges.map((segment, index) => <Line key={`Edge${index}`} name={`Edge${index}`} segment={segment} color={color} />)}
+			{captioned && (
+				<HudLabel
+					name="Caption"
+					text={caption}
+					rectangle={{ x: pointsRight ? 0 : tip, y: 0, width: width - tip, height: top }}
+					textSize={metrics.instrumentLabel}
+					color={color}
+				/>
+			)}
+			<frame
+				key="Box"
+				BackgroundColor3={HUD.Shadow}
+				BackgroundTransparency={0.8}
+				BorderSizePixel={0}
+				Position={UDim2.fromOffset(pointsRight ? 0 : tip, top)}
+				Size={UDim2.fromOffset(width - tip, box)}
+			/>
+			<frame
+				key="Edges"
+				BackgroundTransparency={1}
+				Position={UDim2.fromOffset(0, top)}
+				Size={UDim2.fromOffset(width, box)}
+			>
+				{edges.map((segment, index) => (
+					<Line key={`Edge${index}`} name={`Edge${index}`} segment={segment} color={color} />
+				))}
 			</frame>
 			<HudLabel
 				name="Value"
 				text={captioned ? value : caption === "MPH" ? `${value} MPH` : `${caption.sub(1, 1)} ${value}`}
 				rectangle={{ ...valueRect, y: top }}
-				textSize={!captioned && caption === "MPH" ? math.min(metrics.instrumentText, valueRect.width / 5.6) : metrics.instrumentText}
+				textSize={
+					!captioned && caption === "MPH"
+						? math.min(metrics.instrumentText, valueRect.width / 5.6)
+						: metrics.instrumentText
+				}
 				bold={true}
 				color={color}
 				alignment={Enum.TextXAlignment.Center}
@@ -164,9 +243,28 @@ export function InstrumentBox({ name, caption, value, rectangle, metrics, points
 }
 
 /** Boxed warning text under the reticle; the parent pulses `textRef`. */
-export function WarningBox({ rectangle, text, color, metrics, textRef }: { rectangle: Rectangle; text: string; color: Color3; metrics: HudMetrics; textRef?: React.RefObject<TextLabel> }) {
+export function WarningBox({
+	rectangle,
+	text,
+	color,
+	metrics,
+	textRef,
+}: {
+	rectangle: Rectangle;
+	text: string;
+	color: Color3;
+	metrics: HudMetrics;
+	textRef?: React.RefObject<TextLabel>;
+}) {
 	return (
-		<frame key="Warning" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.75} BorderSizePixel={0} Visible={text !== ""} {...at(rectangle)}>
+		<frame
+			key="Warning"
+			BackgroundColor3={HUD.Shadow}
+			BackgroundTransparency={0.75}
+			BorderSizePixel={0}
+			Visible={text !== ""}
+			{...at(rectangle)}
+		>
 			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={color} Thickness={LINE} />
 			<textlabel
 				ref={textRef}
@@ -188,23 +286,63 @@ export function WarningBox({ rectangle, text, color, metrics, textRef }: { recta
 }
 
 /** Centred mission banner (MISSION UPDATE, MISSION ACCOMPLISHED) in the warning box's frame, font and stroke; `blink` pulses its text. */
-export function HudBanner({ name, text, color, stroke, metrics, blink = false, y = 0.2 }: { name: string; text: string; color: Color3; stroke?: Color3; metrics: HudMetrics; blink?: boolean; y?: number }) {
+export function HudBanner({
+	name,
+	text,
+	color,
+	stroke,
+	metrics,
+	blink = false,
+	y = 0.2,
+}: {
+	name: string;
+	text: string;
+	color: Color3;
+	stroke?: Color3;
+	metrics: HudMetrics;
+	blink?: boolean;
+	y?: number;
+}) {
 	const label = useRef<TextLabel>();
 	useEffect(() => {
 		const current = label.current;
 		if (!blink || !current) return;
 		current.TextTransparency = 0;
-		const pulse = TweenService.Create(current, new TweenInfo(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), { TextTransparency: 0.85 });
+		const pulse = TweenService.Create(
+			current,
+			new TweenInfo(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true),
+			{ TextTransparency: 0.85 },
+		);
 		pulse.Play();
-		return () => { pulse.Cancel(); current.TextTransparency = 0; };
+		return () => {
+			pulse.Cancel();
+			current.TextTransparency = 0;
+		};
 	}, [blink]);
 	const height = metrics.row * 2;
 	return (
-		<frame key={name} BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0} AnchorPoint={new Vector2(0.5, 0)}
-			Position={new UDim2(0.5, 0, y, 0)} Size={UDim2.fromOffset(math.max(200, height * 7), height)}>
+		<frame
+			key={name}
+			BackgroundColor3={HUD.Shadow}
+			BackgroundTransparency={0.6}
+			BorderSizePixel={0}
+			AnchorPoint={new Vector2(0.5, 0)}
+			Position={new UDim2(0.5, 0, y, 0)}
+			Size={UDim2.fromOffset(math.max(200, height * 7), height)}
+		>
 			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={stroke ?? color} Thickness={LINE} />
-			<textlabel ref={label} key="BannerText" BackgroundTransparency={1} FontFace={HUD_FONT_BOLD} Size={UDim2.fromScale(1, 1)} Text={text}
-				TextColor3={color} TextScaled={true} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.4}>
+			<textlabel
+				ref={label}
+				key="BannerText"
+				BackgroundTransparency={1}
+				FontFace={HUD_FONT_BOLD}
+				Size={UDim2.fromScale(1, 1)}
+				Text={text}
+				TextColor3={color}
+				TextScaled={true}
+				TextStrokeColor3={HUD.Shadow}
+				TextStrokeTransparency={0.4}
+			>
 				<uitextsizeconstraint MaxTextSize={metrics.text + 8} MinTextSize={metrics.minText} />
 				<uipadding PaddingLeft={new UDim(0, 6)} PaddingRight={new UDim(0, 6)} />
 			</textlabel>
@@ -219,15 +357,42 @@ function statusText(cells: StatusCell[], separator: string): string {
 }
 
 /** Hull bar (green, amber, then red with damage) with the one-line ammo readout under it. */
-export function StatusPanel({ layout, health, cells, fit = false }: { layout: StatusPanelLayout; health: number; cells: StatusCell[]; fit?: boolean }) {
+export function StatusPanel({
+	layout,
+	health,
+	cells,
+	fit = false,
+}: {
+	layout: StatusPanelLayout;
+	health: number;
+	cells: StatusCell[];
+	fit?: boolean;
+}) {
 	const frame = layout.frame;
 	const bar = relative(layout.bar, frame);
 	const color = TONE_COLOR[hullTone(math.floor(health + 0.5))];
 	return (
 		<frame key="StatusPanel" BackgroundTransparency={1} {...at(frame)}>
-			<frame key="HullBar" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0} {...at(bar)}>
-				<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={color} Thickness={1} Transparency={0.25} />
-				<frame key="Fill" BackgroundColor3={color} BackgroundTransparency={0.1} BorderSizePixel={0} Size={UDim2.fromScale(hullFraction(health), 1)} />
+			<frame
+				key="HullBar"
+				BackgroundColor3={HUD.Shadow}
+				BackgroundTransparency={0.6}
+				BorderSizePixel={0}
+				{...at(bar)}
+			>
+				<uistroke
+					ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+					Color={color}
+					Thickness={1}
+					Transparency={0.25}
+				/>
+				<frame
+					key="Fill"
+					BackgroundColor3={color}
+					BackgroundTransparency={0.1}
+					BorderSizePixel={0}
+					Size={UDim2.fromScale(hullFraction(health), 1)}
+				/>
 			</frame>
 			<textlabel
 				key="AmmoLine"

@@ -59,8 +59,7 @@ const HANGAR_WALL_CENTER_Y = HANGAR_FLOOR_THICKNESS / 2 + HANGAR_WALL_HEIGHT / 2
 const HANGAR_ROOF_CENTER_Y = HANGAR_FLOOR_THICKNESS / 2 + HANGAR_WALL_HEIGHT + HANGAR_ROOF_THICKNESS / 2;
 const HANGAR_SIDE_WALL_X = (HANGAR_WIDTH - HANGAR_WALL_THICKNESS) / 2;
 const HANGAR_BACK_WALL_Z = (HANGAR_DEPTH - HANGAR_WALL_THICKNESS) / 2;
-const HANGAR_DOOR_HEADER_CENTER_Y =
-	HANGAR_FLOOR_THICKNESS / 2 + HANGAR_WALL_HEIGHT - HANGAR_DOOR_HEADER_HEIGHT / 2;
+const HANGAR_DOOR_HEADER_CENTER_Y = HANGAR_FLOOR_THICKNESS / 2 + HANGAR_WALL_HEIGHT - HANGAR_DOOR_HEADER_HEIGHT / 2;
 
 export const HANGAR_PARTS: ReadonlyArray<MenuPartSpec> = [
 	{
@@ -113,8 +112,7 @@ const TOWER_BEACON_SIZE = new Vector3(4, 4, 4);
 const TOWER_BASE_CENTER_Y = TOWER_BASE_SIZE.Y / 2;
 const TOWER_CAB_CENTER_Y = TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y / 2;
 const TOWER_ROOF_CENTER_Y = TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y + TOWER_ROOF_SIZE.Y / 2;
-const TOWER_ANTENNA_CENTER_Y =
-	TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y + TOWER_ROOF_SIZE.Y + TOWER_ANTENNA_SIZE.Y / 2;
+const TOWER_ANTENNA_CENTER_Y = TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y + TOWER_ROOF_SIZE.Y + TOWER_ANTENNA_SIZE.Y / 2;
 const TOWER_BEACON_CENTER_Y =
 	TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y + TOWER_ROOF_SIZE.Y + TOWER_ANTENNA_SIZE.Y + TOWER_BEACON_SIZE.Y / 2;
 
@@ -144,13 +142,27 @@ export const MENU_JET_CLEARANCE: MenuPartSpec = {
 };
 
 /** World-space, axis-aligned boxes of the airbase buildings (yaw is 0 or ±90°, so X/Z swap). */
-function buildingBox(name: string, center: Vector3, specs: ReadonlyArray<MenuPartSpec>, quarterTurn: boolean): MenuPartSpec {
-	let lo = new Vector3(math.huge, math.huge, math.huge), hi = lo.mul(-1);
+function buildingBox(
+	name: string,
+	center: Vector3,
+	specs: ReadonlyArray<MenuPartSpec>,
+	quarterTurn: boolean,
+): MenuPartSpec {
+	let lo = new Vector3(math.huge, math.huge, math.huge),
+		hi = lo.mul(-1);
 	for (const spec of specs) {
 		const offset = quarterTurn ? new Vector3(spec.offset.Z, spec.offset.Y, spec.offset.X) : spec.offset;
 		const size = quarterTurn ? new Vector3(spec.size.Z, spec.size.Y, spec.size.X) : spec.size;
-		lo = new Vector3(math.min(lo.X, offset.X - size.X / 2), math.min(lo.Y, offset.Y - size.Y / 2), math.min(lo.Z, offset.Z - size.Z / 2));
-		hi = new Vector3(math.max(hi.X, offset.X + size.X / 2), math.max(hi.Y, offset.Y + size.Y / 2), math.max(hi.Z, offset.Z + size.Z / 2));
+		lo = new Vector3(
+			math.min(lo.X, offset.X - size.X / 2),
+			math.min(lo.Y, offset.Y - size.Y / 2),
+			math.min(lo.Z, offset.Z - size.Z / 2),
+		);
+		hi = new Vector3(
+			math.max(hi.X, offset.X + size.X / 2),
+			math.max(hi.Y, offset.Y + size.Y / 2),
+			math.max(hi.Z, offset.Z + size.Z / 2),
+		);
 	}
 	return { name, size: hi.sub(lo), offset: center.add(lo.add(hi).div(2)) };
 }
@@ -163,6 +175,8 @@ export const HANGAR_PLACEMENTS: ReadonlyArray<{ center: Vector3; facing: number 
 export const CONTROL_TOWER_BASE = new Vector3(190, 23, 40);
 
 export const MENU_OBSTACLES: ReadonlyArray<MenuPartSpec> = [
-	...HANGAR_PLACEMENTS.map((placement, index) => buildingBox(`Hangar${index + 1}`, placement.center, HANGAR_PARTS, true)),
+	...HANGAR_PLACEMENTS.map((placement, index) =>
+		buildingBox(`Hangar${index + 1}`, placement.center, HANGAR_PARTS, true),
+	),
 	buildingBox("ControlTower", CONTROL_TOWER_BASE, CONTROL_TOWER_PARTS, false),
 ];

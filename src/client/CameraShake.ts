@@ -44,7 +44,11 @@ function pulseFlash(reduced: boolean): void {
 	flash.Saturation = reduced ? -0.1 : -0.45;
 	flash.TintColor = new Color3(1, 1, 1);
 	flash.Enabled = true;
-	flashTween = TweenService.Create(flash, new TweenInfo(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness: 0, Contrast: 0, Saturation: 0 });
+	flashTween = TweenService.Create(flash, new TweenInfo(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Brightness: 0,
+		Contrast: 0,
+		Saturation: 0,
+	});
 	flashTween.Play();
 }
 

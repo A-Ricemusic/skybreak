@@ -60,35 +60,59 @@ function vector(values: number[]): Vector3 {
 function validateVector(values: number[], sourceName: string): void {
 	assert(typeIs(values, "table") && values.size() === 3, `${sourceName}: expected an XYZ vector`);
 	for (const value of values) {
-		assert(typeIs(value, "number") && value === value && math.abs(value) < math.huge, `${sourceName}: invalid coordinate`);
+		assert(
+			typeIs(value, "number") && value === value && math.abs(value) < math.huge,
+			`${sourceName}: invalid coordinate`,
+		);
 	}
 }
 
 function readData(kind: AircraftKind): MeshData {
 	const sourceName = `${kind}Geometry`;
 	const source = ServerStorage.FindFirstChild(sourceName);
-	assert(source?.IsA("StringValue"), `${sourceName}: missing ServerStorage.${sourceName} StringValue; run the aircraft packager`);
+	assert(
+		source?.IsA("StringValue"),
+		`${sourceName}: missing ServerStorage.${sourceName} StringValue; run the aircraft packager`,
+	);
 	const data = HttpService.JSONDecode(source.Value) as MeshData;
 	assert(data.schema === "skybreak.triangulated-mesh.v1", `${sourceName}: unsupported mesh schema`);
 	// Leave room for Blender revisions while bounding the whole aircraft's mobile cost.
-	assert(data.vertices.size() > 0 && data.vertices.size() <= 20000 && data.faces.size() > 0 && data.faces.size() <= 20000, `${sourceName}: empty mesh or exceeds the 20,000 vertex/triangle mobile budget`);
+	assert(
+		data.vertices.size() > 0 &&
+			data.vertices.size() <= 20000 &&
+			data.faces.size() > 0 &&
+			data.faces.size() <= 20000,
+		`${sourceName}: empty mesh or exceeds the 20,000 vertex/triangle mobile budget`,
+	);
 	assert(data.materials.size() === 7, `${sourceName}: expected seven material groups`);
 	const seen = new Set<MaterialName>();
 	for (const material of data.materials) {
-		assert(materialNames.includes(material.name) && !seen.has(material.name), `${sourceName}: invalid material group`);
+		assert(
+			materialNames.includes(material.name) && !seen.has(material.name),
+			`${sourceName}: invalid material group`,
+		);
 		assert(material.baseColorRGBA.size() === 4, `${sourceName}: invalid material color`);
 		for (const channel of material.baseColorRGBA) {
-			assert(typeIs(channel, "number") && channel >= 0 && channel <= 1, `${sourceName}: invalid material color channel`);
+			assert(
+				typeIs(channel, "number") && channel >= 0 && channel <= 1,
+				`${sourceName}: invalid material color channel`,
+			);
 		}
 		seen.add(material.name);
 	}
 	for (const vertex of data.vertices) validateVector(vertex, sourceName);
 	const usedMaterials = new Set<MaterialName>();
 	for (const face of data.faces) {
-		assert(seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3, `${sourceName}: invalid triangle`);
+		assert(
+			seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3,
+			`${sourceName}: invalid triangle`,
+		);
 		usedMaterials.add(face.material);
 		for (const index of face.indices) {
-			assert(typeIs(index, "number") && index % 1 === 0 && index >= 0 && index < data.vertices.size(), `${sourceName}: invalid vertex index`);
+			assert(
+				typeIs(index, "number") && index % 1 === 0 && index >= 0 && index < data.vertices.size(),
+				`${sourceName}: invalid vertex index`,
+			);
 		}
 		for (const normal of face.normals) {
 			validateVector(normal, sourceName);
@@ -128,7 +152,10 @@ function buildTemplates(data: MeshData, kind: AircraftKind): Model {
 				});
 				const triangle = mesh.AddTriangle(ids[0], ids[1], ids[2]);
 				// Preserve each Blender corner normal, including hard edges and smooth seams.
-				mesh.SetFaceNormals(triangle, face.normals.map((normal) => mesh.AddNormal(vector(normal))));
+				mesh.SetFaceNormals(
+					triangle,
+					face.normals.map((normal) => mesh.AddNormal(vector(normal))),
+				);
 				triangles += 1;
 			}
 			assert(triangles > 0, `${kind}Geometry: empty ${material.name} group`);
@@ -140,7 +167,10 @@ function buildTemplates(data: MeshData, kind: AircraftKind): Model {
 				mesh.SetPosition(id, mesh.GetPosition(id).sub(center));
 			}
 			const [status, content] = staticContentService.CreateDataModelContentAsync(Content.fromObject(mesh));
-			assert(tostring(status) === "Enum.CreateContentResult.Success", `CreateDataModelContentAsync: ${tostring(status)}`);
+			assert(
+				tostring(status) === "Enum.CreateContentResult.Success",
+				`CreateDataModelContentAsync: ${tostring(status)}`,
+			);
 			// Static opaque content survives the editable object and replicates to clients.
 			mesh.Destroy();
 			editable = undefined;
@@ -157,7 +187,12 @@ function buildTemplates(data: MeshData, kind: AircraftKind): Model {
 			item.Size = size;
 			const color = material.baseColorRGBA;
 			item.Color = new Color3(color[0], color[1], color[2]);
-			item.Material = material.name === "Glow" ? Enum.Material.Neon : material.name === "Canopy" ? Enum.Material.Glass : Enum.Material.SmoothPlastic;
+			item.Material =
+				material.name === "Glow"
+					? Enum.Material.Neon
+					: material.name === "Canopy"
+						? Enum.Material.Glass
+						: Enum.Material.SmoothPlastic;
 			item.Transparency = 1 - color[3];
 			item.Anchored = true;
 			item.CanCollide = false;
@@ -194,7 +229,9 @@ function getTemplates(kind: AircraftKind): Model | undefined {
 		cache.templates = result;
 	} else {
 		cache.generationFailure = tostring(result);
-		warn(`${kind} Blender geometry generation failed; using built-in aircraft geometry for this runtime: ${cache.generationFailure}`);
+		warn(
+			`${kind} Blender geometry generation failed; using built-in aircraft geometry for this runtime: ${cache.generationFailure}`,
+		);
 	}
 	cache.building = false;
 	return cache.templates;
@@ -224,7 +261,8 @@ function tintProcedural(model: Model, livery: AceLivery): void {
 	for (const item of model.GetChildren()) {
 		if (!item.IsA("MeshPart")) continue;
 		const role = item.GetAttribute("BlenderMaterial");
-		const rgb = role === "White" ? tint.White : role === "Navy" ? tint.Navy : role === "Cyan" ? tint.Cyan : undefined;
+		const rgb =
+			role === "White" ? tint.White : role === "Navy" ? tint.Navy : role === "Cyan" ? tint.Cyan : undefined;
 		if (rgb !== undefined) item.Color = Color3.fromRGB(rgb[0], rgb[1], rgb[2]);
 	}
 }
@@ -236,7 +274,10 @@ export const BlenderAircraft = {
 	 * Returns false only when neither is available (JetFactory then builds parts).
 	 */
 	Populate(model: Model, enemy: boolean, livery?: AceLivery): boolean {
-		assert(RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()), "BlenderAircraft geometry must be generated on the server or in Studio edit mode");
+		assert(
+			RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()),
+			"BlenderAircraft geometry must be generated on the server or in Studio edit mode",
+		);
 		const kind = enemy ? "Vanta" : "Kestrel";
 		model.SetAttribute("GeometryAsset", kind);
 		if (livery !== undefined) model.SetAttribute("Livery", livery);
@@ -257,7 +298,10 @@ export const BlenderAircraft = {
 		const leftWingtip = model.GetAttribute("leftWingtip");
 		const rightWingtip = model.GetAttribute("rightWingtip");
 		const exhaust = model.GetAttribute("exhaust");
-		assert(typeIs(leftWingtip, "Vector3") && typeIs(rightWingtip, "Vector3") && typeIs(exhaust, "Vector3"), "BlenderAircraft: missing generated attachment positions");
+		assert(
+			typeIs(leftWingtip, "Vector3") && typeIs(rightWingtip, "Vector3") && typeIs(exhaust, "Vector3"),
+			"BlenderAircraft: missing generated attachment positions",
+		);
 		return { leftWingtip, rightWingtip, exhaust };
 	},
 };

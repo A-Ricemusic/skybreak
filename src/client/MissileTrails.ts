@@ -10,8 +10,15 @@ const SMOKE_LIFETIME = 1.6;
 const TAIL = 2.3;
 const SMOKE = "rbxasset://textures/particles/smoke_main.dds";
 const FIRE = "rbxasset://textures/particles/fire_main.dds";
-const sequence = (keys: [number, number][]) => new NumberSequence(keys.map(([time, value]) => new NumberSequenceKeypoint(time, value)));
-interface Plume { part: BasePart; a: Attachment; b: Attachment; c: Attachment; puffs: ParticleEmitter }
+const sequence = (keys: [number, number][]) =>
+	new NumberSequence(keys.map(([time, value]) => new NumberSequenceKeypoint(time, value)));
+interface Plume {
+	part: BasePart;
+	a: Attachment;
+	b: Attachment;
+	c: Attachment;
+	puffs: ParticleEmitter;
+}
 export class MissileTrails {
 	private readonly plumes = new Map<BasePart, Plume>();
 	private readonly connections: RBXScriptConnection[] = [];
@@ -23,13 +30,20 @@ export class MissileTrails {
 	public Stop(): void {
 		for (const connection of this.connections) connection.Disconnect();
 		this.connections.clear();
-		for (const [, plume] of this.plumes) { plume.a.Destroy(); plume.b.Destroy(); plume.c.Destroy(); }
+		for (const [, plume] of this.plumes) {
+			plume.a.Destroy();
+			plume.b.Destroy();
+			plume.c.Destroy();
+		}
 		this.plumes.clear();
 	}
 	/** Called from the flight RenderStep: moves carriers to their missiles' tails, retires the destroyed. */
 	public Step(): void {
 		for (const [part, plume] of this.plumes) {
-			if (part.Parent === undefined) { this.retire(plume); continue; }
+			if (part.Parent === undefined) {
+				this.retire(plume);
+				continue;
+			}
 			this.place(plume);
 		}
 	}
@@ -55,13 +69,26 @@ export class MissileTrails {
 		const puffs = new Instance("ParticleEmitter");
 		const plume: Plume = { part: child, a, b, c, puffs };
 		this.place(plume);
-		for (const item of [a, b, c]) { item.Name = "MissileSmoke"; item.Parent = terrain; }
+		for (const item of [a, b, c]) {
+			item.Name = "MissileSmoke";
+			item.Parent = terrain;
+		}
 		const smoke = new Instance("Trail");
 		smoke.Attachment0 = a;
 		smoke.Attachment1 = b;
-		smoke.Color = new ColorSequence([new ColorSequenceKeypoint(0, Color3.fromRGB(248, 248, 248)), new ColorSequenceKeypoint(1, Color3.fromRGB(176, 180, 186))]);
-		smoke.Transparency = sequence([[0, 0.2], [0.6, 0.6], [1, 1]]);
-		smoke.WidthScale = sequence([[0, 0.7], [1, 4]]);
+		smoke.Color = new ColorSequence([
+			new ColorSequenceKeypoint(0, Color3.fromRGB(248, 248, 248)),
+			new ColorSequenceKeypoint(1, Color3.fromRGB(176, 180, 186)),
+		]);
+		smoke.Transparency = sequence([
+			[0, 0.2],
+			[0.6, 0.6],
+			[1, 1],
+		]);
+		smoke.WidthScale = sequence([
+			[0, 0.7],
+			[1, 4],
+		]);
 		smoke.Lifetime = SMOKE_LIFETIME;
 		smoke.MinLength = 0.5;
 		smoke.FaceCamera = true;
@@ -71,8 +98,14 @@ export class MissileTrails {
 		puffs.Color = new ColorSequence(Color3.fromRGB(226, 228, 232));
 		puffs.Lifetime = new NumberRange(1, SMOKE_LIFETIME);
 		puffs.Rate = 16;
-		puffs.Size = sequence([[0, 1.4], [1, 6]]);
-		puffs.Transparency = sequence([[0, 0.55], [1, 1]]);
+		puffs.Size = sequence([
+			[0, 1.4],
+			[1, 6],
+		]);
+		puffs.Transparency = sequence([
+			[0, 0.55],
+			[1, 1],
+		]);
 		puffs.Speed = new NumberRange(1, 3);
 		puffs.SpreadAngle = new Vector2(180, 180);
 		puffs.Drag = 1.5;
@@ -86,11 +119,20 @@ export class MissileTrails {
 		nozzle.Position = new Vector3(0, 0, TAIL);
 		const flame = new Instance("ParticleEmitter");
 		flame.Texture = FIRE;
-		flame.Color = new ColorSequence([new ColorSequenceKeypoint(0, Color3.fromRGB(255, 250, 235)), new ColorSequenceKeypoint(1, hostile ? Color3.fromRGB(255, 84, 40) : Color3.fromRGB(255, 196, 110))]);
+		flame.Color = new ColorSequence([
+			new ColorSequenceKeypoint(0, Color3.fromRGB(255, 250, 235)),
+			new ColorSequenceKeypoint(1, hostile ? Color3.fromRGB(255, 84, 40) : Color3.fromRGB(255, 196, 110)),
+		]);
 		flame.Lifetime = new NumberRange(0.06, 0.11);
 		flame.Rate = 45;
-		flame.Size = sequence([[0, hostile ? 1.8 : 1.4], [1, 0.2]]);
-		flame.Transparency = sequence([[0, 0], [1, 1]]);
+		flame.Size = sequence([
+			[0, hostile ? 1.8 : 1.4],
+			[1, 0.2],
+		]);
+		flame.Transparency = sequence([
+			[0, 0],
+			[1, 1],
+		]);
 		flame.Speed = new NumberRange(18, 26);
 		flame.EmissionDirection = Enum.NormalId.Back;
 		flame.LockedToPart = true;

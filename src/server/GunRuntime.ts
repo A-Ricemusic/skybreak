@@ -5,8 +5,9 @@ import { GunRules } from "../shared/SortieArmament";
 export function gunRaycastParams(surfaces: RaycastParams): RaycastParams {
 	const params = new RaycastParams();
 	params.FilterType = surfaces.FilterType;
-	params.FilterDescendantsInstances = surfaces.FilterDescendantsInstances.filter(item =>
-  !(item.IsA("BasePart") && (item.Name === "Sea" || item.Name === "River")));
+	params.FilterDescendantsInstances = surfaces.FilterDescendantsInstances.filter(
+		(item) => !(item.IsA("BasePart") && (item.Name === "Sea" || item.Name === "River")),
+	);
 	params.RespectCanCollide = surfaces.RespectCanCollide;
 	params.IgnoreWater = true;
 	return params;
@@ -15,5 +16,9 @@ export function gunRaycastParams(surfaces: RaycastParams): RaycastParams {
 export function gunOccluded(params: RaycastParams, from: Vector3, aim: Vector3, target: Instance): boolean {
 	const delta = aim.sub(from);
 	const result = Workspace.Raycast(from, delta, params);
-	return GunRules.Occluded(result?.Distance, result !== undefined && result.Instance.IsDescendantOf(target), delta.Magnitude);
+	return GunRules.Occluded(
+		result?.Distance,
+		result !== undefined && result.Instance.IsDescendantOf(target),
+		delta.Magnitude,
+	);
 }

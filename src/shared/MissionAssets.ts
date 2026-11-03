@@ -1,6 +1,17 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "RunwayTile" | "RoadTile" | "CliffTile" | "CinematicChair" | "CinematicDesk" | "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
+type MissionAssetKind =
+	| "RunwayTile"
+	| "RoadTile"
+	| "CliffTile"
+	| "CinematicChair"
+	| "CinematicDesk"
+	| "Warehouse"
+	| "Radar"
+	| "CommsRelay"
+	| "GrainSilo"
+	| "RelayTruck"
+	| "HarborLaunch";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -52,7 +63,10 @@ function vector(values: number[]): Vector3 {
 function validateVector(values: number[], sourceName: string): void {
 	assert(typeIs(values, "table") && values.size() === 3, `${sourceName}: expected an XYZ vector`);
 	for (const value of values) {
-		assert(typeIs(value, "number") && value === value && math.abs(value) < math.huge, `${sourceName}: invalid coordinate`);
+		assert(
+			typeIs(value, "number") && value === value && math.abs(value) < math.huge,
+			`${sourceName}: invalid coordinate`,
+		);
 	}
 }
 
@@ -70,14 +84,20 @@ function readData(kind: MissionAssetKind): MeshData {
 	if (cache.data !== undefined) return cache.data;
 	const sourceName = `${kind}Geometry`;
 	const source = ServerStorage.FindFirstChild(sourceName);
-	assert(source?.IsA("StringValue"), `${sourceName}: missing ServerStorage.${sourceName} StringValue; run the asset packager`);
+	assert(
+		source?.IsA("StringValue"),
+		`${sourceName}: missing ServerStorage.${sourceName} StringValue; run the asset packager`,
+	);
 	const data = HttpService.JSONDecode(source.Value) as MeshData;
 	assert(data.schema === "skybreak.triangulated-mesh.v1", `${sourceName}: unsupported mesh schema`);
 	assert(
 		data.vertices.size() > 0 && data.vertices.size() <= 10000 && data.faces.size() > 0 && data.faces.size() <= 5000,
 		`${sourceName}: empty mesh or exceeds the 10,000 vertex / 5,000 triangle mobile budget`,
 	);
-	assert(data.materials.size() > 0 && data.materials.size() <= 7, `${sourceName}: expected one to seven material groups`);
+	assert(
+		data.materials.size() > 0 && data.materials.size() <= 7,
+		`${sourceName}: expected one to seven material groups`,
+	);
 	validateVector(data.bounds.min, sourceName);
 	validateVector(data.bounds.max, sourceName);
 	validateVector(data.bounds.dimensions, sourceName);
@@ -85,17 +105,26 @@ function readData(kind: MissionAssetKind): MeshData {
 
 	const seen = new Set<MaterialRole>();
 	for (const material of data.materials) {
-		assert(materialRoles.includes(material.name) && !seen.has(material.name), `${sourceName}: invalid material group`);
+		assert(
+			materialRoles.includes(material.name) && !seen.has(material.name),
+			`${sourceName}: invalid material group`,
+		);
 		assert(material.baseColorRGBA.size() === 4, `${sourceName}: invalid material color`);
 		for (const channel of material.baseColorRGBA) {
-			assert(typeIs(channel, "number") && channel >= 0 && channel <= 1, `${sourceName}: invalid material color channel`);
+			assert(
+				typeIs(channel, "number") && channel >= 0 && channel <= 1,
+				`${sourceName}: invalid material color channel`,
+			);
 		}
 		seen.add(material.name);
 	}
 	for (const vertex of data.vertices) validateVector(vertex, sourceName);
 	const used = new Set<MaterialRole>();
 	for (const face of data.faces) {
-		assert(seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3, `${sourceName}: invalid triangle`);
+		assert(
+			seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3,
+			`${sourceName}: invalid triangle`,
+		);
 		used.add(face.material);
 		for (const index of face.indices) {
 			assert(
@@ -142,7 +171,10 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 					return id;
 				});
 				const triangle = mesh.AddTriangle(ids[0], ids[1], ids[2]);
-				mesh.SetFaceNormals(triangle, face.normals.map((normal) => mesh.AddNormal(vector(normal))));
+				mesh.SetFaceNormals(
+					triangle,
+					face.normals.map((normal) => mesh.AddNormal(vector(normal))),
+				);
 				triangles += 1;
 			}
 			const center = mesh.GetCenter();
@@ -153,7 +185,10 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 				mesh.SetPosition(id, mesh.GetPosition(id).sub(center));
 			}
 			const [status, content] = staticContentService.CreateDataModelContentAsync(Content.fromObject(mesh));
-			assert(tostring(status) === "Enum.CreateContentResult.Success", `CreateDataModelContentAsync: ${tostring(status)}`);
+			assert(
+				tostring(status) === "Enum.CreateContentResult.Success",
+				`CreateDataModelContentAsync: ${tostring(status)}`,
+			);
 			mesh.Destroy();
 			editable = undefined;
 			const item = AssetService.CreateMeshPartAsync(content, {
@@ -169,8 +204,12 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 			const color = material.baseColorRGBA;
 			item.Color = new Color3(color[0], color[1], color[2]);
 			const pavement = kind === "RoadTile" || kind === "RunwayTile";
-			item.Material = pavement && material.name === "DarkMetal" ? Enum.Material.Asphalt
-				: pavement && material.name === "Warning" ? Enum.Material.SmoothPlastic : robloxMaterial(material.name);
+			item.Material =
+				pavement && material.name === "DarkMetal"
+					? Enum.Material.Asphalt
+					: pavement && material.name === "Warning"
+						? Enum.Material.SmoothPlastic
+						: robloxMaterial(material.name);
 			item.Transparency = 1 - color[3];
 			item.Anchored = true;
 			item.CanCollide = false;
@@ -239,8 +278,16 @@ function create(kind: MissionAssetKind, name: string): Model {
 	const templates = getTemplates(kind, data);
 	if (templates === undefined) {
 		model.SetAttribute("GeometrySource", "Fallback");
-		const body = root.Clone(); body.Name = "Visible fallback"; body.Transparency = 0; body.CanQuery = true; body.SetAttribute("FlightSolid", true);
-		body.Size = kind === "RunwayTile" || kind === "RoadTile" || kind === "CliffTile" ? root.Size : root.Size.mul(.75); body.Material = Enum.Material.Metal; body.Color = Color3.fromRGB(170,110,55); body.Parent = model;
+		const body = root.Clone();
+		body.Name = "Visible fallback";
+		body.Transparency = 0;
+		body.CanQuery = true;
+		body.SetAttribute("FlightSolid", true);
+		body.Size =
+			kind === "RunwayTile" || kind === "RoadTile" || kind === "CliffTile" ? root.Size : root.Size.mul(0.75);
+		body.Material = Enum.Material.Metal;
+		body.Color = Color3.fromRGB(170, 110, 55);
+		body.Parent = model;
 		return model;
 	}
 	for (const item of templates.GetChildren()) {
@@ -252,13 +299,27 @@ function create(kind: MissionAssetKind, name: string): Model {
 }
 
 export const MissionAssets = {
-	CreateWorldKit(kind: "RunwayTile" | "RoadTile" | "CliffTile"): Model { return create(kind, kind); },
-	CreateCinematicChair(): Model { return create("CinematicChair", "CinematicChair"); },
-	CreateCinematicDesk(): Model { return create("CinematicDesk", "CinematicDesk"); },
-	CreateCommsRelay(name: string): Model { return create("CommsRelay", name); },
-	CreateGrainSilo(name: string): Model { return create("GrainSilo", name); },
-	CreateRelayTruck(name: string): Model { return create("RelayTruck", name); },
-	CreateHarborLaunch(name: string): Model { return create("HarborLaunch", name); },
+	CreateWorldKit(kind: "RunwayTile" | "RoadTile" | "CliffTile"): Model {
+		return create(kind, kind);
+	},
+	CreateCinematicChair(): Model {
+		return create("CinematicChair", "CinematicChair");
+	},
+	CreateCinematicDesk(): Model {
+		return create("CinematicDesk", "CinematicDesk");
+	},
+	CreateCommsRelay(name: string): Model {
+		return create("CommsRelay", name);
+	},
+	CreateGrainSilo(name: string): Model {
+		return create("GrainSilo", name);
+	},
+	CreateRelayTruck(name: string): Model {
+		return create("RelayTruck", name);
+	},
+	CreateHarborLaunch(name: string): Model {
+		return create("HarborLaunch", name);
+	},
 	CreateWarehouse(name: string): Model {
 		return create("Warehouse", name);
 	},

@@ -36,8 +36,26 @@ export interface HitStopFrame {
 }
 
 const NUMBER_WORDS = [
-	"ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN",
-	"ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN", "TWENTY",
+	"ONE",
+	"TWO",
+	"THREE",
+	"FOUR",
+	"FIVE",
+	"SIX",
+	"SEVEN",
+	"EIGHT",
+	"NINE",
+	"TEN",
+	"ELEVEN",
+	"TWELVE",
+	"THIRTEEN",
+	"FOURTEEN",
+	"FIFTEEN",
+	"SIXTEEN",
+	"SEVENTEEN",
+	"EIGHTEEN",
+	"NINETEEN",
+	"TWENTY",
 ];
 
 /** Trauma lost per second; a full kick settles in well under a second. */
@@ -78,7 +96,8 @@ export const ImpactFeedback = {
 		if (current.kills <= previous.kills) return undefined;
 		const air = math.max(0, current.kills - current.groundKills);
 		if (current.aceKilled && !previous.aceKilled) return { kind: "ace", text: "ACE DOWN", count: air };
-		if (air > math.max(0, previous.kills - previous.groundKills)) return { kind: "air", text: ImpactFeedback.SplashText(air), count: air };
+		if (air > math.max(0, previous.kills - previous.groundKills))
+			return { kind: "air", text: ImpactFeedback.SplashText(air), count: air };
 		return { kind: "ground", text: "TARGET DESTROYED", count: current.groundKills };
 	},
 
@@ -117,7 +136,8 @@ export const ImpactFeedback = {
 	 */
 	Offset(trauma: number, t: number): ShakeOffset {
 		const k = ImpactFeedback.Intensity(trauma);
-		const wave = (a: number, b: number, phase: number) => (math.sin(t * a + phase) * 0.6 + math.sin(t * b + phase * 1.7) * 0.4);
+		const wave = (a: number, b: number, phase: number) =>
+			math.sin(t * a + phase) * 0.6 + math.sin(t * b + phase * 1.7) * 0.4;
 		return {
 			pitch: MAX_ANGLE * k * wave(31, 47, 0.3),
 			yaw: MAX_ANGLE * k * wave(37, 53, 1.9),

@@ -12,12 +12,23 @@ export const robloxScheduler: LifecycleScheduler = {
 		});
 		return {
 			ended: () => ended || coroutine.status(thread) === "dead",
-			cancel: () => { if (!ended && coroutine.status(thread) === "suspended") { task.cancel(thread); ended = true; } },
+			cancel: () => {
+				if (!ended && coroutine.status(thread) === "suspended") {
+					task.cancel(thread);
+					ended = true;
+				}
+			},
 		};
 	},
-	wait() { task.wait(); },
-	now() { return os.clock(); },
-	warn(message) { warn(`SKYBREAK world lifecycle: ${message}`); },
+	wait() {
+		task.wait();
+	},
+	now() {
+		return os.clock();
+	},
+	warn(message) {
+		warn(`SKYBREAK world lifecycle: ${message}`);
+	},
 };
 
 const clears = new Map<string, WorldClear>();

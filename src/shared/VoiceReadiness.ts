@@ -8,5 +8,5 @@ export function voiceLoadAction(loadingSeconds: number, retried: boolean): "wait
 }
 /** A pending line holds its complete subtitle/camera duration until audio can start. */
 export function cinematicClockStep(dt: number, paused: boolean, loading: boolean): number {
-	return paused || loading ? 0 : math.clamp(dt, 0, .1);
+	return paused || loading ? 0 : math.clamp(dt, 0, 0.1);
 }

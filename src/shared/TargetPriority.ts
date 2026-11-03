@@ -2,13 +2,24 @@
 // Plain records only: no Roblox Instances or vectors, so the offline runner and Jest can check it.
 
 /** A plain world point or unit axis (CombatService adapts Vector3). */
-export interface Point { x: number; y: number; z: number }
+export interface Point {
+	x: number;
+	y: number;
+	z: number;
+}
 /**
  * The player's camera as a view frustum: where it is, its three unit axes, the tangent of half the
  * vertical field of view and the viewport aspect (width / height). Built by Frustum() from the
  * client's TGT payload, or from the jet's nose when that payload is missing or implausible.
  */
-export interface ViewFrustum { position: Point; look: Point; right: Point; up: Point; tanHalfFov: number; aspect: number }
+export interface ViewFrustum {
+	position: Point;
+	look: Point;
+	right: Point;
+	up: Point;
+	tanHalfFov: number;
+	aspect: number;
+}
 
 /** One targetable contact as seen from the jet. */
 export interface TargetCandidate {
@@ -45,16 +56,26 @@ const REQUIRED_TIE_STUDS = 30;
 /** The client's camera must sit within this many studs of the server's jet; anything else is replaced by the nose view. */
 const MAX_CAMERA_OFFSET = 500;
 /** Vertical field of view accepted from the client (Roblox allows 1 to 120); the default is the chase camera's cruise value. */
-const FOV_MIN = 20, FOV_MAX = 120, DEFAULT_FOV = 75;
+const FOV_MIN = 20,
+	FOV_MAX = 120,
+	DEFAULT_FOV = 75;
 /** Viewport aspect accepted from the client; the default is a landscape phone or monitor. */
-const ASPECT_MIN = 0.3, ASPECT_MAX = 4, DEFAULT_ASPECT = 16 / 9;
+const ASPECT_MIN = 0.3,
+	ASPECT_MAX = 4,
+	DEFAULT_ASPECT = 16 / 9;
 /** A contact closer than this along the look axis is not "on screen": it is at or behind the camera. */
 const NEAR_STUDS = 1;
 
-function finite(value: number): boolean { return value === value && value !== math.huge && value !== -math.huge; }
-function finitePoint(point: Point): boolean { return finite(point.x) && finite(point.y) && finite(point.z); }
+function finite(value: number): boolean {
+	return value === value && value !== math.huge && value !== -math.huge;
+}
+function finitePoint(point: Point): boolean {
+	return finite(point.x) && finite(point.y) && finite(point.z);
+}
 function distanceBetween(a: Point, b: Point): number {
-	const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+	const dx = a.x - b.x,
+		dy = a.y - b.y,
+		dz = a.z - b.z;
 	return math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 /** A unit copy of a near-unit axis; undefined when it is not finite or not close to unit length. */
@@ -87,7 +108,7 @@ function tier(candidate: TargetCandidate): number {
 function score(candidate: TargetCandidate): number {
 	const dot = finite(candidate.dot) ? math.clamp(candidate.dot, -1, 1) : -1;
 	const distance = finite(candidate.distance) && candidate.distance >= 0 ? candidate.distance : math.huge;
-	const bias = distance === math.huge ? DISTANCE_BIAS : DISTANCE_BIAS * distance / (distance + DISTANCE_SCALE);
+	const bias = distance === math.huge ? DISTANCE_BIAS : (DISTANCE_BIAS * distance) / (distance + DISTANCE_SCALE);
 	return dot + (candidate.required === true ? REQUIRED_BONUS : 0) - bias;
 }
 
@@ -101,9 +122,11 @@ export const TargetPriority = {
 	/** A new list, nose-best first. Tiers first, then score, then id, so the order is total and stable. */
 	Order<T extends TargetCandidate>(candidates: readonly T[]): T[] {
 		return [...candidates].sort((a, b) => {
-			const ta = tier(a), tb = tier(b);
+			const ta = tier(a),
+				tb = tier(b);
 			if (ta !== tb) return ta < tb;
-			const sa = score(a), sb = score(b);
+			const sa = score(a),
+				sb = score(b);
 			return sa !== sb ? sa > sb : a.id < b.id;
 		});
 	},
@@ -129,19 +152,40 @@ export const TargetPriority = {
 	 * unit-length vectors or the camera sits implausibly far from the jet (the caller then uses the nose
 	 * view). FOV and aspect are clamped into their bounds; a missing or non-finite value takes the default.
 	 */
-	Frustum(position: Point, look: Point, right: Point, up: Point, fov: unknown, aspect: unknown, jet?: Point): ViewFrustum | undefined {
+	Frustum(
+		position: Point,
+		look: Point,
+		right: Point,
+		up: Point,
+		fov: unknown,
+		aspect: unknown,
+		jet?: Point,
+	): ViewFrustum | undefined {
 		if (!finitePoint(position)) return undefined;
-		const lookAxis = unit(look), rightAxis = unit(right), upAxis = unit(up);
+		const lookAxis = unit(look),
+			rightAxis = unit(right),
+			upAxis = unit(up);
 		if (lookAxis === undefined || rightAxis === undefined || upAxis === undefined) return undefined;
-		if (jet !== undefined && (!finitePoint(jet) || distanceBetween(position, jet) > MAX_CAMERA_OFFSET)) return undefined;
+		if (jet !== undefined && (!finitePoint(jet) || distanceBetween(position, jet) > MAX_CAMERA_OFFSET))
+			return undefined;
 		const fovDegrees = typeIs(fov, "number") && finite(fov) ? math.clamp(fov, FOV_MIN, FOV_MAX) : DEFAULT_FOV;
-		const ratio = typeIs(aspect, "number") && finite(aspect) ? math.clamp(aspect, ASPECT_MIN, ASPECT_MAX) : DEFAULT_ASPECT;
-		return { position: { ...position }, look: lookAxis, right: rightAxis, up: upAxis, tanHalfFov: math.tan(math.rad(fovDegrees) / 2), aspect: ratio };
+		const ratio =
+			typeIs(aspect, "number") && finite(aspect) ? math.clamp(aspect, ASPECT_MIN, ASPECT_MAX) : DEFAULT_ASPECT;
+		return {
+			position: { ...position },
+			look: lookAxis,
+			right: rightAxis,
+			up: upAxis,
+			tanHalfFov: math.tan(math.rad(fovDegrees) / 2),
+			aspect: ratio,
+		};
 	},
 	/** Is `target` inside the frustum: ahead of the camera and within the vertical and horizontal half-angles. */
 	InView(view: ViewFrustum, target: Point): boolean {
 		if (!finitePoint(target)) return false;
-		const dx = target.x - view.position.x, dy = target.y - view.position.y, dz = target.z - view.position.z;
+		const dx = target.x - view.position.x,
+			dy = target.y - view.position.y,
+			dz = target.z - view.position.z;
 		const depth = dx * view.look.x + dy * view.look.y + dz * view.look.z;
 		if (depth < NEAR_STUDS) return false;
 		const vertical = dx * view.up.x + dy * view.up.y + dz * view.up.z;
@@ -153,9 +197,11 @@ export const TargetPriority = {
 	/** A new list in TGT press order: on screen and clear first, on screen but blocked or held next, off screen last; nearest first within a tier. */
 	PressOrder<T extends TargetCandidate>(candidates: readonly T[]): T[] {
 		return [...candidates].sort((a, b) => {
-			const ta = pressTier(a), tb = pressTier(b);
+			const ta = pressTier(a),
+				tb = pressTier(b);
 			if (ta !== tb) return ta < tb;
-			const da = pressDistance(a), db = pressDistance(b);
+			const da = pressDistance(a),
+				db = pressDistance(b);
 			return da !== db ? da < db : a.id < b.id;
 		});
 	},

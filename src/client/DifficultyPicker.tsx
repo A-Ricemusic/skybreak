@@ -7,7 +7,12 @@ import { C } from "./Theme";
 // three touch-sized segments and a wrapping description of the chosen level.
 // Self-contained like LoadoutPicker; the chosen kind travels with StartMission.
 
-function Segment({ kind, selected, enabled, onChange }: {
+function Segment({
+	kind,
+	selected,
+	enabled,
+	onChange,
+}: {
 	kind: DifficultyKind;
 	selected: boolean;
 	enabled: boolean;
@@ -39,7 +44,12 @@ function Segment({ kind, selected, enabled, onChange }: {
 		>
 			<uicorner CornerRadius={new UDim(0, 8)} />
 			{/* Focus wins the stroke so the chosen segment still shows gamepad focus; the fill keeps the choice. */}
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={hot ? C.Ivory : selected ? accent : C.Accent} Thickness={hot ? 3 : selected ? 2 : 1} Transparency={hot || selected ? 0 : 0.55} />
+			<uistroke
+				ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+				Color={hot ? C.Ivory : selected ? accent : C.Accent}
+				Thickness={hot ? 3 : selected ? 2 : 1}
+				Transparency={hot || selected ? 0 : 0.55}
+			/>
 			<textlabel
 				key="Name"
 				BackgroundTransparency={1}
@@ -54,7 +64,12 @@ function Segment({ kind, selected, enabled, onChange }: {
 	);
 }
 
-export function DifficultyPicker({ kind, enabled, layoutOrder, onChange }: {
+export function DifficultyPicker({
+	kind,
+	enabled,
+	layoutOrder,
+	onChange,
+}: {
 	kind: DifficultyKind;
 	enabled: boolean;
 	layoutOrder: number;
@@ -62,7 +77,13 @@ export function DifficultyPicker({ kind, enabled, layoutOrder, onChange }: {
 }) {
 	const definition = Difficulty.Get(kind);
 	return (
-		<frame key="DifficultyPicker" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={layoutOrder} Size={new UDim2(1, -12, 0, 0)}>
+		<frame
+			key="DifficultyPicker"
+			AutomaticSize={Enum.AutomaticSize.Y}
+			BackgroundTransparency={1}
+			LayoutOrder={layoutOrder}
+			Size={new UDim2(1, -12, 0, 0)}
+		>
 			<uilistlayout Padding={new UDim(0, 4)} SortOrder={Enum.SortOrder.LayoutOrder} />
 			<textlabel
 				key="DifficultyHeading"
@@ -76,7 +97,11 @@ export function DifficultyPicker({ kind, enabled, layoutOrder, onChange }: {
 				TextXAlignment={Enum.TextXAlignment.Left}
 			/>
 			<frame key="DifficultySegments" BackgroundTransparency={1} LayoutOrder={2} Size={new UDim2(1, 0, 0, 44)}>
-				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 3)} SortOrder={Enum.SortOrder.LayoutOrder} />
+				<uilistlayout
+					FillDirection={Enum.FillDirection.Horizontal}
+					Padding={new UDim(0, 3)}
+					SortOrder={Enum.SortOrder.LayoutOrder}
+				/>
 				{Difficulty.Order.map((level) => (
 					<Segment key={level} kind={level} selected={level === kind} enabled={enabled} onChange={onChange} />
 				))}

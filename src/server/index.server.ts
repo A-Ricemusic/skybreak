@@ -10,7 +10,11 @@ import { WorldAssets } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
 import { BACKDROP_ASSETS, CINEMATIC_PROPS } from "../shared/CinematicSet";
 
-function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
+function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(
+	folder: Folder,
+	name: string,
+	className: T,
+): CreatableInstances[T] {
 	let existing = folder.FindFirstChild(name);
 	if (existing && !existing.IsA(className)) {
 		existing.Destroy();
@@ -27,7 +31,8 @@ function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRe
 function initialize(): void {
 	// First, before any player can join: the game never spawns an avatar (see CharacterPolicy).
 	const [characterPolicyApplied, characterPolicyError] = pcall(() => CharacterPolicy.Apply(Players));
-	if (!characterPolicyApplied) warn(`SKYBREAK character policy failed; avatars may spawn: ${tostring(characterPolicyError)}`);
+	if (!characterPolicyApplied)
+		warn(`SKYBREAK character policy failed; avatars may spawn: ${tostring(characterPolicyError)}`);
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {
@@ -78,16 +83,23 @@ function initialize(): void {
 		const [warmed, warmError] = pcall(() => JetFactory.Create("Vanta warm-up", true).Destroy());
 		if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
 		const [storyBuilt, storyError] = pcall(() => {
-			for (const [name,make] of [
-				["CinematicKestrel",()=>JetFactory.Create("CinematicKestrel", false)],
-				["CinematicChair",()=>MissionAssets.CreateCinematicChair()],
-				["CinematicDesk",()=>MissionAssets.CreateCinematicDesk()],
-				["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
-				["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
-				["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
-			] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
+			for (const [name, make] of [
+				["CinematicKestrel", () => JetFactory.Create("CinematicKestrel", false)],
+				["CinematicChair", () => MissionAssets.CreateCinematicChair()],
+				["CinematicDesk", () => MissionAssets.CreateCinematicDesk()],
+				["CommsRelay", () => MissionAssets.CreateCommsRelay("CommsRelay")],
+				["RelayTruck", () => MissionAssets.CreateRelayTruck("RelayTruck")],
+				["HarborLaunch", () => MissionAssets.CreateHarborLaunch("HarborLaunch")],
+			] as const) {
+				const model = make();
+				model.Name = name;
+				model.Parent = storyModels;
+			}
 		});
-		if (!storyBuilt) warn(`SKYBREAK cinematic story models failed to build; the cinematic will use its fallbacks: ${tostring(storyError)}`);
+		if (!storyBuilt)
+			warn(
+				`SKYBREAK cinematic story models failed to build; the cinematic will use its fallbacks: ${tostring(storyError)}`,
+			);
 		const [hangarPlaced, hangarError] = pcall(() => {
 			// Reuse the approved uploaded hangar and scenery; never substitute third-party assets. The desk
 			// props have no IDs until their safety review and upload, so they place nothing and the stage
@@ -102,7 +114,10 @@ function initialize(): void {
 			}
 			for (const name of CINEMATIC_PROPS) WorldAssets.PlaceUploaded(name, storyModels, new CFrame());
 		});
-		if (!hangarPlaced) warn(`SKYBREAK cinematic hangar preload failed; stage will use its explicit fallback: ${tostring(hangarError)}`);
+		if (!hangarPlaced)
+			warn(
+				`SKYBREAK cinematic hangar preload failed; stage will use its explicit fallback: ${tostring(hangarError)}`,
+			);
 	});
 	print(`${GameConfig.DisplayName}: ${GameConfig.Subtitle} server started`);
 }

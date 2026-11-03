@@ -24,7 +24,10 @@ describe("SpecialWeapons catalog", () => {
 	it("cycles through every special and back to the first", () => {
 		let kind = SpecialWeapons.Default;
 		const seen = new Set<string>();
-		for (let step = 0; step < 4; step++) { seen.add(kind); kind = SpecialWeapons.Next(kind); }
+		for (let step = 0; step < 4; step++) {
+			seen.add(kind);
+			kind = SpecialWeapons.Next(kind);
+		}
 		expect(seen.size()).toBe(4);
 		expect(kind).toBe(SpecialWeapons.Default);
 	});
@@ -164,7 +167,10 @@ describe("SpecialWeapons standard envelope", () => {
 		const drone = SpecialWeapons.New("uav");
 		expect(SpecialWeapons.StandardLockRange(drone)).toBe(WeaponRules.LockRange);
 		expect(SpecialWeapons.Activate(drone, 1).kind).toBe("ok");
-		expect(SpecialWeapons.StandardLockRange(drone)).toBeCloseTo(WeaponRules.LockRange * SpecialWeapons.UavRangeFactor, 6);
+		expect(SpecialWeapons.StandardLockRange(drone)).toBeCloseTo(
+			WeaponRules.LockRange * SpecialWeapons.UavRangeFactor,
+			6,
+		);
 	});
 });
 
@@ -187,10 +193,30 @@ describe("SpecialWeapons lance", () => {
 
 describe("SpecialWeapons HUD button", () => {
 	it("shows the short name with charges, the cooldown, the active timer, or an empty slot", () => {
-		expect(SpecialWeapons.Button("uav", 2, 0, 0)).toEqual({ text: "UAV 2", filled: false, enabled: true, dimmed: false });
-		expect(SpecialWeapons.Button("uav", 1, 24.3, 18.2)).toEqual({ text: "UAV 19", filled: true, enabled: true, dimmed: false });
-		expect(SpecialWeapons.Button("salvo", 2, 3.26, 0)).toEqual({ text: "3.3", filled: false, enabled: true, dimmed: true });
-		expect(SpecialWeapons.Button("flares", 0, 0, 0)).toEqual({ text: "FLR 0", filled: false, enabled: true, dimmed: true });
+		expect(SpecialWeapons.Button("uav", 2, 0, 0)).toEqual({
+			text: "UAV 2",
+			filled: false,
+			enabled: true,
+			dimmed: false,
+		});
+		expect(SpecialWeapons.Button("uav", 1, 24.3, 18.2)).toEqual({
+			text: "UAV 19",
+			filled: true,
+			enabled: true,
+			dimmed: false,
+		});
+		expect(SpecialWeapons.Button("salvo", 2, 3.26, 0)).toEqual({
+			text: "3.3",
+			filled: false,
+			enabled: true,
+			dimmed: true,
+		});
+		expect(SpecialWeapons.Button("flares", 0, 0, 0)).toEqual({
+			text: "FLR 0",
+			filled: false,
+			enabled: true,
+			dimmed: true,
+		});
 		expect(SpecialWeapons.Button("lance", 0 / 0, 0, 0).text).toBe("XLAA 0");
 	});
 });

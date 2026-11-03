@@ -24,7 +24,9 @@ export function frameFor(state: FlightState): CFrame {
 	return new CFrame(state.x, state.y, state.z, qx, qy, qz, qw);
 }
 
-export function positionFor(state: FlightState): Vector3 { return new Vector3(state.x, state.y, state.z); }
+export function positionFor(state: FlightState): Vector3 {
+	return new Vector3(state.x, state.y, state.z);
+}
 
 export function directionFor(state: FlightState): Vector3 {
 	const [x, y, z] = FlightMath.ForwardOf(state);
@@ -39,12 +41,22 @@ export function lateralFor(state: FlightState, forward: Vector3): Vector3 {
 	return new Vector3(x, 0, z).mul(0.05 / math.max(math.sqrt(x * x + z * z), 1e-3));
 }
 
-export function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
+export function unitOr(vector: Vector3, fallback: Vector3): Vector3 {
+	return vector.Magnitude > 0.01 ? vector.Unit : fallback;
+}
 
-export function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
+export function point(vector: Vector3): { x: number; y: number; z: number } {
+	return { x: vector.X, y: vector.Y, z: vector.Z };
+}
 
 export function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
-	return enemy !== undefined && FinaleDuelRuntime.finaleTargetAllowed(session,enemy) && enemy.typedGround?.type !== "wreck" && AlliedRules.PlayerTarget(enemy) && enemy.model.Parent === session.folder;
+	return (
+		enemy !== undefined &&
+		FinaleDuelRuntime.finaleTargetAllowed(session, enemy) &&
+		enemy.typedGround?.type !== "wreck" &&
+		AlliedRules.PlayerTarget(enemy) &&
+		enemy.model.Parent === session.folder
+	);
 }
 
 export function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, number]> {
@@ -69,7 +81,11 @@ export function sessionRequiredKills(session: CombatSession): number {
 
 /** Every destruction, air and ground, required or optional. */
 export function sessionAllKills(session: CombatSession): number {
-	return sessionRequiredKills(session) + (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0);
+	return (
+		sessionRequiredKills(session) +
+		(session.blueprintState?.optionalAirKills ?? 0) +
+		(session.blueprintState?.optionalGroundKills ?? 0)
+	);
 }
 
 /** Sync elapsed from the authoritative runner. */
@@ -89,13 +105,34 @@ export function sessionCanDamage(session: CombatSession, kind: TargetKind, requi
 	return false;
 }
 
-export function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number, role?: string, breakdownRole?: string): boolean {
-	if (session.blueprintState) return recordScoredKill(session.blueprintState, session.targetScore, id, kind, required, now, role, breakdownRole);
+export function sessionRecordKill(
+	session: CombatSession,
+	id: string,
+	kind: TargetKind,
+	required: boolean,
+	now: number,
+	role?: string,
+	breakdownRole?: string,
+): boolean {
+	if (session.blueprintState)
+		return recordScoredKill(
+			session.blueprintState,
+			session.targetScore,
+			id,
+			kind,
+			required,
+			now,
+			role,
+			breakdownRole,
+		);
 	return false;
 }
 
 export function sessionTick(session: CombatSession, now: number, health: number): void {
-	if (session.blueprintState) { session.blueprintState.score=session.targetScore.Total(); BlueprintRunner.Tick(session.blueprintState, now, health); }
+	if (session.blueprintState) {
+		session.blueprintState.score = session.targetScore.Total();
+		BlueprintRunner.Tick(session.blueprintState, now, health);
+	}
 }
 
 export function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {
@@ -131,6 +168,10 @@ export function sessionObjective(session: CombatSession): {
 
 /** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
 export function canHurt(session: CombatSession, enemy: Enemy | undefined): boolean {
-	return ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required)
-		&& (enemy.aceState === undefined || AceRules.CanHurt(enemy.aceState, enemy.health, enemy.maxHealth, session.elapsed));
+	return (
+		ownsEnemy(session, enemy) &&
+		sessionCanDamage(session, enemy.kind, enemy.required) &&
+		(enemy.aceState === undefined ||
+			AceRules.CanHurt(enemy.aceState, enemy.health, enemy.maxHealth, session.elapsed))
+	);
 }

@@ -36,7 +36,10 @@ export const CoreGuiPolicy = {
 	 * Hide every `Hidden` core GUI and the reset button. `wait` is called between
 	 * attempts; the result says what succeeded.
 	 */
-	Apply(target: CoreGuiTarget, wait: (seconds: number) => unknown = (seconds) => task.wait(seconds)): CoreGuiPolicyResult {
+	Apply(
+		target: CoreGuiTarget,
+		wait: (seconds: number) => unknown = (seconds) => task.wait(seconds),
+	): CoreGuiPolicyResult {
 		const hidden = new Set<Enum.CoreGuiType>();
 		let resetButton = false;
 		let attempts = 0;

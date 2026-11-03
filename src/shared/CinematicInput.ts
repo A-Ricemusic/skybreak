@@ -1,8 +1,8 @@
 export type CinematicControl = "skip" | "pause" | "motion" | "text" | "next";
 export type CinematicAction = CinematicControl | "cancel";
 export type CinematicInput =
-	| {kind: "activated"; control: CinematicControl}
-	| {kind: "shortcut"; key: string; processed: boolean; guiSelected: boolean};
+	| { kind: "activated"; control: CinematicControl }
+	| { kind: "shortcut"; key: string; processed: boolean; guiSelected: boolean };
 
 /** A belongs exclusively to Roblox GUI activation. Shortcut handling must not
  * also skip when A activates an accessibility control, or redispatch consumed

@@ -34,10 +34,10 @@ describe("twin touch ownership", () => {
 			for (let i = 0; i < 30; i++) chosen = FlightMath.AdjustThrottle(chosen, direction, 1 / 30);
 			expect(chosen === FlightMath.CruiseThrottle).toBe(false);
 			touches.End(1);
-			for (const axis of [0, .17, -.18]) expect(FlightMath.AdjustThrottle(chosen, axis, .1)).toBe(chosen);
+			for (const axis of [0, 0.17, -0.18]) expect(FlightMath.AdjustThrottle(chosen, axis, 0.1)).toBe(chosen);
 			touches.Begin("throttle", 2);
 			touches.Clear();
-			expect(FlightMath.AdjustThrottle(chosen, touches.throttle === undefined ? 0 : direction, .1)).toBe(chosen);
+			expect(FlightMath.AdjustThrottle(chosen, touches.throttle === undefined ? 0 : direction, 0.1)).toBe(chosen);
 		}
 	});
 

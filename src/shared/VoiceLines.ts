@@ -45,12 +45,25 @@ export class VoiceLibrary {
 		if (!cue || cue.text !== text) return undefined;
 		const assetId = this.assets[cue.bank] as string | undefined;
 		if (assetId === undefined || assetId === "" || cue.finish <= cue.start) return undefined;
-		return { id, assetId, start: cue.start, finish: cue.finish, seconds: cue.finish - cue.start, speaker: cue.speaker, tape: cue.tape, radio: cue.radio };
+		return {
+			id,
+			assetId,
+			start: cue.start,
+			finish: cue.finish,
+			seconds: cue.finish - cue.start,
+			speaker: cue.speaker,
+			tape: cue.tape,
+			radio: cue.radio,
+		};
 	}
 
 	public Story(chapter: number, beat: number, text: string): VoiceClip | undefined {
 		const authored = STORY[chapter]?.beats[beat];
-		if (authored && authored.text === text) return this.Clip(storyLineId(chapter, beat), text) ?? (authored.recordingId === undefined ? undefined : this.Clip(authored.recordingId, text));
+		if (authored && authored.text === text)
+			return (
+				this.Clip(storyLineId(chapter, beat), text) ??
+				(authored.recordingId === undefined ? undefined : this.Clip(authored.recordingId, text))
+			);
 		return this.Clip(storyLineId(chapter, beat), text);
 	}
 

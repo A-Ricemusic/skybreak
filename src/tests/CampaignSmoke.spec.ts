@@ -18,7 +18,13 @@ import { WavePlan } from "../shared/WavePlan";
 import { takeArrival } from "../shared/CampaignEncounters";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { MissionFinished, Remotes } from "../shared/Types";
-import { smokeError, assertEmptySmokeVoxels, assertSmokeAdoption, assertSmokeSpawn, forceSmokeVictory } from "./helpers/CampaignSmoke";
+import {
+	smokeError,
+	assertEmptySmokeVoxels,
+	assertSmokeAdoption,
+	assertSmokeSpawn,
+	forceSmokeVictory,
+} from "./helpers/CampaignSmoke";
 
 // D-203-BOUNDS: main+#203 after #240 measured up to 17,797ms normally and
 // 18,977/19,151/20,237ms for M10/M13/M16. Allow >=23% headroom on this
@@ -32,250 +38,401 @@ const BUILD_DEADLINE_SECONDS = 30;
 // One sequential save, one actual world lease, no client, no DataStore, no Heartbeat.
 // Full terrain stays enabled: this is a world integration test, not a plan/fixture test.
 describe("campaign production launch → world → settlement → Next (Studio)", () => {
- it("checks only numeric voxel cells, including the far corner, when Size metadata is present", () => {
-  const occupancy = [[[0, 0]], [[0, 0]]] as ReadVoxelsArray<number>;
-  occupancy.Size = new Vector3(2, 1, 2);
-  assertEmptySmokeVoxels(occupancy);
-  occupancy[1][0][1] = 0.5;
-  const [ok] = pcall(() => assertEmptySmokeVoxels(occupancy));
-  expect(ok).toBe(false);
- });
- it("serializes nested matcher errors and cycles", () => {
-  const err: {message: string; matcher: {expected: number}; self?: unknown} = {message: "launch refused", matcher: {expected: 11}};
-  err.self = err;
-  expect(smokeError(err)).toContain("launch refused");
-  expect(smokeError(err)).toContain("expected: 11");
-  expect(smokeError(err)).toContain("[cycle]");
- });
- it("forces M2's eleven required ground targets without requiring its optional ace", () => {
-  const blueprint = MissionCatalog.Get(2);
-  const blueprintState = BlueprintRunner.NewState(blueprint, os.clock());
-  const s = {blueprint, blueprintState} as import("../server/CombatSession").CombatSession;
-  forceSmokeVictory(s);
-  expect(blueprintState.outcome).toBe("won");
-  expect(blueprintState.requiredGroundKills).toBe(11);
-  expect(blueprintState.killedIds.size()).toBe(11);
-  expect(blueprintState.aceKilled).toBe(false);
- });
- it("flies a bounded smoke window for Practice and all 18 missions on one legitimate save", () => {
-  const started = os.clock(), errors: string[] = [], results: MissionFinished[] = [], warnings: string[] = [];
-  const log = LogService.MessageOut.Connect((message, kind) => {
-   if (string.find(message, "still loading after the preload deadline; placing fallbacks") !== undefined) { warnings.push(message); return; }
-   if (kind === Enum.MessageType.MessageError || (kind === Enum.MessageType.MessageWarning && (string.find(message,"SKYBREAK world lifecycle") !== undefined || string.find(message,"settlement:") !== undefined || string.find(message,"SKYBREAK mission construction failed") !== undefined))) errors.push(message);
-  });
-  const root = new Instance("Folder"); root.Name = "CampaignSmoke"; root.Parent = Workspace;
-  // Roblox cannot construct Player instances without a client. Only identity and outbound transport are substituted.
-  const player = { Name: "CampaignSmoke", UserId: -202, Parent: Players } as unknown as Player;
-  const sink = { FireClient(_player: Player, packet: unknown) {
-   if (typeIs(packet,"table") && ((packet as {kind?: string}).kind === "Completed" || (packet as {kind?: string}).kind === "Failed")) results.push(packet as MissionFinished);
-  } };
-  // Only outbound delivery is replaced; incoming calls use the real remote handler.
-  const remotes = { MissionState: sink, FlightState: sink, Telemetry: sink, CombatEffect: sink } as unknown as Remotes;
-  const coordinator = new CampaignCoordinator("campaign_smoke"); coordinator.load();
-  const combat = installCampaignSmokeCombat(player, root, remotes, CampaignService.OnFinished);
-  const campaign = installCampaignSmokePlayer(player, coordinator, remotes, CombatService);
-  WorldAssets.SetPreloadTimeout(0); // existing test hook: do not wait on optional uploaded dressing
-  const originalWorld = { ...MissionWorld };
-  const worldMethods = MissionWorld as unknown as { Build: (this: void, self: typeof MissionWorld, id: number, folder: Instance) => ReturnType<typeof MissionWorld.Build> };
-  const originalBuild = worldMethods.Build;
-  // Explicit Luau receiver preserves the class method's self when saved/restored.
-  const cleanupMethod = worldLifecycle as unknown as { Cleanup: (this: void, self: WorldLifecycle, job: WorldCleanup) => void };
-  const originalCleanup = cleanupMethod.Cleanup;
-  let cleanupFailed = false;
-  // Cancel only the builder worker. Throw into StartMission's xpcall so it releases
-  // buildingMission and destroys the partial folder; never cancel the request thread.
-  worldMethods.Build = (_self, id, folder) => boundedWorldWork(`campaign M${id} build`, () => originalWorld.Build(id, folder), BUILD_DEADLINE_SECONDS);
-  // Cleanup runs in detached production workers. Bound those too, before the Jest
-  // deadline, and refuse further launches if a clear/restore could not complete.
-  cleanupMethod.Cleanup = (_self, job) => originalCleanup(worldLifecycle, {
-   ...job,
-   clear: (cancelled) => {
-    try { boundedWorldWork("campaign clear", () => job.clear(cancelled), 30); }
-    catch (err) { cleanupFailed = true; error(smokeError(err)); }
-   },
-   restore: () => {
-    try { boundedWorldWork("campaign menu restore", job.restore, 30); }
-    catch (err) { cleanupFailed = true; error(smokeError(err)); }
-   },
-  });
-  print("CAMPAIGN_SMOKE | mission | build ms (launch, excluding previous cleanup) | targets | errors");
-  try {
-   expect(canLaunchMission(2,coordinator.getSlots()[0])).toBe(false);
-   const failures: string[] = [];
-   for (let id = 0; id <= 18; id++) {
-    const before = errors.size(), warningBefore = warnings.size(), problems: string[] = [];
-    if (cleanupFailed || os.clock() - started > 1500) {
-     const reason = cleanupFailed ? "previous cleanup failed; refusing overlapping worlds" : "suite work deadline reached";
-     print(`CAMPAIGN_SMOKE | ${id} | unavailable | 0 | FAIL ${reason}`);
-     failures.push(`M${id}: ${reason}`);
-     continue;
-    }
-    let buildStart: number | undefined;
-    // A failed Next/build must still produce a row for this mission and every later mission.
-    const [launched, launchProblem] = pcall(() => {
-     if (CombatService.GetSession(player) === undefined) {
-      assert(worldLifecycle.AwaitIdle(65), "Previous world cleanup did not release within 65 seconds");
-      assert(!cleanupFailed, "Previous world cleanup failed");
-      task.wait(CAMPAIGN_COMMAND_COOLDOWN);
-      buildStart = os.clock();
-      const response = campaign.request("StartMission", {slot:1,missionId:id,launchId:id+1});
-      assert(response.ok, response.error ?? "Campaign launch refused");
-     }
-    });
-    if (!launched) problems.push(`launch: ${smokeError(launchProblem)}`);
-    const s = CombatService.GetSession(player);
-    const buildMs = buildStart === undefined ? undefined : math.floor((os.clock()-buildStart)*1000);
-    const targetCount = s?.enemies.size() ?? 0;
-    const [ok, problem] = pcall(() => boundedWorldWork(`campaign M${id} checks`, () => {
-     assert(s !== undefined && s.missionId === id, "Expected production mission session");
-     expect(s).toBeDefined(); expect(s.missionId).toBe(id); expect(s.folder.Parent).toBe(root);
+	it("checks only numeric voxel cells, including the far corner, when Size metadata is present", () => {
+		const occupancy = [[[0, 0]], [[0, 0]]] as ReadVoxelsArray<number>;
+		occupancy.Size = new Vector3(2, 1, 2);
+		assertEmptySmokeVoxels(occupancy);
+		occupancy[1][0][1] = 0.5;
+		const [ok] = pcall(() => assertEmptySmokeVoxels(occupancy));
+		expect(ok).toBe(false);
+	});
+	it("serializes nested matcher errors and cycles", () => {
+		const err: { message: string; matcher: { expected: number }; self?: unknown } = {
+			message: "launch refused",
+			matcher: { expected: 11 },
+		};
+		err.self = err;
+		expect(smokeError(err)).toContain("launch refused");
+		expect(smokeError(err)).toContain("expected: 11");
+		expect(smokeError(err)).toContain("[cycle]");
+	});
+	it("forces M2's eleven required ground targets without requiring its optional ace", () => {
+		const blueprint = MissionCatalog.Get(2);
+		const blueprintState = BlueprintRunner.NewState(blueprint, os.clock());
+		const s = { blueprint, blueprintState } as import("../server/CombatSession").CombatSession;
+		forceSmokeVictory(s);
+		expect(blueprintState.outcome).toBe("won");
+		expect(blueprintState.requiredGroundKills).toBe(11);
+		expect(blueprintState.killedIds.size()).toBe(11);
+		expect(blueprintState.aceKilled).toBe(false);
+	});
+	it("flies a bounded smoke window for Practice and all 18 missions on one legitimate save", () => {
+		const started = os.clock(),
+			errors: string[] = [],
+			results: MissionFinished[] = [],
+			warnings: string[] = [];
+		const log = LogService.MessageOut.Connect((message, kind) => {
+			if (string.find(message, "still loading after the preload deadline; placing fallbacks") !== undefined) {
+				warnings.push(message);
+				return;
+			}
+			if (
+				kind === Enum.MessageType.MessageError ||
+				(kind === Enum.MessageType.MessageWarning &&
+					(string.find(message, "SKYBREAK world lifecycle") !== undefined ||
+						string.find(message, "settlement:") !== undefined ||
+						string.find(message, "SKYBREAK mission construction failed") !== undefined))
+			)
+				errors.push(message);
+		});
+		const root = new Instance("Folder");
+		root.Name = "CampaignSmoke";
+		root.Parent = Workspace;
+		// Roblox cannot construct Player instances without a client. Only identity and outbound transport are substituted.
+		const player = { Name: "CampaignSmoke", UserId: -202, Parent: Players } as unknown as Player;
+		const sink = {
+			FireClient(_player: Player, packet: unknown) {
+				if (
+					typeIs(packet, "table") &&
+					((packet as { kind?: string }).kind === "Completed" ||
+						(packet as { kind?: string }).kind === "Failed")
+				)
+					results.push(packet as MissionFinished);
+			},
+		};
+		// Only outbound delivery is replaced; incoming calls use the real remote handler.
+		const remotes = {
+			MissionState: sink,
+			FlightState: sink,
+			Telemetry: sink,
+			CombatEffect: sink,
+		} as unknown as Remotes;
+		const coordinator = new CampaignCoordinator("campaign_smoke");
+		coordinator.load();
+		const combat = installCampaignSmokeCombat(player, root, remotes, CampaignService.OnFinished);
+		const campaign = installCampaignSmokePlayer(player, coordinator, remotes, CombatService);
+		WorldAssets.SetPreloadTimeout(0); // existing test hook: do not wait on optional uploaded dressing
+		const originalWorld = { ...MissionWorld };
+		const worldMethods = MissionWorld as unknown as {
+			Build: (
+				this: void,
+				self: typeof MissionWorld,
+				id: number,
+				folder: Instance,
+			) => ReturnType<typeof MissionWorld.Build>;
+		};
+		const originalBuild = worldMethods.Build;
+		// Explicit Luau receiver preserves the class method's self when saved/restored.
+		const cleanupMethod = worldLifecycle as unknown as {
+			Cleanup: (this: void, self: WorldLifecycle, job: WorldCleanup) => void;
+		};
+		const originalCleanup = cleanupMethod.Cleanup;
+		let cleanupFailed = false;
+		// Cancel only the builder worker. Throw into StartMission's xpcall so it releases
+		// buildingMission and destroys the partial folder; never cancel the request thread.
+		worldMethods.Build = (_self, id, folder) =>
+			boundedWorldWork(`campaign M${id} build`, () => originalWorld.Build(id, folder), BUILD_DEADLINE_SECONDS);
+		// Cleanup runs in detached production workers. Bound those too, before the Jest
+		// deadline, and refuse further launches if a clear/restore could not complete.
+		cleanupMethod.Cleanup = (_self, job) =>
+			originalCleanup(worldLifecycle, {
+				...job,
+				clear: (cancelled) => {
+					try {
+						boundedWorldWork("campaign clear", () => job.clear(cancelled), 30);
+					} catch (err) {
+						cleanupFailed = true;
+						error(smokeError(err));
+					}
+				},
+				restore: () => {
+					try {
+						boundedWorldWork("campaign menu restore", job.restore, 30);
+					} catch (err) {
+						cleanupFailed = true;
+						error(smokeError(err));
+					}
+				},
+			});
+		print("CAMPAIGN_SMOKE | mission | build ms (launch, excluding previous cleanup) | targets | errors");
+		try {
+			expect(canLaunchMission(2, coordinator.getSlots()[0])).toBe(false);
+			const failures: string[] = [];
+			for (let id = 0; id <= 18; id++) {
+				const before = errors.size(),
+					warningBefore = warnings.size(),
+					problems: string[] = [];
+				if (cleanupFailed || os.clock() - started > 1500) {
+					const reason = cleanupFailed
+						? "previous cleanup failed; refusing overlapping worlds"
+						: "suite work deadline reached";
+					print(`CAMPAIGN_SMOKE | ${id} | unavailable | 0 | FAIL ${reason}`);
+					failures.push(`M${id}: ${reason}`);
+					continue;
+				}
+				let buildStart: number | undefined;
+				// A failed Next/build must still produce a row for this mission and every later mission.
+				const [launched, launchProblem] = pcall(() => {
+					if (CombatService.GetSession(player) === undefined) {
+						assert(
+							worldLifecycle.AwaitIdle(65),
+							"Previous world cleanup did not release within 65 seconds",
+						);
+						assert(!cleanupFailed, "Previous world cleanup failed");
+						task.wait(CAMPAIGN_COMMAND_COOLDOWN);
+						buildStart = os.clock();
+						const response = campaign.request("StartMission", { slot: 1, missionId: id, launchId: id + 1 });
+						assert(response.ok, response.error ?? "Campaign launch refused");
+					}
+				});
+				if (!launched) problems.push(`launch: ${smokeError(launchProblem)}`);
+				const s = CombatService.GetSession(player);
+				const buildMs = buildStart === undefined ? undefined : math.floor((os.clock() - buildStart) * 1000);
+				const targetCount = s?.enemies.size() ?? 0;
+				const [ok, problem] = pcall(() =>
+					boundedWorldWork(
+						`campaign M${id} checks`,
+						() => {
+							assert(s !== undefined && s.missionId === id, "Expected production mission session");
+							expect(s).toBeDefined();
+							expect(s.missionId).toBe(id);
+							expect(s.folder.Parent).toBe(root);
 
-     assertSmokeAdoption(s);
-     assertSmokeSpawn(s);
-     const state = s.blueprintState, blueprint = s.blueprint;
-     assert(state !== undefined && blueprint !== undefined, "Expected production blueprint state");
-     expect(state.phaseIndex).toBe(0);
-     expect(s.appliedBlueprintPhaseIndex).toBe(0);
-     combat.begin(s);
-     // Complete the authored fly-off before checking combat roles.
-     for (let n=0; n<100 && s.launch; n++) combat.step(s,1/30);
-     expect(s.launch).toBeUndefined();
-     const phase = BlueprintRunner.ActivePhase(state);
-     assert(phase !== undefined, "Expected an opening phase");
-     combat.direct(s);
-     if(phase.cruiseIntercept) for(const target of phase.cruiseIntercept.targets.filter(t=>t.parentId===undefined && (t.arrivalSeconds ?? 0)<=1/30)) {
-      const contact=s.enemies.find(e=>e.id===target.id)!;
-      expect(contact).toBeDefined(); expect(contact.cruiseTarget).toBe(true);
-      expect(contact.model.Parent).toBe(s.folder); expect(combat.damageable(s,contact)).toBe(true);
-     }
-     if (phase.bombers) {
-      const due = phase.bombers.arrivalSeconds?.filter(t=>t<=0).size() ?? phase.bombers.count;
-      expect(s.enemies.filter(e=>e.enabled && e.role===BomberRules.Role.role && e.required).size()).toBe(due);
-     } else if (phase.kind==="required_air" && !phase.cruiseIntercept && !phase.fighterWaves?.some(w=>w.required) && phase.execution?.launchDelay===undefined) {
-      const due=phase.execution?.directSpawn ? phase.count ?? 0 : WavePlan.Groups(phase.count ?? 0,phase.groups ?? 1)[0] ?? 0;
-      expect(s.enemies.filter(e=>e.enabled && e.required && e.role==="bandit").size()+s.airQueue.filter(w=>w.role==="bandit").reduce((n,w)=>n+w.count,0)).toBe(due);
-     }
-     const fired = new Set<string>();
-     for (const arrival of [...(phase.fighterWaves ?? []), ...(phase.standaloneAce ? [phase.standaloneAce] : [])]) {
-      if (takeArrival(arrival.id,arrival.trigger,{elapsed:0,phase:0,requiredKills:0,destroyed:new Set(),targets:s.arrivalTargets ?? [],player:{x:s.state.x,z:s.state.z}},fired)) expect(s.arrivalsFired?.has(arrival.id)).toBe(true);
-     }
-     // A deterministic holding pilot prevents unattended straight flight into mountains.
-     // Movement, collision, directors, weapons and timers still execute at production dt.
-     const pose = {...s.state};
-     for (let n=0;n<900;n++) {
-      expect(s.crashReason).never.toBe("internal_error");
-      expect(s.active).toBe(true);
-      s.state={...pose}; s.health=100; s.lastInput=os.clock();
-      state.startedAt=os.clock()-n/30;
-      combat.step(s,1/30); combat.flush(s);
-      if (n % 30 === 0) task.wait();
-     }
-     expect(s.crashReason).never.toBe("internal_error");
-     expect(s.stepCount).toBeGreaterThanOrEqual(900);
-     // Later contacts are intentionally hidden until their owning phase. Apply each phase
-     // through the production director, then check every enabled required contact's ownership.
-     const phases = MissionCatalog.ExpandedPhases(blueprint);
-     state.phases = phases;
-     for(let index=0;index<phases.size();index++) {
-      state.phaseIndex=index; state.phaseProgress=0;
-      state.outcome=undefined; s.elapsed=0; combat.apply(s);
-      // Staggered bombers are materialized by the same generalized arrival director.
-      const b=phases[index].bombers;
-      if(b) {
-       s.elapsed=math.max(0,...(b.arrivalSeconds ?? [0]));
-       if(s.bomberEncounter) s.bomberEncounter.startedAt=0;
-       combat.direct(s);
-       for(const targetId of b.targetIds ?? []) {
-        const contact=s.enemies.find(e=>e.id===targetId)!;
-        expect(contact).toBeDefined(); expect(combat.owns(s,contact)).toBe(true);
-        expect(contact.model.PrimaryPart).toBeDefined(); expect(contact.role).toBe(BomberRules.Role.role);
-       }
-      }
-      const cruise=phases[index].cruiseIntercept;
-      if(cruise) {
-       stepCruise(s,1/30);
-       for(let t=0;t<cruise.targets.size();t++) {
-        const spec=cruise.targets[t];
-        const runtime=s.cruise!;
-        if(spec.parentId===undefined) { runtime.elapsed=math.max(runtime.elapsed,spec.arrivalSeconds ?? 0); stepCruise(s,1/30); }
-        const contact=runtime.actors.get(t)!;
-        expect(contact).toBeDefined(); expect(contact.id).toBe(spec.id);
-        expect(contact.model.Parent).toBe(s.folder); expect(combat.damageable(s,contact)).toBe(true);
-        // Carrier separation also uses its live director; child identities must be adopted.
-        if(spec.separateSeconds!==undefined) { runtime.states[t].elapsed=spec.separateSeconds; stepCruise(s,1/30); }
-       }
-      }
-      if(phases[index].kind==="tutorial_missile") {
-       const practiceTargets=s.enemies.filter(e=>e.kind==="ground" && e.required && e.enabled);
-       expect(practiceTargets.size()).toBe(1);
-       expect(combat.damageable(s,practiceTargets[0])).toBe(true);
-      }
-      const vent=phases[index].finale?.vent;
-      if(vent) {
-       const core=s.enemies.find(e=>e.id===vent.core)!;
-       expect(core).toBeDefined(); expect(combat.owns(s,core)).toBe(false);
-       state.vent={...newVent(),elapsed:vent.openingSeconds,checkpoint:vent.checkpoints.size()};
-       expect(combat.owns(s,core)).toBe(true); expect(combat.damageable(s,core)).toBe(true);
-      }
-      for(const e of s.enemies.filter(e=>e.required && e.enabled && e.health>0 && e.withdrawUntil===undefined)) {
-       expect(combat.owns(s,e)).toBe(true);
-       if(e.kind==="ground" && e.phaseOwner===index ) expect(combat.damageable(s,e)).toBe(true);
-      }
-     }
-    }, 15));
-    // A budget failure must not suppress launch/combat/settlement coverage.
-    const buildBudgetMs = id === 10 || id === 13 || id === 16 ? SLOW_BUILD_BUDGET_MS : BUILD_BUDGET_MS;
-    if (buildMs !== undefined && buildMs >= buildBudgetMs) problems.push(`build ${buildMs}ms exceeded ${buildBudgetMs}ms acceptance budget`);
-    if (!ok) problems.push(`checks: ${smokeError(problem)}`);
-    // Even failed assertions must settle the legitimate sortie to unlock the next one.
-    // Failed launch/settlement is recorded; session-only recovery keeps later rows independent.
-    const [advanced, advanceProblem] = pcall(() => {
-     assert(s !== undefined && s.missionId === id, "No matching sortie to settle");
-     const resultIndex = results.size();
-     if (!s.finished) { forceSmokeVictory(s); combat.finish(s); }
-     expect(CombatService.IsCompleting(player)).toBe(true);
-     // Settle first. The next row uses the same production StartMission request as Next,
-     // keeping any build failure attributed to the mission whose world failed.
-     const deadline=os.clock()+10;
-     while(CombatService.IsCompleting(player) && os.clock()<deadline) task.wait();
-     assert(!CombatService.IsCompleting(player), "Settlement did not release within 10 seconds");
-     expect(CombatService.GetSession(player)).toBeUndefined();
-     if(id > 0) expect(coordinator.getSlots()[0].missions?.[id]?.completed).toBe(true);
-     if(id===18) expect(coordinator.getSlots()[0].completed).toBe(true);
-     expect(s.cleaned).toBe(true); expect(s.folder.Parent).toBeUndefined();
-     expect(root.GetChildren().size()).toBe(0);
-     const result = results[resultIndex];
-     expect(result).toBeDefined();
-     expect(result.kind).toBe("Completed"); expect(result.missionId).toBe(id);
-    });
-    if (!advanced) problems.push(`advance: ${smokeError(advanceProblem)}`);
-    for (let n = before; n < errors.size(); n++) problems.push(errors[n]);
-    if (problems.size() > 0) {
-     CombatService.EndMission(player);
-     const deadline = os.clock() + 10;
-     while (CombatService.IsCompleting(player) && os.clock() < deadline) task.wait();
-     const [recovered, recoveryProblem] = pcall(() => campaign.recover(id));
-     if (!recovered) problems.push(`recovery: ${smokeError(recoveryProblem)}`);
-    }
-    if (!worldLifecycle.AwaitIdle(65)) { cleanupFailed = true; problems.push("cleanup did not release within 65 seconds"); }
-    if (cleanupFailed) problems.push("cleanup worker failed; later launches disabled");
-    const report = problems.size() === 0 ? "0" : `FAIL ${problems.join("; ")}`;
-    print(`CAMPAIGN_SMOKE | ${id} | ${buildMs ?? "unavailable"} | ${targetCount} | ${report}${warnings.size() > warningBefore ? `; WARNING ${warnings.filter((_, i) => i >= warningBefore).join("; ")}` : ""}`);
-    if (problems.size() > 0) failures.push(`M${id}: ${problems.join("; ")}`);
-   }
-   if (failures.size() > 0) error(`Campaign smoke failures:\n${failures.join("\n")}`);
-   expect(os.clock()-started).toBeLessThan(1790);
-  } finally {
-   CombatService.EndMission(player);
-   try {
-    expect(worldLifecycle.AwaitIdle(65)).toBe(true);
-   } finally {
-    cancelWorldWork();
-    worldMethods.Build = originalBuild; cleanupMethod.Cleanup = originalCleanup;
-    WorldAssets.SetPreloadTimeout();
-    try { campaign.restore(); combat.restore(); }
-    finally { root.Destroy(); log.Disconnect(); }
-   }
-  }
- }, 1800000);
+							assertSmokeAdoption(s);
+							assertSmokeSpawn(s);
+							const state = s.blueprintState,
+								blueprint = s.blueprint;
+							assert(
+								state !== undefined && blueprint !== undefined,
+								"Expected production blueprint state",
+							);
+							expect(state.phaseIndex).toBe(0);
+							expect(s.appliedBlueprintPhaseIndex).toBe(0);
+							combat.begin(s);
+							// Complete the authored fly-off before checking combat roles.
+							for (let n = 0; n < 100 && s.launch; n++) combat.step(s, 1 / 30);
+							expect(s.launch).toBeUndefined();
+							const phase = BlueprintRunner.ActivePhase(state);
+							assert(phase !== undefined, "Expected an opening phase");
+							combat.direct(s);
+							if (phase.cruiseIntercept)
+								for (const target of phase.cruiseIntercept.targets.filter(
+									(t) => t.parentId === undefined && (t.arrivalSeconds ?? 0) <= 1 / 30,
+								)) {
+									const contact = s.enemies.find((e) => e.id === target.id)!;
+									expect(contact).toBeDefined();
+									expect(contact.cruiseTarget).toBe(true);
+									expect(contact.model.Parent).toBe(s.folder);
+									expect(combat.damageable(s, contact)).toBe(true);
+								}
+							if (phase.bombers) {
+								const due =
+									phase.bombers.arrivalSeconds?.filter((t) => t <= 0).size() ?? phase.bombers.count;
+								expect(
+									s.enemies
+										.filter((e) => e.enabled && e.role === BomberRules.Role.role && e.required)
+										.size(),
+								).toBe(due);
+							} else if (
+								phase.kind === "required_air" &&
+								!phase.cruiseIntercept &&
+								!phase.fighterWaves?.some((w) => w.required) &&
+								phase.execution?.launchDelay === undefined
+							) {
+								const due = phase.execution?.directSpawn
+									? (phase.count ?? 0)
+									: (WavePlan.Groups(phase.count ?? 0, phase.groups ?? 1)[0] ?? 0);
+								expect(
+									s.enemies.filter((e) => e.enabled && e.required && e.role === "bandit").size() +
+										s.airQueue.filter((w) => w.role === "bandit").reduce((n, w) => n + w.count, 0),
+								).toBe(due);
+							}
+							const fired = new Set<string>();
+							for (const arrival of [
+								...(phase.fighterWaves ?? []),
+								...(phase.standaloneAce ? [phase.standaloneAce] : []),
+							]) {
+								if (
+									takeArrival(
+										arrival.id,
+										arrival.trigger,
+										{
+											elapsed: 0,
+											phase: 0,
+											requiredKills: 0,
+											destroyed: new Set(),
+											targets: s.arrivalTargets ?? [],
+											player: { x: s.state.x, z: s.state.z },
+										},
+										fired,
+									)
+								)
+									expect(s.arrivalsFired?.has(arrival.id)).toBe(true);
+							}
+							// A deterministic holding pilot prevents unattended straight flight into mountains.
+							// Movement, collision, directors, weapons and timers still execute at production dt.
+							const pose = { ...s.state };
+							for (let n = 0; n < 900; n++) {
+								expect(s.crashReason).never.toBe("internal_error");
+								expect(s.active).toBe(true);
+								s.state = { ...pose };
+								s.health = 100;
+								s.lastInput = os.clock();
+								state.startedAt = os.clock() - n / 30;
+								combat.step(s, 1 / 30);
+								combat.flush(s);
+								if (n % 30 === 0) task.wait();
+							}
+							expect(s.crashReason).never.toBe("internal_error");
+							expect(s.stepCount).toBeGreaterThanOrEqual(900);
+							// Later contacts are intentionally hidden until their owning phase. Apply each phase
+							// through the production director, then check every enabled required contact's ownership.
+							const phases = MissionCatalog.ExpandedPhases(blueprint);
+							state.phases = phases;
+							for (let index = 0; index < phases.size(); index++) {
+								state.phaseIndex = index;
+								state.phaseProgress = 0;
+								state.outcome = undefined;
+								s.elapsed = 0;
+								combat.apply(s);
+								// Staggered bombers are materialized by the same generalized arrival director.
+								const b = phases[index].bombers;
+								if (b) {
+									s.elapsed = math.max(0, ...(b.arrivalSeconds ?? [0]));
+									if (s.bomberEncounter) s.bomberEncounter.startedAt = 0;
+									combat.direct(s);
+									for (const targetId of b.targetIds ?? []) {
+										const contact = s.enemies.find((e) => e.id === targetId)!;
+										expect(contact).toBeDefined();
+										expect(combat.owns(s, contact)).toBe(true);
+										expect(contact.model.PrimaryPart).toBeDefined();
+										expect(contact.role).toBe(BomberRules.Role.role);
+									}
+								}
+								const cruise = phases[index].cruiseIntercept;
+								if (cruise) {
+									stepCruise(s, 1 / 30);
+									for (let t = 0; t < cruise.targets.size(); t++) {
+										const spec = cruise.targets[t];
+										const runtime = s.cruise!;
+										if (spec.parentId === undefined) {
+											runtime.elapsed = math.max(runtime.elapsed, spec.arrivalSeconds ?? 0);
+											stepCruise(s, 1 / 30);
+										}
+										const contact = runtime.actors.get(t)!;
+										expect(contact).toBeDefined();
+										expect(contact.id).toBe(spec.id);
+										expect(contact.model.Parent).toBe(s.folder);
+										expect(combat.damageable(s, contact)).toBe(true);
+										// Carrier separation also uses its live director; child identities must be adopted.
+										if (spec.separateSeconds !== undefined) {
+											runtime.states[t].elapsed = spec.separateSeconds;
+											stepCruise(s, 1 / 30);
+										}
+									}
+								}
+								if (phases[index].kind === "tutorial_missile") {
+									const practiceTargets = s.enemies.filter(
+										(e) => e.kind === "ground" && e.required && e.enabled,
+									);
+									expect(practiceTargets.size()).toBe(1);
+									expect(combat.damageable(s, practiceTargets[0])).toBe(true);
+								}
+								const vent = phases[index].finale?.vent;
+								if (vent) {
+									const core = s.enemies.find((e) => e.id === vent.core)!;
+									expect(core).toBeDefined();
+									expect(combat.owns(s, core)).toBe(false);
+									state.vent = {
+										...newVent(),
+										elapsed: vent.openingSeconds,
+										checkpoint: vent.checkpoints.size(),
+									};
+									expect(combat.owns(s, core)).toBe(true);
+									expect(combat.damageable(s, core)).toBe(true);
+								}
+								for (const e of s.enemies.filter(
+									(e) => e.required && e.enabled && e.health > 0 && e.withdrawUntil === undefined,
+								)) {
+									expect(combat.owns(s, e)).toBe(true);
+									if (e.kind === "ground" && e.phaseOwner === index)
+										expect(combat.damageable(s, e)).toBe(true);
+								}
+							}
+						},
+						15,
+					),
+				);
+				// A budget failure must not suppress launch/combat/settlement coverage.
+				const buildBudgetMs = id === 10 || id === 13 || id === 16 ? SLOW_BUILD_BUDGET_MS : BUILD_BUDGET_MS;
+				if (buildMs !== undefined && buildMs >= buildBudgetMs)
+					problems.push(`build ${buildMs}ms exceeded ${buildBudgetMs}ms acceptance budget`);
+				if (!ok) problems.push(`checks: ${smokeError(problem)}`);
+				// Even failed assertions must settle the legitimate sortie to unlock the next one.
+				// Failed launch/settlement is recorded; session-only recovery keeps later rows independent.
+				const [advanced, advanceProblem] = pcall(() => {
+					assert(s !== undefined && s.missionId === id, "No matching sortie to settle");
+					const resultIndex = results.size();
+					if (!s.finished) {
+						forceSmokeVictory(s);
+						combat.finish(s);
+					}
+					expect(CombatService.IsCompleting(player)).toBe(true);
+					// Settle first. The next row uses the same production StartMission request as Next,
+					// keeping any build failure attributed to the mission whose world failed.
+					const deadline = os.clock() + 10;
+					while (CombatService.IsCompleting(player) && os.clock() < deadline) task.wait();
+					assert(!CombatService.IsCompleting(player), "Settlement did not release within 10 seconds");
+					expect(CombatService.GetSession(player)).toBeUndefined();
+					if (id > 0) expect(coordinator.getSlots()[0].missions?.[id]?.completed).toBe(true);
+					if (id === 18) expect(coordinator.getSlots()[0].completed).toBe(true);
+					expect(s.cleaned).toBe(true);
+					expect(s.folder.Parent).toBeUndefined();
+					expect(root.GetChildren().size()).toBe(0);
+					const result = results[resultIndex];
+					expect(result).toBeDefined();
+					expect(result.kind).toBe("Completed");
+					expect(result.missionId).toBe(id);
+				});
+				if (!advanced) problems.push(`advance: ${smokeError(advanceProblem)}`);
+				for (let n = before; n < errors.size(); n++) problems.push(errors[n]);
+				if (problems.size() > 0) {
+					CombatService.EndMission(player);
+					const deadline = os.clock() + 10;
+					while (CombatService.IsCompleting(player) && os.clock() < deadline) task.wait();
+					const [recovered, recoveryProblem] = pcall(() => campaign.recover(id));
+					if (!recovered) problems.push(`recovery: ${smokeError(recoveryProblem)}`);
+				}
+				if (!worldLifecycle.AwaitIdle(65)) {
+					cleanupFailed = true;
+					problems.push("cleanup did not release within 65 seconds");
+				}
+				if (cleanupFailed) problems.push("cleanup worker failed; later launches disabled");
+				const report = problems.size() === 0 ? "0" : `FAIL ${problems.join("; ")}`;
+				print(
+					`CAMPAIGN_SMOKE | ${id} | ${buildMs ?? "unavailable"} | ${targetCount} | ${report}${warnings.size() > warningBefore ? `; WARNING ${warnings.filter((_, i) => i >= warningBefore).join("; ")}` : ""}`,
+				);
+				if (problems.size() > 0) failures.push(`M${id}: ${problems.join("; ")}`);
+			}
+			if (failures.size() > 0) error(`Campaign smoke failures:\n${failures.join("\n")}`);
+			expect(os.clock() - started).toBeLessThan(1790);
+		} finally {
+			CombatService.EndMission(player);
+			try {
+				expect(worldLifecycle.AwaitIdle(65)).toBe(true);
+			} finally {
+				cancelWorldWork();
+				worldMethods.Build = originalBuild;
+				cleanupMethod.Cleanup = originalCleanup;
+				WorldAssets.SetPreloadTimeout();
+				try {
+					campaign.restore();
+					combat.restore();
+				} finally {
+					root.Destroy();
+					log.Disconnect();
+				}
+			}
+		}
+	}, 1800000);
 });

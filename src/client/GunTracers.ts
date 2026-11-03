@@ -9,7 +9,12 @@ const LIFETIME = GunRules.Range / SPEED;
 const POOL = 6;
 const LENGTH = 14;
 const COLOR = Color3.fromRGB(255, 214, 120);
-interface Tracer { part: Part; age: number; origin: Vector3; direction: Vector3 }
+interface Tracer {
+	part: Part;
+	age: number;
+	origin: Vector3;
+	direction: Vector3;
+}
 export class GunTracers {
 	private readonly tracers: Tracer[] = [];
 	private folder?: Folder;
@@ -21,19 +26,28 @@ export class GunTracers {
 		else {
 			this.timer += dt;
 			// At most one new tracer per frame: a slow frame never bursts the pool.
-			if (this.timer >= GunRules.Interval) { this.timer %= GunRules.Interval; this.spawn(frame); }
+			if (this.timer >= GunRules.Interval) {
+				this.timer %= GunRules.Interval;
+				this.spawn(frame);
+			}
 		}
 		for (const tracer of this.tracers) {
 			if (tracer.age >= LIFETIME) continue;
 			tracer.age += dt;
-			if (tracer.age >= LIFETIME) { tracer.part.Transparency = 1; continue; }
+			if (tracer.age >= LIFETIME) {
+				tracer.part.Transparency = 1;
+				continue;
+			}
 			const head = tracer.origin.add(tracer.direction.mul(SPEED * tracer.age));
 			tracer.part.CFrame = CFrame.lookAt(head, head.add(tracer.direction));
 		}
 	}
 	public Stop(): void {
-		this.folder?.Destroy(); this.folder = undefined;
-		this.tracers.clear(); this.timer = 0; this.next = 0;
+		this.folder?.Destroy();
+		this.folder = undefined;
+		this.tracers.clear();
+		this.timer = 0;
+		this.next = 0;
 	}
 	private spawn(frame: CFrame): void {
 		if (!this.folder) {
@@ -45,8 +59,14 @@ export class GunTracers {
 		if (this.tracers.size() < POOL) {
 			const part = new Instance("Part");
 			part.Name = "GunTracer";
-			part.Anchored = true; part.CanCollide = false; part.CanQuery = false; part.CanTouch = false; part.CastShadow = false;
-			part.Material = Enum.Material.Neon; part.Color = COLOR; part.Size = new Vector3(0.35, 0.35, LENGTH);
+			part.Anchored = true;
+			part.CanCollide = false;
+			part.CanQuery = false;
+			part.CanTouch = false;
+			part.CastShadow = false;
+			part.Material = Enum.Material.Neon;
+			part.Color = COLOR;
+			part.Size = new Vector3(0.35, 0.35, LENGTH);
 			part.Parent = this.folder;
 			this.tracers.push({ part, age: LIFETIME, origin: Vector3.zero, direction: Vector3.zAxis });
 		}

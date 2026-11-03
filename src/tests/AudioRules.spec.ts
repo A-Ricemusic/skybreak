@@ -36,7 +36,9 @@ describe("flight audio priorities and mix", () => {
 	it("bounds extreme input and frame stalls without volume jumps", () => {
 		const idle = AudioRules.EngineMix(-100, -100, -1);
 		const high = AudioRules.EngineMix(100, 10000, 100);
-		expect(idle.burn).toBe(0); expect(idle.wind).toBe(0); expect(idle.alpha).toBe(0);
+		expect(idle.burn).toBe(0);
+		expect(idle.wind).toBe(0);
+		expect(idle.alpha).toBe(0);
 		expect(high.wind).toBeCloseTo(0.12, 5);
 		expect(high.alpha < 0.3).toBe(true);
 	});

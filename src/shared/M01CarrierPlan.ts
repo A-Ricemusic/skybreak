@@ -24,7 +24,8 @@ export const M01_FLYOFF_ABOVE_DECK = 24;
 /** Rotate a model-space point into M01 world space around the carrier waterline contact. */
 export function m01CarrierPoint(point: { x: number; y: number; z: number }): { x: number; y: number; z: number } {
 	const yaw = math.rad(M01_CARRIER_PLACEMENT.headingDegrees);
-	const c = math.cos(yaw), s = math.sin(yaw);
+	const c = math.cos(yaw),
+		s = math.sin(yaw);
 	return {
 		x: M01_CARRIER_PLACEMENT.x + c * point.x + s * point.z,
 		y: M01_CARRIER_PLACEMENT.y - M01_CARRIER_MODEL.waterlineAboveKeel + point.y,

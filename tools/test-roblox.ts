@@ -25,19 +25,41 @@ const errorLog = resolve(root, `build/${prefix}-studio-stderr.log`);
 await Promise.all([output, launchLog, errorLog].map((path) => rm(path, { force: true })));
 const entry = resolve(root, `build/${prefix}-entry.luau`);
 const source = await Bun.file(resolve(root, "tools/run-jest.luau")).text();
-await Bun.write(entry, perf ? source.replace("**/*.spec", "**/MissionWorldBuild.perf").replace("testTimeout = 20000", "testTimeout = 300000") : source);
+await Bun.write(
+	entry,
+	perf
+		? source
+				.replace("**/*.spec", "**/MissionWorldBuild.perf")
+				.replace("testTimeout = 20000", "testTimeout = 300000")
+		: source,
+);
 const executable = process.env.ROBLOX_STUDIO_PATH ?? "/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio";
-const studio = Bun.spawn([
-	executable, "--task", "RunScript", "--localPlaceFile", place,
-	"--runScriptFile", entry,
-	"--outputFile", output, "--quitAfterExecution",
-], { cwd: root, stdout: Bun.file(launchLog), stderr: Bun.file(errorLog) });
+const studio = Bun.spawn(
+	[
+		executable,
+		"--task",
+		"RunScript",
+		"--localPlaceFile",
+		place,
+		"--runScriptFile",
+		entry,
+		"--outputFile",
+		output,
+		"--quitAfterExecution",
+	],
+	{ cwd: root, stdout: Bun.file(launchLog), stderr: Bun.file(errorLog) },
+);
 const deadline = Date.now() + timeoutMs;
 let summary: { success: boolean; passed: number; failed: number; suites: number; total: number } | undefined;
 while (Date.now() < deadline) {
-	const text = await Bun.file(output).text().catch(() => "");
+	const text = await Bun.file(output)
+		.text()
+		.catch(() => "");
 	const match = text.match(/SKYBREAK_JEST_RESULT:(\{[^\r\n]+\})/);
-	if (match) { summary = JSON.parse(match[1]); break; }
+	if (match) {
+		summary = JSON.parse(match[1]);
+		break;
+	}
 	if (studio.exitCode !== null) break;
 	await Bun.sleep(500);
 }

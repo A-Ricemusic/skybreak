@@ -16,7 +16,14 @@ const Stroke = ({
 	color?: Color3;
 	transparency?: number;
 	thickness?: number;
-}) => <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={color} Transparency={transparency} Thickness={thickness} />;
+}) => (
+	<uistroke
+		ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+		Color={color}
+		Transparency={transparency}
+		Thickness={thickness}
+	/>
+);
 
 interface ActionButtonProps {
 	name: string;
@@ -72,8 +79,17 @@ function ActionButton({
 			}}
 		>
 			<Corner />
-			<Stroke color={hot ? C.Ivory : primary ? C.Accent : C.Ivory} transparency={hot ? 0.1 : primary ? 0.6 : 0.82} thickness={hot ? 2 : 1} />
-			<uipadding PaddingLeft={new UDim(0, 14)} PaddingRight={new UDim(0, 14)} PaddingTop={new UDim(0, 12)} PaddingBottom={new UDim(0, 12)} />
+			<Stroke
+				color={hot ? C.Ivory : primary ? C.Accent : C.Ivory}
+				transparency={hot ? 0.1 : primary ? 0.6 : 0.82}
+				thickness={hot ? 2 : 1}
+			/>
+			<uipadding
+				PaddingLeft={new UDim(0, 14)}
+				PaddingRight={new UDim(0, 14)}
+				PaddingTop={new UDim(0, 12)}
+				PaddingBottom={new UDim(0, 12)}
+			/>
 			<uitextsizeconstraint MaxTextSize={textSize} MinTextSize={8} />
 		</textbutton>
 	);
@@ -151,7 +167,15 @@ function Label({
 function KeyCap({ hint }: { hint: ControlHint }) {
 	const glyph = hint.keyCode !== undefined ? glyphFor(hint.keyCode) : "";
 	if (glyph !== "") {
-		return <imagelabel key="Glyph" BackgroundTransparency={1} Image={glyph} LayoutOrder={1} Size={UDim2.fromOffset(22, 22)} />;
+		return (
+			<imagelabel
+				key="Glyph"
+				BackgroundTransparency={1}
+				Image={glyph}
+				LayoutOrder={1}
+				Size={UDim2.fromOffset(22, 22)}
+			/>
+		);
 	}
 	return (
 		<textlabel
@@ -175,10 +199,31 @@ function KeyCap({ hint }: { hint: ControlHint }) {
 
 function HintChip({ hint, order, color = C.Ivory }: { hint: ControlHint; order: number; color?: Color3 }) {
 	return (
-		<frame key={`${hint.action}Hint`} AutomaticSize={Enum.AutomaticSize.X} BackgroundTransparency={1} LayoutOrder={order} Size={UDim2.fromOffset(0, 24)}>
-			<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 6)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
+		<frame
+			key={`${hint.action}Hint`}
+			AutomaticSize={Enum.AutomaticSize.X}
+			BackgroundTransparency={1}
+			LayoutOrder={order}
+			Size={UDim2.fromOffset(0, 24)}
+		>
+			<uilistlayout
+				FillDirection={Enum.FillDirection.Horizontal}
+				Padding={new UDim(0, 6)}
+				SortOrder={Enum.SortOrder.LayoutOrder}
+				VerticalAlignment={Enum.VerticalAlignment.Center}
+			/>
 			<KeyCap hint={hint} />
-			<Label name="Action" text={hint.action} color={color} textSize={11} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 20)} automaticSize={Enum.AutomaticSize.X} layoutOrder={2} stroke={true} />
+			<Label
+				name="Action"
+				text={hint.action}
+				color={color}
+				textSize={11}
+				font={Enum.Font.GothamBold}
+				size={UDim2.fromOffset(0, 20)}
+				automaticSize={Enum.AutomaticSize.X}
+				layoutOrder={2}
+				stroke={true}
+			/>
 		</frame>
 	);
 }
@@ -212,7 +257,9 @@ function HintRowImpl({
 				VerticalAlignment={Enum.VerticalAlignment.Bottom}
 				Wraps={true}
 			/>
-			{hints.map((hint, index) => <HintChip key={`${hint.action}Hint`} hint={hint} order={index + 1} />)}
+			{hints.map((hint, index) => (
+				<HintChip key={`${hint.action}Hint`} hint={hint} order={index + 1} />
+			))}
 		</frame>
 	);
 }
@@ -220,7 +267,16 @@ function HintRowImpl({
 const HintRow = React.memo(HintRowImpl);
 
 /** A 44px header row: square back button, then a title over a one-line status. */
-function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitleColor = C.Muted, compact, onBack }: {
+function ScreenHeader({
+	name,
+	backName,
+	enabled = true,
+	title,
+	subtitle,
+	subtitleColor = C.Muted,
+	compact,
+	onBack,
+}: {
 	name: string;
 	backName: string;
 	enabled?: boolean;
@@ -233,9 +289,34 @@ function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitl
 	const textLeft = MIN_TOUCH_TARGET + 12;
 	return (
 		<frame key={name} BackgroundTransparency={1} Size={new UDim2(1, 0, 0, MIN_TOUCH_TARGET)}>
-			<ActionButton name={backName} text="‹" size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)} enabled={enabled} textSize={22} onActivated={onBack} />
-			<Label name={`${name}Title`} text={title} textSize={compact ? 18 : 22} minTextSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(textLeft, 1)} size={new UDim2(1, -textLeft, 0, compact ? 22 : 25)} />
-			<Label name={`${name}Status`} text={subtitle} color={subtitleColor} textSize={10} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={new UDim2(0, textLeft, 1, -2)} size={new UDim2(1, -textLeft, 0, 13)} />
+			<ActionButton
+				name={backName}
+				text="‹"
+				size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)}
+				enabled={enabled}
+				textSize={22}
+				onActivated={onBack}
+			/>
+			<Label
+				name={`${name}Title`}
+				text={title}
+				textSize={compact ? 18 : 22}
+				minTextSize={12}
+				font={Enum.Font.GothamBlack}
+				position={UDim2.fromOffset(textLeft, 1)}
+				size={new UDim2(1, -textLeft, 0, compact ? 22 : 25)}
+			/>
+			<Label
+				name={`${name}Status`}
+				text={subtitle}
+				color={subtitleColor}
+				textSize={10}
+				minTextSize={8}
+				font={Enum.Font.GothamBold}
+				anchorPoint={new Vector2(0, 1)}
+				position={new UDim2(0, textLeft, 1, -2)}
+				size={new UDim2(1, -textLeft, 0, 13)}
+			/>
 		</frame>
 	);
 }
@@ -290,9 +371,18 @@ function FooterButtons({
 	);
 }
 
-
 function SectionHeading({ name, text, layoutOrder }: { name: string; text: string; layoutOrder: number }) {
-	return <Label name={name} text={text} color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 12)} layoutOrder={layoutOrder} />;
+	return (
+		<Label
+			name={name}
+			text={text}
+			color={C.Orange}
+			textSize={10}
+			font={Enum.Font.GothamBold}
+			size={new UDim2(1, 0, 0, 12)}
+			layoutOrder={layoutOrder}
+		/>
+	);
 }
 
 export { ActionButton, Corner, FooterButtons, HintRow, Label, ScreenHeader, SectionHeading, Stroke };

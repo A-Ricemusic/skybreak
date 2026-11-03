@@ -9,7 +9,9 @@ export interface StepGuardState {
 	message?: string;
 }
 export const StepGuard = {
-	New(): StepGuardState { return { running: false, failed: false }; },
+	New(): StepGuardState {
+		return { running: false, failed: false };
+	},
 	/**
 	 * Runs `step` protected. Returns false without running when the session already failed or a
 	 * previous step is still in flight (a yield inside the step must not let Heartbeat re-enter it).
@@ -37,15 +39,21 @@ export interface PauseState {
 }
 /** A sortie may be paused for this long in total; past it the clock runs again. */
 const PAUSE_BUDGET = 300;
-function finite(value: number): boolean { return value === value && math.abs(value) !== math.huge; }
+function finite(value: number): boolean {
+	return value === value && math.abs(value) !== math.huge;
+}
 export const PauseRules = {
 	Budget: PAUSE_BUDGET,
 	Remaining(state: PauseState, now: number): number {
 		const elapsed = state.pausedAt !== undefined && finite(now) ? math.max(0, now - state.pausedAt) : 0;
 		return math.clamp(PAUSE_BUDGET - state.used - elapsed, 0, PAUSE_BUDGET);
 	},
-	New(): PauseState { return { used: 0 }; },
-	Paused(state: PauseState): boolean { return state.pausedAt !== undefined; },
+	New(): PauseState {
+		return { used: 0 };
+	},
+	Paused(state: PauseState): boolean {
+		return state.pausedAt !== undefined;
+	},
 	/** Start a pause; refused when already paused or the budget is spent. */
 	Pause(state: PauseState, now: number): boolean {
 		if (!finite(now) || state.pausedAt !== undefined || state.used >= PAUSE_BUDGET) return false;
@@ -109,7 +117,9 @@ function settle(state: SettlementState, hooks: SettlementHooks): void {
 	}
 }
 export const Settlement = {
-	New(): SettlementState { return { entered: false, scheduled: false, settled: false }; },
+	New(): SettlementState {
+		return { entered: false, scheduled: false, settled: false };
+	},
 	/** The sortie is over: announce, then schedule the save; if scheduling fails, settle now. */
 	Begin(state: SettlementState, hooks: SettlementHooks): void {
 		if (state.entered) return;
@@ -117,7 +127,10 @@ export const Settlement = {
 		const [announced, announceError] = pcall(() => hooks.announce());
 		if (!announced) pcall(() => hooks.warn(`result announcement failed: ${tostring(announceError)}`));
 		const [scheduled, err] = pcall(() => hooks.schedule(() => Settlement.Complete(state, hooks)));
-		if (scheduled) { state.scheduled = true; return; }
+		if (scheduled) {
+			state.scheduled = true;
+			return;
+		}
 		pcall(() => hooks.warn(`could not schedule the save: ${tostring(err)}`));
 		Settlement.Abandon(state, hooks);
 	},

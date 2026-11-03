@@ -55,25 +55,35 @@ function MenuBackdropImpl({ visible, menu, viewport }: { visible: boolean; menu:
 	const opening = getMenuSceneOpening(viewport.X, menu) + 0.03;
 	const sheetTop = math.clamp(menu.panel.y / math.max(1, viewport.Y), 0.25, 0.8);
 	return (
-		<frame key="Backdrop" BackgroundColor3={C.Ink} BackgroundTransparency={0} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={visible} ZIndex={0}>
+		<frame
+			key="Backdrop"
+			BackgroundColor3={C.Ink}
+			BackgroundTransparency={0}
+			BorderSizePixel={0}
+			Size={UDim2.fromScale(1, 1)}
+			Visible={visible}
+			ZIndex={0}
+		>
 			<uigradient
 				Rotation={side ? 0 : 90}
-				Transparency={side
-					? new NumberSequence([
-						new NumberSequenceKeypoint(0, 0.06),
-						new NumberSequenceKeypoint(opening * 0.6, 0.12),
-						new NumberSequenceKeypoint(opening - 0.04, 0.24),
-						new NumberSequenceKeypoint(opening + 0.08, 0.82),
-						new NumberSequenceKeypoint(opening + 0.18, 1),
-						new NumberSequenceKeypoint(1, 1),
-					])
-					: new NumberSequence([
-						new NumberSequenceKeypoint(0, 1),
-						new NumberSequenceKeypoint(sheetTop - 0.2, 1),
-						new NumberSequenceKeypoint(sheetTop - 0.05, 0.45),
-						new NumberSequenceKeypoint(sheetTop + 0.05, 0.12),
-						new NumberSequenceKeypoint(1, 0.04),
-					])}
+				Transparency={
+					side
+						? new NumberSequence([
+								new NumberSequenceKeypoint(0, 0.06),
+								new NumberSequenceKeypoint(opening * 0.6, 0.12),
+								new NumberSequenceKeypoint(opening - 0.04, 0.24),
+								new NumberSequenceKeypoint(opening + 0.08, 0.82),
+								new NumberSequenceKeypoint(opening + 0.18, 1),
+								new NumberSequenceKeypoint(1, 1),
+							])
+						: new NumberSequence([
+								new NumberSequenceKeypoint(0, 1),
+								new NumberSequenceKeypoint(sheetTop - 0.2, 1),
+								new NumberSequenceKeypoint(sheetTop - 0.05, 0.45),
+								new NumberSequenceKeypoint(sheetTop + 0.05, 0.12),
+								new NumberSequenceKeypoint(1, 0.04),
+							])
+				}
 			/>
 		</frame>
 	);

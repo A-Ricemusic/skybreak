@@ -55,10 +55,13 @@ describe("EVADE charges, ring and flash", () => {
 
 describe("EVADE timing advice", () => {
 	it("does not promote a distant inbound missile, but does promote both decoy paths", () => {
-		const gauge = (distance: number, life: number) => evadeGauge({
-			evadeCooldown: 0, evadeCharges: 3, incoming: distance < 1800,
-			evadeThreat: EvadeRules.Decoys(distance, life),
-		});
+		const gauge = (distance: number, life: number) =>
+			evadeGauge({
+				evadeCooldown: 0,
+				evadeCharges: 3,
+				incoming: distance < 1800,
+				evadeThreat: EvadeRules.Decoys(distance, life),
+			});
 		expect(gauge(1799, 6).flash).toBe(false);
 		expect(gauge(451, 1.21).flash).toBe(false);
 		expect(gauge(450, 6).flash).toBe(true);

@@ -27,7 +27,7 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
 	cruiseTarget?: true;
- airshipJammer?: boolean;
+	airshipJammer?: boolean;
 	attackProtected?: string;
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
@@ -48,18 +48,34 @@ export interface Enemy {
 	/** Target copied when the hostile windup begins; undefined during a windup means the player. */
 	windupTarget?: Enemy;
 	alliedAmmo?: number;
-	id: string; name: string; model: Model; health: number; maxHealth: number; position: Vector3;
-	kind: TargetKind; required: boolean; enabled: boolean;
-	direction: Vector3; velocity: Vector3; fireTimer: number; windup: number;
+	id: string;
+	name: string;
+	model: Model;
+	health: number;
+	maxHealth: number;
+	position: Vector3;
+	kind: TargetKind;
+	required: boolean;
+	enabled: boolean;
+	direction: Vector3;
+	velocity: Vector3;
+	fireTimer: number;
+	windup: number;
 	/** Current maneuver. `extend` is a timed break-away (pass or lock-break), `orbit`/`run` are escort raider cycles. */
-	mode: EnemyMode; modeTimer: number; passDirection: Vector3;
+	mode: EnemyMode;
+	modeTimer: number;
+	passDirection: Vector3;
 	/** +1 or -1: which side of the player's nose this enemy brackets and breaks toward. */
 	side: number;
-	flares: number; flareTimer: number; speedBonus: number; lockBreakTimer: number;
+	flares: number;
+	flareTimer: number;
+	speedBonus: number;
+	lockBreakTimer: number;
 	/** A popped flare decoys every player missile within ThreatRules.FlareRadius until this elapsed time. */
 	flareUntil: number;
 	/** Defensive break (lock building close, or a guided missile inbound): cooldown until the next one, and when the current one ends. */
-	breakTimer: number; breakUntil: number;
+	breakTimer: number;
+	breakUntil: number;
 	/** Odds this enemy breaks out of a close lock (act, difficulty and Ace behaviour). */
 	lockBreakChance: number;
 	role?: AirRole;
@@ -78,7 +94,8 @@ export interface Enemy {
 	/** Ground-avoidance: climbing away from scenery ahead until this elapsed time. */
 	pullUpUntil?: number;
 	/** Target-priority line-of-sight cache: session elapsed time of the last check and its result (TargetPriority.LosInterval). */
-	losAt?: number; losBlocked?: boolean;
+	losAt?: number;
+	losBlocked?: boolean;
 	warning?: BillboardGui;
 	groundIndex?: number;
 	hiddenParts: { part: BasePart; transparency: number }[];
@@ -89,9 +106,15 @@ export interface Enemy {
 }
 export interface Projectile {
 	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
-	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
+	part: Part;
+	position: Vector3;
+	direction: Vector3;
+	target?: Enemy;
+	hostile: boolean;
+	age: number;
 	/** Fired by an ace (hostile: tighter guidance), and the damage on impact (hull or enemy health). */
-	ace: boolean; damage: number;
+	ace: boolean;
+	damage: number;
 	allied?: boolean;
 	/** Hostile missile destination, fixed at launch; absent means player. */
 	wingman?: Enemy;
@@ -113,17 +136,17 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
- m18Ascending?: {elapsed:number;actors:Enemy[]};
+	m18Ascending?: { elapsed: number; actors: Enemy[] };
 	d13Phase?: number;
 	d13Gate?: Part;
 	d13Beacon?: Part;
 	cruise?: CruiseRuntime;
- airshipPhase?: number;
+	airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
 	leaderWithdrawal?: import("./LeaderWithdrawalRuntime").LeaderRuntime;
-	protectedFlight?: {phase: number; actors: import("./ProtectedAircraftRuntime").ProtectedActor[]};
+	protectedFlight?: { phase: number; actors: import("./ProtectedAircraftRuntime").ProtectedActor[] };
 	contactClock?: number;
-	repeatedArtillery?: {phase:number;state:import("../shared/ContactInventoryRules").ScheduledArtillery};
+	repeatedArtillery?: { phase: number; state: import("../shared/ContactInventoryRules").ScheduledArtillery };
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;
@@ -152,7 +175,12 @@ export interface CombatSession {
 	launch?: import("../shared/LaunchStage").LaunchStageState;
 	airspace: MissionAirspacePolicy;
 	targetScore: TargetScore;
-	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
+	player: Player;
+	slot: number;
+	folder: Folder;
+	aircraft: Model;
+	state: FlightState;
+	input: FlightInput;
 	blueprintState?: BlueprintState;
 	blueprint?: MissionBlueprint;
 	missionId: number;
@@ -163,9 +191,15 @@ export interface CombatSession {
 	collisionParams?: RaycastParams;
 	/** Last TGT press: a quick follow-up press on the same target walks on to the next-closest instead of snapping back to the closest. */
 	cycle?: { target: Enemy; at: number };
-	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
+	health: number;
+	kills: number;
+	elapsed: number;
+	missiles: number;
+	missileCooldown: number;
 	/** Seconds left of the evade barrel roll. */
-	evadeRemaining: number; regen: number; lockProgress: number;
+	evadeRemaining: number;
+	regen: number;
+	lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
 	special: SpecialState;
 	/** Batch D1: the fitted gun (rounds, trigger, shot cooldown); absent unless the mission's armament fits one. */
@@ -178,36 +212,62 @@ export interface CombatSession {
 	alliesSpawned?: boolean;
 	alliedKills: string[];
 	alliedFireAt: number;
-	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
-	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
+	enemies: Enemy[];
+	projectiles: Projectile[];
+	target?: Enemy;
+	telemetryTime: number;
+	lastInput: number;
+	lastInputEvent: number;
+	active: boolean;
+	finished: boolean;
+	cleaned: boolean;
 	/** Per-action-kind rate limiting for CombatAction events. */
 	actionGate?: ActionGateState;
-	navigationMarker?: Part; navigationActor?: Model;
+	navigationMarker?: Part;
+	navigationActor?: Model;
 	/** In-world dotted return line while a return_line phase runs. */
 	returnLineMarker?: Model;
-	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
+	previousReplicationFocus?: BasePart;
+	characterRoot?: BasePart;
+	wasAnchored?: boolean;
 	/** Present while the client is still receiving the world; nothing simulates until it is released. */
 	loading?: LoadingGateState;
 	/** Latest radio line and a serial so the client can detect repeats. */
-	radio?: string; radioSerial: number; radioSeconds?: number; radioPriority?: boolean;
+	radio?: string;
+	radioSerial: number;
+	radioSeconds?: number;
+	radioPriority?: boolean;
 	/** Latest refused FIRE and its serial, so the HUD can show the reason once per press. */
-	fireDenied?: FireNotice; fireDeniedSerial?: number;
+	fireDenied?: FireNotice;
+	fireDeniedSerial?: number;
 	/** Mission 1: elapsed time when the tutorial target step began, and whether its hint has aired. */
-	targetStepSince?: number; targetStepHinted?: boolean;
+	targetStepSince?: number;
+	targetStepHinted?: boolean;
 	/** Next unfired chatter line of the active phase. */
 	chatterIndex: number;
 	/** Client stamp of the newest FlightInput, whether a step has used it yet, and how many fixed steps have. */
-	inputClientTime: number; inputFresh: boolean; inputSteps: number;
+	inputClientTime: number;
+	inputFresh: boolean;
+	inputSteps: number;
 	/** FlightInput token bucket: tokens left and when it was last refilled. */
-	inputTokens: number; inputTokensAt: number;
+	inputTokens: number;
+	inputTokensAt: number;
 	/** 20 Hz FlightState accumulator and packet sequences for both unreliable streams. */
-	stateTime: number; stateSequence: number; telemetrySequence: number;
+	stateTime: number;
+	stateSequence: number;
+	telemetrySequence: number;
 	/** Last HudState sent; a new one goes out (reliably) only when a field differs. */
 	hud?: HudState;
 	/** Pending pivots applied once per Heartbeat, after every fixed sub-step. */
-	aircraftFrame?: CFrame; actorFrame?: CFrame;
+	aircraftFrame?: CFrame;
+	actorFrame?: CFrame;
 	/** Debrief counters: player missiles launched and connected, hull lost, lowest hull, evades used. */
-	missilesFired: number; missileHits: number; flareBursts: number; damageTaken: number; lowestHealth: number; evades: number;
+	missilesFired: number;
+	missileHits: number;
+	flareBursts: number;
+	damageTaken: number;
+	lowestHealth: number;
+	evades: number;
 	/** Evade charges and the decoy window (EvadeRules). */
 	evade: EvadeState;
 	/** Error isolation and re-entrancy for this session's steps (StepGuard). */
@@ -217,9 +277,13 @@ export interface CombatSession {
 	/** Highest client Pause/Resume serial handled, echoed in telemetry so the client knows its request landed. */
 	pauseAck: number;
 	/** Result save and teardown once the sortie ends (Settlement), and the hooks finish() chose. */
-	settlement: SettlementState; settleHooks?: SettlementHooks;
+	settlement: SettlementState;
+	settleHooks?: SettlementHooks;
 	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
-	banditSerial: number; raiderSerial: number; spawnSerial: number; allySerial: number;
+	banditSerial: number;
+	raiderSerial: number;
+	spawnSerial: number;
+	allySerial: number;
 	/** Staggered groups of the active required_air phase (WavePlan). */
 	bomberEncounter?: BomberEncounterState;
 	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };

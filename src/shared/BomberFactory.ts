@@ -6,11 +6,12 @@ import { JetFactory } from "./JetFactory";
 /** Rebase template-local geometry at the aircraft root, including rotated/translated templates. */
 export function attachBomberGeometry(model: Model, template: Model): void {
 	const root = model.PrimaryPart!;
-	for (const item of template.GetChildren()) if (item.IsA("BasePart")) {
-		const clone = item.Clone();
-		clone.CFrame = root.CFrame.mul(template.GetPivot().ToObjectSpace(item.CFrame));
-		clone.Parent = model;
-	}
+	for (const item of template.GetChildren())
+		if (item.IsA("BasePart")) {
+			const clone = item.Clone();
+			clone.CFrame = root.CFrame.mul(template.GetPivot().ToObjectSpace(item.CFrame));
+			clone.Parent = model;
+		}
 }
 
 /** Route bomber visual. No upload/generation of Blender content happens here. */
@@ -28,7 +29,15 @@ export const BomberFactory = {
 		root.CanQuery = false;
 		root.Parent = model;
 		model.PrimaryPart = root;
-		const uploaded = UploadedAssets.Template(aircraft === "transport" ? AssetSelection.TransportCandidates(UploadedAssetSpecs) : aircraft === "jammer" ? AssetSelection.JammerCandidates(UploadedAssetSpecs) : aircraft === "helicopter" ? AssetSelection.HelicopterCandidates(UploadedAssetSpecs) : AssetSelection.BomberCandidates(UploadedAssetSpecs));
+		const uploaded = UploadedAssets.Template(
+			aircraft === "transport"
+				? AssetSelection.TransportCandidates(UploadedAssetSpecs)
+				: aircraft === "jammer"
+					? AssetSelection.JammerCandidates(UploadedAssetSpecs)
+					: aircraft === "helicopter"
+						? AssetSelection.HelicopterCandidates(UploadedAssetSpecs)
+						: AssetSelection.BomberCandidates(UploadedAssetSpecs),
+		);
 		if (uploaded !== undefined) {
 			attachBomberGeometry(model, uploaded.template);
 			model.SetAttribute("GeometrySource", "Uploaded");
@@ -56,7 +65,12 @@ export const BomberFactory = {
 			}
 		}
 		JetFactory.WeldAssembly(model);
-		for (const p of model.GetDescendants()) if (p.IsA("BasePart")) { p.CanCollide = false; p.CanTouch = false; p.CanQuery = false; }
+		for (const p of model.GetDescendants())
+			if (p.IsA("BasePart")) {
+				p.CanCollide = false;
+				p.CanTouch = false;
+				p.CanQuery = false;
+			}
 		return model;
 	},
 };

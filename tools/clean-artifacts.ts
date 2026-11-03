@@ -9,7 +9,11 @@ let reclaimedBytes = 0;
 // Read the index before deleting anything, and fail closed outside a Git repo.
 const index = Bun.spawnSync(["git", "-C", root, "ls-files", "--cached", "-z"]);
 if (index.exitCode !== 0) throw new Error("Cannot read tracked files; refusing cleanup.");
-const tracked = index.stdout.toString().split("\0").filter(Boolean).map((path) => resolve(root, path));
+const tracked = index.stdout
+	.toString()
+	.split("\0")
+	.filter(Boolean)
+	.map((path) => resolve(root, path));
 const trackedFolded = tracked.map((path) => path.toLowerCase());
 
 function contains(parent: string, child: string): boolean {

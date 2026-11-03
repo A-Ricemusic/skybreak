@@ -8,19 +8,30 @@ export type LaunchPhase = "idle" | "building" | "queued" | "preloading";
 export class LaunchLoading {
 	private generation = 0;
 	private deadline = 0;
-	public Generation(): number { return this.generation; }
-	public Current(generation: unknown): boolean { return generation === this.generation; }
+	public Generation(): number {
+		return this.generation;
+	}
+	public Current(generation: unknown): boolean {
+		return generation === this.generation;
+	}
 	/** Called by the client timer; it must not expire the separate preload/Ready stage. */
 	public Watchdog(generation: number, now: number): boolean {
-		if (!this.Current(generation) || (this.phase !== "building" && this.phase !== "queued") || now < this.deadline) return false;
+		if (!this.Current(generation) || (this.phase !== "building" && this.phase !== "queued") || now < this.deadline)
+			return false;
 		this.Fail();
 		return true;
 	}
 	private phase: LaunchPhase = "idle";
 	private screen: "briefing" | "loading" | "mission" = "briefing";
-	public Screen(): "briefing" | "loading" | "mission" { return this.screen; }
-	public Phase(): LaunchPhase { return this.phase; }
-	public Pending(): boolean { return this.phase !== "idle"; }
+	public Screen(): "briefing" | "loading" | "mission" {
+		return this.screen;
+	}
+	public Phase(): LaunchPhase {
+		return this.phase;
+	}
+	public Pending(): boolean {
+		return this.phase !== "idle";
+	}
 	public Begin(now = 0): boolean {
 		if (this.Pending()) return false;
 		this.generation++;
@@ -29,8 +40,12 @@ export class LaunchLoading {
 		this.screen = "loading";
 		return true;
 	}
-	public Queued(): void { if (this.phase === "building") this.phase = "queued"; }
-	public Building(): void { if (this.phase === "queued") this.phase = "building"; }
+	public Queued(): void {
+		if (this.phase === "building") this.phase = "queued";
+	}
+	public Building(): void {
+		if (this.phase === "queued") this.phase = "building";
+	}
 	public Preload(): boolean {
 		if (this.phase !== "building" && this.phase !== "queued") return false;
 		this.phase = "preloading";
@@ -42,12 +57,20 @@ export class LaunchLoading {
 		this.screen = "mission";
 		return true;
 	}
-	public Fail(): void { this.generation++; this.phase = "idle"; this.screen = "briefing"; }
+	public Fail(): void {
+		this.generation++;
+		this.phase = "idle";
+		this.screen = "briefing";
+	}
 }
 
 /** Cancellation tombstone survives a missing/stalled RPC and cannot cancel a newer generation. */
 export class LaunchCancellation {
 	private through = 0;
-	public Cancel(generation: number): void { this.through = math.max(this.through, generation); }
-	public Cancelled(generation: number | undefined): boolean { return generation !== undefined && generation <= this.through; }
+	public Cancel(generation: number): void {
+		this.through = math.max(this.through, generation);
+	}
+	public Cancelled(generation: number | undefined): boolean {
+		return generation !== undefined && generation <= this.through;
+	}
 }

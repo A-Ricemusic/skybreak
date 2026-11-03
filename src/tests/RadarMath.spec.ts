@@ -1,5 +1,15 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { RADAR_GLYPHS, RADAR_LAYER, RADAR_NEAR_RANGE, RADAR_RANGE, RADAR_RIM_INSET, radarHeadingDegrees, radarProject, radarRange, type RadarContactKind } from "../shared/RadarMath";
+import {
+	RADAR_GLYPHS,
+	RADAR_LAYER,
+	RADAR_NEAR_RANGE,
+	RADAR_RANGE,
+	RADAR_RIM_INSET,
+	radarHeadingDegrees,
+	radarProject,
+	radarRange,
+	type RadarContactKind,
+} from "../shared/RadarMath";
 
 const close = (actual: number, expected: number) => expect(math.abs(actual - expected)).toBeLessThan(0.0001);
 
@@ -44,13 +54,38 @@ describe("heading-up radar projection", () => {
 	});
 	it("zooms in only while every required contact and the objective are close", () => {
 		expect(radarRange(0, 0, [])).toBe(RADAR_RANGE);
-		expect(radarRange(0, 0, [{ kind: "required", x: 800, z: 0 }, { kind: "objective", x: 0, z: -900 }])).toBe(RADAR_NEAR_RANGE);
-		expect(radarRange(0, 0, [{ kind: "required", x: 800, z: 0 }, { kind: "ground", x: 0, z: 2400 }])).toBe(RADAR_RANGE);
+		expect(
+			radarRange(0, 0, [
+				{ kind: "required", x: 800, z: 0 },
+				{ kind: "objective", x: 0, z: -900 },
+			]),
+		).toBe(RADAR_NEAR_RANGE);
+		expect(
+			radarRange(0, 0, [
+				{ kind: "required", x: 800, z: 0 },
+				{ kind: "ground", x: 0, z: 2400 },
+			]),
+		).toBe(RADAR_RANGE);
 		// Raiders and missiles never force the wide range.
-		expect(radarRange(100, 100, [{ kind: "required", x: 600, z: 100 }, { kind: "optional", x: 3000, z: 0 }, { kind: "missile", x: -2500, z: 0 }])).toBe(RADAR_NEAR_RANGE);
+		expect(
+			radarRange(100, 100, [
+				{ kind: "required", x: 600, z: 100 },
+				{ kind: "optional", x: 3000, z: 0 },
+				{ kind: "missile", x: -2500, z: 0 },
+			]),
+		).toBe(RADAR_NEAR_RANGE);
 	});
 	it("gives every contact kind a glyph and draws missiles on top", () => {
-		const kinds: RadarContactKind[] = ["friendly", "required", "optional", "ground", "groundOptional", "objective", "protected", "missile"];
+		const kinds: RadarContactKind[] = [
+			"friendly",
+			"required",
+			"optional",
+			"ground",
+			"groundOptional",
+			"objective",
+			"protected",
+			"missile",
+		];
 		for (const kind of kinds) {
 			expect(RADAR_GLYPHS[kind].size() > 0).toBe(true);
 			expect(RADAR_LAYER[kind]).toBeLessThanOrEqual(RADAR_LAYER.missile);

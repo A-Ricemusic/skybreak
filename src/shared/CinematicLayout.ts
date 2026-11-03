@@ -96,15 +96,31 @@ export function getCinematicLayout(width: number, height: number, large = false)
 	const skipWidth = tiny ? 72 : 88;
 	const controlGap = tiny ? 0 : 4;
 	return {
-		tiny, phone, portrait, controlSize, pillHeight: tiny ? 28 : 30, margin,
+		tiny,
+		phone,
+		portrait,
+		controlSize,
+		pillHeight: tiny ? 28 : 30,
+		margin,
 		chipTextSize: tiny ? 11 : desktop ? 14 : 12,
-		bodySize, lineHeight, padTop, textGap, progressGap, progressHeight, padBottom,
+		bodySize,
+		lineHeight,
+		padTop,
+		textGap,
+		progressGap,
+		progressHeight,
+		padBottom,
 		featherHeight: tiny ? 12 : desktop ? 56 : 28,
 		textWidth: math.min(width - margin * 2, desktop ? 760 : 600),
-		maxLines, maxTextHeight, maxBandHeight,
+		maxLines,
+		maxTextHeight,
+		maxBandHeight,
 		sceneHeight: height - maxBandHeight,
-		skipWidth, controlGap, controlsWidth: skipWidth + controlSize * 2 + controlGap * 2,
-		showHint: desktop, hintWidth: 124,
+		skipWidth,
+		controlGap,
+		controlsWidth: skipWidth + controlSize * 2 + controlGap * 2,
+		showHint: desktop,
+		hintWidth: 124,
 	};
 }
 
@@ -116,23 +132,50 @@ function cinematicTextSlot(layout: CinematicLayout, textHeight: number): number 
 /** Caption panel height for a measured line (or the chapter's tallest line). */
 export function cinematicBandHeight(layout: CinematicLayout, textHeight: number): number {
 	const l = layout;
-	return l.padTop + l.controlSize + l.textGap + cinematicTextSlot(l, textHeight) + l.progressGap + l.progressHeight + l.padBottom;
+	return (
+		l.padTop +
+		l.controlSize +
+		l.textGap +
+		cinematicTextSlot(l, textHeight) +
+		l.progressGap +
+		l.progressHeight +
+		l.padBottom
+	);
 }
 
 /** Every on-screen rectangle for a chapter whose tallest line measures `textHeight`. */
-export function getCinematicFrame(layout: CinematicLayout, width: number, height: number, textHeight: number): CinematicFrame {
+export function getCinematicFrame(
+	layout: CinematicLayout,
+	width: number,
+	height: number,
+	textHeight: number,
+): CinematicFrame {
 	const l = layout;
 	const bandHeight = cinematicBandHeight(l, textHeight);
 	const band = { x: 0, y: height - bandHeight, width, height: bandHeight };
 	const backdropTop = math.max(0, band.y - l.featherHeight);
-	const left = math.floor((width - l.textWidth) / 2), right = left + l.textWidth;
+	const left = math.floor((width - l.textWidth) / 2),
+		right = left + l.textWidth;
 	const rowY = band.y + l.padTop;
 	const skipButton = { x: right - l.skipWidth, y: rowY, width: l.skipWidth, height: l.controlSize };
-	const pauseButton = { x: skipButton.x - l.controlGap - l.controlSize, y: rowY, width: l.controlSize, height: l.controlSize };
-	const settingsButton = { x: pauseButton.x - l.controlGap - l.controlSize, y: rowY, width: l.controlSize, height: l.controlSize };
-	const hint = l.showHint ? { x: settingsButton.x - 8 - l.hintWidth, y: rowY, width: l.hintWidth, height: l.controlSize } : undefined;
+	const pauseButton = {
+		x: skipButton.x - l.controlGap - l.controlSize,
+		y: rowY,
+		width: l.controlSize,
+		height: l.controlSize,
+	};
+	const settingsButton = {
+		x: pauseButton.x - l.controlGap - l.controlSize,
+		y: rowY,
+		width: l.controlSize,
+		height: l.controlSize,
+	};
+	const hint = l.showHint
+		? { x: settingsButton.x - 8 - l.hintWidth, y: rowY, width: l.hintWidth, height: l.controlSize }
+		: undefined;
 	const speaker = { x: left, y: rowY, width: (hint ?? settingsButton).x - 8 - left, height: l.controlSize };
-	const textY = rowY + l.controlSize + l.textGap, slot = cinematicTextSlot(l, textHeight);
+	const textY = rowY + l.controlSize + l.textGap,
+		slot = cinematicTextSlot(l, textHeight);
 	const text = { x: left, y: textY, width: l.textWidth, height: slot };
 	const progress = { x: left, y: textY + slot + l.progressGap, width: l.textWidth, height: l.progressHeight };
 	// The popover opens upward from the controls; a short scene lane lays its two toggles side by side.
@@ -140,14 +183,34 @@ export function getCinematicFrame(layout: CinematicLayout, width: number, height
 	const horizontalSettings = band.y - SETTINGS_GAP - columnHeight < 0;
 	const panelWidth = horizontalSettings ? math.min(l.textWidth, 2 * 140 + 12) : l.tiny ? 200 : 228;
 	const panelHeight = horizontalSettings ? l.controlSize + 8 : columnHeight;
-	const settingsPanel = { x: math.max(left, right - panelWidth), y: band.y - SETTINGS_GAP - panelHeight, width: panelWidth, height: panelHeight };
-	const chipWidth = l.tiny ? 96 : 120, chipHeight = l.tiny ? 26 : 32;
-	const pausedChip = { x: math.floor((width - chipWidth) / 2), y: math.floor((band.y - chipHeight) / 2), width: chipWidth, height: chipHeight };
+	const settingsPanel = {
+		x: math.max(left, right - panelWidth),
+		y: band.y - SETTINGS_GAP - panelHeight,
+		width: panelWidth,
+		height: panelHeight,
+	};
+	const chipWidth = l.tiny ? 96 : 120,
+		chipHeight = l.tiny ? 26 : 32;
+	const pausedChip = {
+		x: math.floor((width - chipWidth) / 2),
+		y: math.floor((band.y - chipHeight) / 2),
+		width: chipWidth,
+		height: chipHeight,
+	};
 	return {
-		band, backdrop: { x: 0, y: backdropTop, width, height: height - backdropTop },
+		band,
+		backdrop: { x: 0, y: backdropTop, width, height: height - backdropTop },
 		scene: { x: 0, y: 0, width, height: band.y },
-		speaker, hint, settingsButton, pauseButton, skipButton, text, progress,
-		settingsPanel, horizontalSettings, pausedChip,
+		speaker,
+		hint,
+		settingsButton,
+		pauseButton,
+		skipButton,
+		text,
+		progress,
+		settingsPanel,
+		horizontalSettings,
+		pausedChip,
 	};
 }
 
@@ -169,5 +232,10 @@ export function rectsOverlap(a: Rect, b: Rect): boolean {
 }
 
 export function rectInside(inner: Rect, outer: Rect): boolean {
-	return inner.x >= outer.x && inner.y >= outer.y && inner.x + inner.width <= outer.x + outer.width && inner.y + inner.height <= outer.y + outer.height;
+	return (
+		inner.x >= outer.x &&
+		inner.y >= outer.y &&
+		inner.x + inner.width <= outer.x + outer.width &&
+		inner.y + inner.height <= outer.y + outer.height
+	);
 }

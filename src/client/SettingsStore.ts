@@ -1,6 +1,13 @@
 import { useEffect, useState } from "@rbxts/react";
 import { Players } from "@rbxts/services";
-import { defaultSettings, PlayerSettings, readSettings, SETTING_ATTRIBUTES, SETTING_ORDER, SettingKey } from "../shared/PlayerSettings";
+import {
+	defaultSettings,
+	PlayerSettings,
+	readSettings,
+	SETTING_ATTRIBUTES,
+	SETTING_ORDER,
+	SettingKey,
+} from "../shared/PlayerSettings";
 import { MotionPreference } from "./MotionPreference";
 
 // Client-only settings store. Values live as attributes on PlayerGui: they
@@ -42,7 +49,9 @@ function watch(): void {
 	// Writes from anywhere (this sheet, Studio QA, another script) flow back to every reader.
 	for (const key of SETTING_ORDER) gui.GetAttributeChangedSignal(SETTING_ATTRIBUTES[key]).Connect(refresh);
 	// First run in a session: publish the defaults so audio and QA can read every value.
-	for (const key of SETTING_ORDER) if (gui.GetAttribute(SETTING_ATTRIBUTES[key]) === undefined) gui.SetAttribute(SETTING_ATTRIBUTES[key], current[key]);
+	for (const key of SETTING_ORDER)
+		if (gui.GetAttribute(SETTING_ATTRIBUTES[key]) === undefined)
+			gui.SetAttribute(SETTING_ATTRIBUTES[key], current[key]);
 	refresh();
 }
 

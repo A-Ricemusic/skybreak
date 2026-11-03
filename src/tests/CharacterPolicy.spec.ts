@@ -14,12 +14,24 @@ class FakeSignal<T extends unknown[]> {
 	Connect(handler: (...args: T) => void): RBXScriptConnection {
 		const id = ++this.serial;
 		this.handlers.set(id, handler);
-		const connection = { Connected: true, Disconnect: () => { connection.Connected = false; this.handlers.delete(id); } };
+		const connection = {
+			Connected: true,
+			Disconnect: () => {
+				connection.Connected = false;
+				this.handlers.delete(id);
+			},
+		};
 		return connection as unknown as RBXScriptConnection;
 	}
-	Fire(...args: T): void { for (const [, handler] of this.handlers) handler(...args); }
-	Count(): number { return this.handlers.size(); }
-	AsSignal(): RBXScriptSignal<(...args: T) => void> { return this as unknown as RBXScriptSignal<(...args: T) => void>; }
+	Fire(...args: T): void {
+		for (const [, handler] of this.handlers) handler(...args);
+	}
+	Count(): number {
+		return this.handlers.size();
+	}
+	AsSignal(): RBXScriptSignal<(...args: T) => void> {
+		return this as unknown as RBXScriptSignal<(...args: T) => void>;
+	}
 }
 
 function makeCharacter(): Model {
@@ -34,11 +46,26 @@ function makeCharacter(): Model {
 	character.Parent = game.GetService("ServerStorage");
 	return character;
 }
-interface Fakes { players: CharacterPolicyPlayers; added: FakeSignal<[CharacterPolicyPlayer]>; removing: FakeSignal<[CharacterPolicyPlayer]> }
+interface Fakes {
+	players: CharacterPolicyPlayers;
+	added: FakeSignal<[CharacterPolicyPlayer]>;
+	removing: FakeSignal<[CharacterPolicyPlayer]>;
+}
 function makePlayers(list: CharacterPolicyPlayer[]): Fakes {
 	const added = new FakeSignal<[CharacterPolicyPlayer]>();
 	const removing = new FakeSignal<[CharacterPolicyPlayer]>();
-	return { added, removing, players: { CharacterAutoLoads: true, GetPlayers() { return list; }, PlayerAdded: added.AsSignal(), PlayerRemoving: removing.AsSignal() } };
+	return {
+		added,
+		removing,
+		players: {
+			CharacterAutoLoads: true,
+			GetPlayers() {
+				return list;
+			},
+			PlayerAdded: added.AsSignal(),
+			PlayerRemoving: removing.AsSignal(),
+		},
+	};
 }
 function makePlayer(character?: Model): { player: CharacterPolicyPlayer; characterAdded: FakeSignal<[Model]> } {
 	const characterAdded = new FakeSignal<[Model]>();

@@ -58,7 +58,8 @@ export const WavePlan = {
 	/** Whether group `next` should spawn now. */
 	Due(input: WaveDue): boolean {
 		if (input.next <= 0 || input.next >= input.plan.size()) return false;
-		let spawned = 0, total = 0;
+		let spawned = 0,
+			total = 0;
 		for (let index = 0; index < input.plan.size(); index++) {
 			if (index < input.next) spawned += input.plan[index];
 			total += input.plan[index];
@@ -87,12 +88,15 @@ export const WavePlan = {
 			for (const request of queue) {
 				if (free <= 0) break;
 				if (request.role !== role || request.count <= 0) continue;
-				const routed = request.arrival !== undefined && "route" in request.arrival && request.arrival.route !== undefined;
+				const routed =
+					request.arrival !== undefined && "route" in request.arrival && request.arrival.route !== undefined;
 				const count = math.min(free, request.count, routed ? routes : free);
 				if (count <= 0) continue; // Skip a blocked patrol so pursuing fighters can still launch.
 				if (routed) routes -= count;
 				batches.push({ arrival: request.arrival, role, count, behind: request.behind, call: request.call });
-				request.count -= count; request.call = undefined; free -= count;
+				request.count -= count;
+				request.call = undefined;
+				free -= count;
 			}
 		}
 		for (let index = queue.size() - 1; index >= 0; index--) if (queue[index].count <= 0) queue.remove(index);

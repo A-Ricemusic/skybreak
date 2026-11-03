@@ -11,10 +11,12 @@ describe("Environment presets", () => {
 	});
 	it("keeps every pair of presets visibly distinct", () => {
 		const failures: string[] = [];
-		for (let i = 0; i < ENVIRONMENT_NAMES.size(); i++) for (let j = i + 1; j < ENVIRONMENT_NAMES.size(); j++) {
-			const a = ENVIRONMENT_NAMES[i], b = ENVIRONMENT_NAMES[j];
-			if (distinctChannels(Env[a], Env[b]) < 2) failures.push(`${a} ~ ${b}`);
-		}
+		for (let i = 0; i < ENVIRONMENT_NAMES.size(); i++)
+			for (let j = i + 1; j < ENVIRONMENT_NAMES.size(); j++) {
+				const a = ENVIRONMENT_NAMES[i],
+					b = ENVIRONMENT_NAMES[j];
+				if (distinctChannels(Env[a], Env[b]) < 2) failures.push(`${a} ~ ${b}`);
+			}
 		expect(failures.join(", ")).toBe("");
 	});
 	it("gives each weather preset its treatment", () => {

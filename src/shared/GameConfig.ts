@@ -15,7 +15,6 @@ export const GameConfig = {
 		// Sortie deadline in seconds, read by the mission runner, the save layer and the HUD.
 		// Sorties are authored for 3-7 minutes (the finale ~8); 15 minutes leaves a slow pilot room.
 		MissionTimeLimit: 900,
-
 	},
 
 	World: {

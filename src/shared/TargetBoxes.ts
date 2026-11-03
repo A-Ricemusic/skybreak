@@ -80,9 +80,20 @@ export type TargetTagSide = "right" | "left";
 // One scratch rectangle for the per-frame checks (no allocation per candidate).
 const scratch: Rectangle = { x: 0, y: 0, width: 0, height: 0 };
 /** Inside `bounds` and clear of every keep-out. */
-function clear(x: number, y: number, width: number, height: number, bounds: Rectangle, keepouts: readonly Rectangle[]): boolean {
-	if (x < bounds.x || y < bounds.y || x + width > bounds.x + bounds.width || y + height > bounds.y + bounds.height) return false;
-	scratch.x = x; scratch.y = y; scratch.width = width; scratch.height = height;
+function clear(
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	bounds: Rectangle,
+	keepouts: readonly Rectangle[],
+): boolean {
+	if (x < bounds.x || y < bounds.y || x + width > bounds.x + bounds.width || y + height > bounds.y + bounds.height)
+		return false;
+	scratch.x = x;
+	scratch.y = y;
+	scratch.width = width;
+	scratch.height = height;
 	for (const keepout of keepouts) if (rectanglesOverlap(scratch, keepout)) return false;
 	return true;
 }
@@ -98,7 +109,13 @@ function compareDistance(a: RankedContact, b: RankedContact): boolean {
 }
 
 /** A rendered box in viewport pixels; friendly labels are never tappable. */
-export interface TapContact { x: number; y: number; size: number; boxed: boolean; friendly: boolean }
+export interface TapContact {
+	x: number;
+	y: number;
+	size: number;
+	boxed: boolean;
+	friendly: boolean;
+}
 
 export const TargetBoxes = {
 	TapHit<T extends TapContact>(contacts: readonly T[], x: number, y: number, minTouch = 44): T | undefined {
@@ -107,10 +124,14 @@ export const TargetBoxes = {
 		for (const contact of contacts) {
 			if (!contact.boxed || contact.friendly) continue;
 			const half = math.max(contact.size, minTouch) / 2;
-			const dx = x - contact.x, dy = y - contact.y;
+			const dx = x - contact.x,
+				dy = y - contact.y;
 			if (math.abs(dx) > half || math.abs(dy) > half) continue;
 			const distance = dx * dx + dy * dy;
-			if (distance < nearest) { best = contact; nearest = distance; }
+			if (distance < nearest) {
+				best = contact;
+				nearest = distance;
+			}
 		}
 		return best;
 	},
@@ -123,7 +144,8 @@ export const TargetBoxes = {
 	 * accepts: an enabled enemy of this player's sortie that its phase lets missiles damage.
 	 */
 	Tone(flags: TargetBoxFlags, userId: number): TargetBoxTone | undefined {
-		if (flags.friendly === true || flags.enemy !== true || flags.owner !== userId || flags.damageable !== true) return undefined;
+		if (flags.friendly === true || flags.enemy !== true || flags.owner !== userId || flags.damageable !== true)
+			return undefined;
 		return flags.required === true ? "required" : "optional";
 	},
 	/**
@@ -135,19 +157,38 @@ export const TargetBoxes = {
 		const full = lockProgress >= TARGET_LOCKED_AT;
 		if (damageable === false) return { tone: "protected", locked: false, caption: full ? "track" : "hold" };
 		if (full) return { tone: "locked", locked: true, caption: "locked" };
-		return { tone: required ? "required" : "optional", locked: false, caption: lockProgress > 0.01 ? "locking" : "range" };
+		return {
+			tone: required ? "required" : "optional",
+			locked: false,
+			caption: lockProgress > 0.01 ? "locking" : "range",
+		};
 	},
 	/** The selected caption's text: lock state or hold reason, range, then remaining health when damaged. */
-	CaptionText(style: SelectedStyle, lockProgress: number, distance: number, required: boolean, healthPercent: number): string {
+	CaptionText(
+		style: SelectedStyle,
+		lockProgress: number,
+		distance: number,
+		required: boolean,
+		healthPercent: number,
+	): string {
 		const range = `${math.floor(distance)}m`;
 		const kind = style.caption;
-		const head = kind === "locked" ? `LOCKED · ${range}` : kind === "locking" ? `LOCK ${math.floor(lockProgress * 100)}%`
-			: kind === "track" ? `TRACK · ${range}` : kind === "hold" ? `HOLD · ${range}` : `${required ? "TGT · " : ""}${range}`;
+		const head =
+			kind === "locked"
+				? `LOCKED · ${range}`
+				: kind === "locking"
+					? `LOCK ${math.floor(lockProgress * 100)}%`
+					: kind === "track"
+						? `TRACK · ${range}`
+						: kind === "hold"
+							? `HOLD · ${range}`
+							: `${required ? "TGT · " : ""}${range}`;
 		return healthPercent >= 0 ? `${head} · ${healthPercent}%` : head;
 	},
 	/** Box edge in px: about the jet's apparent size, clamped so far contacts stay visible and near ones never fill the view. */
 	Size(distance: number, viewportHeight: number, selected = false): number {
-		const raw = (viewportHeight * TARGET_BOX_REFERENCE_SHARE * TARGET_BOX_REFERENCE_DISTANCE) / math.max(1, distance);
+		const raw =
+			(viewportHeight * TARGET_BOX_REFERENCE_SHARE * TARGET_BOX_REFERENCE_DISTANCE) / math.max(1, distance);
 		const size = math.floor(math.clamp(raw, TARGET_BOX_MIN, TARGET_BOX_MAX) + 0.5);
 		return selected ? math.max(size, TARGET_BOX_SELECTED_MIN) : size;
 	},
@@ -168,12 +209,22 @@ export const TargetBoxes = {
 	 * one (notch, Roblox top bar), less TARGET_BOX_EDGE all round.
 	 */
 	Bounds(viewportWidth: number, viewportHeight: number, safe?: Rectangle, edge = TARGET_BOX_EDGE): Rectangle {
-		let left = 0, top = 0, right = viewportWidth, bottom = viewportHeight;
+		let left = 0,
+			top = 0,
+			right = viewportWidth,
+			bottom = viewportHeight;
 		if (safe) {
-			left = math.max(left, safe.x); top = math.max(top, safe.y);
-			right = math.min(right, safe.x + safe.width); bottom = math.min(bottom, safe.y + safe.height);
+			left = math.max(left, safe.x);
+			top = math.max(top, safe.y);
+			right = math.min(right, safe.x + safe.width);
+			bottom = math.min(bottom, safe.y + safe.height);
 		}
-		return { x: left + edge, y: top + edge, width: math.max(0, right - left - edge * 2), height: math.max(0, bottom - top - edge * 2) };
+		return {
+			x: left + edge,
+			y: top + edge,
+			width: math.max(0, right - left - edge * 2),
+			height: math.max(0, bottom - top - edge * 2),
+		};
 	},
 	/** What a `size` box centred on (x, y) covers on screen, its stroke included. */
 	BoxRect(x: number, y: number, size: number): Rectangle {
@@ -190,17 +241,31 @@ export const TargetBoxes = {
 	},
 	/** The selected caption's label on screen for a box at (x, y) and a spot from PlaceCaption. */
 	CaptionRect(x: number, y: number, size: number, spot: CaptionSpot): Rectangle {
-		return { x: x + spot.dx - TARGET_CAPTION_WIDTH / 2, y: captionTop(y, size, spot.above), width: TARGET_CAPTION_WIDTH, height: TARGET_CAPTION_HEIGHT };
+		return {
+			x: x + spot.dx - TARGET_CAPTION_WIDTH / 2,
+			y: captionTop(y, size, spot.above),
+			width: TARGET_CAPTION_WIDTH,
+			height: TARGET_CAPTION_HEIGHT,
+		};
 	},
 	/**
 	 * Finds a spot for the selected caption that stays inside `bounds` and off every keep-out: under the box,
 	 * then over it, each centred (slid in from a screen edge), then aligned to the box's left or right side.
 	 * Writes it into `out` and returns true, or returns false when no spot fits (the box draws without it).
 	 */
-	PlaceCaption(x: number, y: number, size: number, bounds: Rectangle, keepouts: readonly Rectangle[], out: CaptionSpot): boolean {
-		const width = TARGET_CAPTION_WIDTH, half = width / 2;
+	PlaceCaption(
+		x: number,
+		y: number,
+		size: number,
+		bounds: Rectangle,
+		keepouts: readonly Rectangle[],
+		out: CaptionSpot,
+	): boolean {
+		const width = TARGET_CAPTION_WIDTH,
+			half = width / 2;
 		if (bounds.width < width) return false;
-		const minLeft = bounds.x, maxLeft = bounds.x + bounds.width - width;
+		const minLeft = bounds.x,
+			maxLeft = bounds.x + bounds.width - width;
 		for (let pass = 0; pass < 2; pass++) {
 			const above = pass === 1;
 			const top = captionTop(y, size, above);
@@ -208,7 +273,8 @@ export const TargetBoxes = {
 				const wanted = attempt === 0 ? x - half : attempt === 1 ? x - size / 2 : x + size / 2 - width;
 				const left = math.clamp(wanted, minLeft, maxLeft);
 				if (!clear(left, top, width, TARGET_CAPTION_HEIGHT, bounds, keepouts)) continue;
-				out.above = above; out.dx = left - (x - half);
+				out.above = above;
+				out.dx = left - (x - half);
 				return true;
 			}
 		}
@@ -216,12 +282,24 @@ export const TargetBoxes = {
 	},
 	/** The TGT tag's label on screen for a box at (x, y) with the tag on `side`. */
 	TagRect(x: number, y: number, size: number, side: TargetTagSide): Rectangle {
-		return { x: tagLeft(x, size, side), y: y - size / 2 - TARGET_TAG_RISE, width: TARGET_TAG_WIDTH, height: TARGET_TAG_HEIGHT };
+		return {
+			x: tagLeft(x, size, side),
+			y: y - size / 2 - TARGET_TAG_RISE,
+			width: TARGET_TAG_WIDTH,
+			height: TARGET_TAG_HEIGHT,
+		};
 	},
 	/** The side whose TGT tag stays inside `bounds` and off every keep-out (right first), or undefined to drop the tag. */
-	PlaceTag(x: number, y: number, size: number, bounds: Rectangle, keepouts: readonly Rectangle[]): TargetTagSide | undefined {
+	PlaceTag(
+		x: number,
+		y: number,
+		size: number,
+		bounds: Rectangle,
+		keepouts: readonly Rectangle[],
+	): TargetTagSide | undefined {
 		const top = y - size / 2 - TARGET_TAG_RISE;
-		if (clear(tagLeft(x, size, "right"), top, TARGET_TAG_WIDTH, TARGET_TAG_HEIGHT, bounds, keepouts)) return "right";
+		if (clear(tagLeft(x, size, "right"), top, TARGET_TAG_WIDTH, TARGET_TAG_HEIGHT, bounds, keepouts))
+			return "right";
 		if (clear(tagLeft(x, size, "left"), top, TARGET_TAG_WIDTH, TARGET_TAG_HEIGHT, bounds, keepouts)) return "left";
 		return undefined;
 	},
@@ -229,7 +307,13 @@ export const TargetBoxes = {
 	 * Touch controls (sticks, action buttons, PAUSE) in viewport pixels: the HUD lays them out
 	 * in virtual px, draws them through `scale` and places its root at (originX, originY).
 	 */
-	Keepouts(hud: HudLayout, scale: number, originX: number, originY: number, pad = TARGET_BOX_KEEPOUT_PAD): Rectangle[] {
+	Keepouts(
+		hud: HudLayout,
+		scale: number,
+		originX: number,
+		originY: number,
+		pad = TARGET_BOX_KEEPOUT_PAD,
+	): Rectangle[] {
 		const result: Rectangle[] = [];
 		const touch = hud.touch;
 		if (!touch) return result;
@@ -239,8 +323,10 @@ export const TargetBoxes = {
 		for (const rectangle of rectangles) {
 			if (rectangle.width <= 0 || rectangle.height <= 0) continue;
 			result.push({
-				x: originX + rectangle.x * scale - pad, y: originY + rectangle.y * scale - pad,
-				width: rectangle.width * scale + pad * 2, height: rectangle.height * scale + pad * 2,
+				x: originX + rectangle.x * scale - pad,
+				y: originY + rectangle.y * scale - pad,
+				width: rectangle.width * scale + pad * 2,
+				height: rectangle.height * scale + pad * 2,
 			});
 		}
 		return result;

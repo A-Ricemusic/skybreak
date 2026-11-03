@@ -35,7 +35,10 @@ export class RadioQueue {
 
 	/** Adds a line (with its voice length when it is voiced); it shows at once if the current one has had its minimum time. */
 	public Push(text: string, seconds: number | undefined, now: number, voice?: number, priority = false): void {
-		const hold = typeIs(seconds, "number") && seconds === seconds ? math.clamp(seconds, RADIO_MIN_SECONDS, 10) : RADIO_DEFAULT_SECONDS;
+		const hold =
+			typeIs(seconds, "number") && seconds === seconds
+				? math.clamp(seconds, RADIO_MIN_SECONDS, 10)
+				: RADIO_DEFAULT_SECONDS;
 		const voiced = typeIs(voice, "number") && voice > 0 && voice < 60 ? voice : undefined;
 		if (priority) {
 			this.Clear();

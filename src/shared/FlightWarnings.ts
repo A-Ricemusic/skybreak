@@ -64,7 +64,8 @@ export function flightAdvice(state: FlightWarningState): FlightAdvice {
 export function flightWarning(state: FlightWarningState, narrow = false, flightWarningsEnabled = true): string {
 	const flight = flightWarningsEnabled ? flightAdvice(state) : "";
 	const combat = state.incoming ? "MISSILE INBOUND" : state.lockWarning ? "MISSILE LOCK" : "";
-	if (combat !== "") return !narrow && flight !== "" ? `${combat} · ${flight === "PULL UP" ? "TERRAIN" : flight}` : combat;
+	if (combat !== "")
+		return !narrow && flight !== "" ? `${combat} · ${flight === "PULL UP" ? "TERRAIN" : flight}` : combat;
 	if (flight === "STALL") return narrow ? "STALL: POWER↑ NOSE↓" : "STALL · ACCELERATE + NOSE DOWN";
 	if (flight === "PULL UP") return narrow ? "TERRAIN · PULL UP" : "TERRAIN AHEAD · PULL UP";
 	return flight;

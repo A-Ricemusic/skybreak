@@ -32,7 +32,12 @@ describe("dormant mission 4–5 assets", () => {
 		expect(spec.rotors!.MainRotor.axis.Y).toBe(1);
 		expect(spec.rotors!.TailRotor.axis.X).toBe(1);
 		expect(spec.rotors!.TailRotor.hub.X < 0).toBe(true);
-		const parts = required.map((name) => ({ name, meshPart: true, appearance: true, maps: { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true } }));
+		const parts = required.map((name) => ({
+			name,
+			meshPart: true,
+			appearance: true,
+			maps: { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true },
+		}));
 		expect(AssetSelection.AppearanceProblem(parts, required)).toBeUndefined();
 	});
 	it("only selects elite paint by explicit opt in", () => {

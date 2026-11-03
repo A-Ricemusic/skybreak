@@ -55,7 +55,16 @@ export const SETTING_ATTRIBUTES: { [key in SettingKey]: string } = {
 	voice: "VoiceVolume",
 };
 
-export const SETTING_ORDER: SettingKey[] = ["invertY", "levelAssist", "shake", "hudScale", "stickScale", "music", "sfx", "voice"];
+export const SETTING_ORDER: SettingKey[] = [
+	"invertY",
+	"levelAssist",
+	"shake",
+	"hudScale",
+	"stickScale",
+	"music",
+	"sfx",
+	"voice",
+];
 
 export const SETTING_LABELS: { [key in SettingKey]: string } = {
 	invertY: "INVERT PITCH",
@@ -110,7 +119,12 @@ export function formatSetting(key: SettingKey, settings: PlayerSettings): string
 }
 
 /** Scale actually applied to the HUD: touch keeps every control at least its 44 px minimum. */
-export function effectiveHudScale(requested: number, touch: boolean, viewportWidth: number, viewportHeight: number): number {
+export function effectiveHudScale(
+	requested: number,
+	touch: boolean,
+	viewportWidth: number,
+	viewportHeight: number,
+): number {
 	let scale = clampSetting("hudScale", requested);
 	if (touch) scale = math.max(1, scale);
 	// Larger scales never shrink the virtual root below the smallest supported layout (320x160).

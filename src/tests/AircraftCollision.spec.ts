@@ -6,44 +6,97 @@ import { JetFactory } from "../shared/JetFactory";
 
 describe("authoritative aircraft surface sweeps", () => {
 	let fixture: Folder;
-	afterEach(() => { fixture?.Destroy(); Workspace.Terrain.Clear(); });
+	afterEach(() => {
+		fixture?.Destroy();
+		Workspace.Terrain.Clear();
+	});
 	function setup(): Folder {
-		fixture = new Instance("Folder"); fixture.Parent = Workspace; return fixture;
+		fixture = new Instance("Folder");
+		fixture.Parent = Workspace;
+		return fixture;
 	}
 	it("includes newly spawned welded protected surfaces when the phase filter refreshes", () => {
 		const root = setup();
 		const before = AircraftCollision.Parameters(root);
-		const actor = new Instance("Model"); actor.Parent = root;
-		const aim = new Instance("Part"); aim.Anchored = true; aim.Transparency = 1; aim.CanQuery = false; aim.Parent = actor; actor.PrimaryPart = aim;
-		const body = Scenery.Part(actor, "Protected vehicle", new Vector3(20, 20, 2), new Vector3(0, 600, 0), new Color3(1, 1, 1));
+		const actor = new Instance("Model");
+		actor.Parent = root;
+		const aim = new Instance("Part");
+		aim.Anchored = true;
+		aim.Transparency = 1;
+		aim.CanQuery = false;
+		aim.Parent = actor;
+		actor.PrimaryPart = aim;
+		const body = Scenery.Part(
+			actor,
+			"Protected vehicle",
+			new Vector3(20, 20, 2),
+			new Vector3(0, 600, 0),
+			new Color3(1, 1, 1),
+		);
 		JetFactory.WeldAssembly(actor);
 		expect(body.CanQuery).toBe(true);
-		const from = new Vector3(0, 600, 30), to = new Vector3(0, 600, -30);
+		const from = new Vector3(0, 600, 30),
+			to = new Vector3(0, 600, -30);
 		expect(AircraftCollision.Sweep(from, to, before)).toBeUndefined();
 		expect(AircraftCollision.Sweep(from, to, AircraftCollision.Parameters(root))?.Instance).toBe(body);
 	});
 	it("sweeps through thin solid scenery without endpoint tunnelling", () => {
 		const root = setup();
 		const wall = Scenery.Part(root, "Wall", new Vector3(30, 30, 0.2), new Vector3(0, 600, 0), new Color3(1, 1, 1));
-		expect(wall.CanCollide).toBe(false); expect(wall.CanQuery).toBe(true);
-		const hit = AircraftCollision.Sweep(new Vector3(0, 600, 20), new Vector3(0, 600, -20), AircraftCollision.Parameters(root));
+		expect(wall.CanCollide).toBe(false);
+		expect(wall.CanQuery).toBe(true);
+		const hit = AircraftCollision.Sweep(
+			new Vector3(0, 600, 20),
+			new Vector3(0, 600, -20),
+			AircraftCollision.Parameters(root),
+		);
 		expect(hit?.Instance).toBe(wall);
 	});
 	it("excludes overlays, invisible markers and untagged aircraft or projectiles", () => {
 		const root = setup();
-		Scenery.Part(root, "Shallows", new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1), Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45 });
+		Scenery.Part(
+			root,
+			"Shallows",
+			new Vector3(40, 1, 40),
+			new Vector3(0, 600, 0),
+			new Color3(1, 1, 1),
+			Enum.Material.SmoothPlastic,
+			{ flightSolid: false, transparency: 0.45 },
+		);
 		for (const name of ["Marker light", "Safety line", "Centreline", "Center stripe"]) {
-			const paint = Scenery.Part(root, name, new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1), Enum.Material.Concrete, { flightSolid: false });
+			const paint = Scenery.Part(
+				root,
+				name,
+				new Vector3(40, 1, 40),
+				new Vector3(0, 600, 0),
+				new Color3(1, 1, 1),
+				Enum.Material.Concrete,
+				{ flightSolid: false },
+			);
 			expect(paint.CanQuery).toBe(false);
 		}
-		const marker = new Instance("Part"); marker.Anchored = true; marker.Size = new Vector3(40, 1, 40); marker.Position = new Vector3(0, 600, 0); marker.Parent = root;
-		expect(AircraftCollision.Sweep(new Vector3(0, 620, 0), new Vector3(0, 580, 0), AircraftCollision.Parameters(root))).toBeUndefined();
+		const marker = new Instance("Part");
+		marker.Anchored = true;
+		marker.Size = new Vector3(40, 1, 40);
+		marker.Position = new Vector3(0, 600, 0);
+		marker.Parent = root;
+		expect(
+			AircraftCollision.Sweep(new Vector3(0, 620, 0), new Vector3(0, 580, 0), AircraftCollision.Parameters(root)),
+		).toBeUndefined();
 	});
 	it("uses explicit eligibility across primitive helpers regardless of display name", () => {
-		const root = setup(), color = new Color3(1, 1, 1), at = new Vector3(0, 600, 0);
+		const root = setup(),
+			color = new Color3(1, 1, 1),
+			at = new Vector3(0, 600, 0);
 		const solid = Scenery.Part(root, "Marker light", new Vector3(30, 30, 1), at, color);
 		expect(solid.GetAttribute("FlightSolid")).toBe(true);
-		expect(AircraftCollision.Sweep(at.add(new Vector3(0, 0, 20)), at.sub(new Vector3(0, 0, 20)), AircraftCollision.Parameters(root))?.Instance).toBe(solid);
+		expect(
+			AircraftCollision.Sweep(
+				at.add(new Vector3(0, 0, 20)),
+				at.sub(new Vector3(0, 0, 20)),
+				AircraftCollision.Parameters(root),
+			)?.Instance,
+		).toBe(solid);
 		solid.Name = "Renamed wall";
 		expect(solid.CanQuery).toBe(true);
 		solid.Destroy();
@@ -51,14 +104,23 @@ describe("authoritative aircraft surface sweeps", () => {
 			Scenery.Cylinder(root, "Custom decoration", 30, 1, at, color, Enum.Material.Neon, { flightSolid: false }),
 			Scenery.Disc(root, "Custom overlay", 30, 1, at, color, Enum.Material.Neon, { flightSolid: false }),
 			Scenery.Light(root, at, color),
-			Scenery.Part(root, "Invisible solid", new Vector3(30, 1, 30), at, color, Enum.Material.Concrete, { flightSolid: true, transparency: 1 }),
+			Scenery.Part(root, "Invisible solid", new Vector3(30, 1, 30), at, color, Enum.Material.Concrete, {
+				flightSolid: true,
+				transparency: 1,
+			}),
 		];
 		for (const part of decorations) {
 			part.Name = "Renamed decoration";
 			expect(part.CanQuery).toBe(false);
 			expect(part.GetAttribute("FlightSolid")).toBe(false);
 		}
-		expect(AircraftCollision.Sweep(at.add(new Vector3(0, 20, 0)), at.sub(new Vector3(0, 20, 0)), AircraftCollision.Parameters(root))).toBeUndefined();
+		expect(
+			AircraftCollision.Sweep(
+				at.add(new Vector3(0, 20, 0)),
+				at.sub(new Vector3(0, 20, 0)),
+				AircraftCollision.Parameters(root),
+			),
+		).toBeUndefined();
 		const light = Scenery.Light(root, at, color, 3, { flightSolid: true });
 		expect(light.CanQuery).toBe(true);
 	});
@@ -73,9 +135,17 @@ describe("authoritative aircraft surface sweeps", () => {
 			task.wait(0.05);
 			hit = AircraftCollision.Sweep(new Vector3(0, 630, 0), new Vector3(0, 570, 0), params);
 		} while (!hit && os.clock() < deadline);
-		assert(hit); expect(hit.Instance).toBe(Workspace.Terrain); expect(AircraftCollision.Reason(hit)).toBe("crash_terrain");
+		assert(hit);
+		expect(hit.Instance).toBe(Workspace.Terrain);
+		expect(AircraftCollision.Reason(hit)).toBe("crash_terrain");
 		const sea = Scenery.Part(root, "Sea", new Vector3(40, 4, 40), new Vector3(200, 600, 0), new Color3(1, 1, 1));
-		const water = AircraftCollision.Sweep(new Vector3(200, 630, 0), new Vector3(200, 570, 0), AircraftCollision.Parameters(root));
-		assert(water); expect(water.Instance).toBe(sea); expect(AircraftCollision.Reason(water)).toBe("crash_water");
+		const water = AircraftCollision.Sweep(
+			new Vector3(200, 630, 0),
+			new Vector3(200, 570, 0),
+			AircraftCollision.Parameters(root),
+		);
+		assert(water);
+		expect(water.Instance).toBe(sea);
+		expect(AircraftCollision.Reason(water)).toBe("crash_water");
 	});
 });

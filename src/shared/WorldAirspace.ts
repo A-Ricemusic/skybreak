@@ -8,9 +8,15 @@ export function resolveAirspace(value?: MissionAirspacePolicy): MissionAirspaceP
 	if (value !== undefined && typeIs(value, "table")) {
 		const { softHalfWidth: soft, hardHalfWidth: hard, spawnLimit: spawn, radarRange: radar } = value;
 		const positive = (n: number) => typeIs(n, "number") && n > 0 && n < math.huge;
-		if (positive(soft) && positive(hard) && positive(spawn) && positive(radar) && hard >= soft && spawn <= hard) return value;
+		if (positive(soft) && positive(hard) && positive(spawn) && positive(radar) && hard >= soft && spawn <= hard)
+			return value;
 	}
-	return { softHalfWidth: WorldAirspace.soft, hardHalfWidth: WorldAirspace.hard, spawnLimit: WorldAirspace.spawnLimit, radarRange: WorldAirspace.radarRange };
+	return {
+		softHalfWidth: WorldAirspace.soft,
+		hardHalfWidth: WorldAirspace.hard,
+		spawnLimit: WorldAirspace.spawnLimit,
+		radarRange: WorldAirspace.radarRange,
+	};
 }
 
 export function airspaceWarning(x: number, z: number, limits: MissionAirspacePolicy, margin = 0): boolean {

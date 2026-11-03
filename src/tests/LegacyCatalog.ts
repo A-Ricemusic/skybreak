@@ -27,5 +27,62 @@ import { mission as m26 } from "./legacy/legacy26";
 import { mission as m27 } from "./legacy/legacy27";
 import { MissionCatalog as Current } from "../shared/MissionCatalog";
 export * from "../shared/MissionCatalog";
-export const MISSIONS = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m26, m27];
-export const MissionCatalog = { ...Current, Get(id: number) { return MISSIONS[id-1]; }, All() { return MISSIONS; }, ByAct(act: 1 | 2 | 3) { return MISSIONS.filter((bp)=>bp.act===act); }, Airspace(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.Airspace(typeIs(v,"number") ? MISSIONS[v-1] : v); }, Start(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.Start(typeIs(v,"number") ? MISSIONS[v-1] : v); }, Scoring(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.Scoring(typeIs(v,"number") ? MISSIONS[v-1] : v); }, WorldKey(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.WorldKey(typeIs(v,"number") ? MISSIONS[v-1] : v); }, Available(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.Available(typeIs(v,"number") ? MISSIONS[v-1] : v); }, CountdownSeconds(v: number | import("../shared/MissionCatalog").MissionBlueprint) { return Current.CountdownSeconds(typeIs(v,"number") ? MISSIONS[v-1] : v); } };
+export const MISSIONS = [
+	m1,
+	m2,
+	m3,
+	m4,
+	m5,
+	m6,
+	m7,
+	m8,
+	m9,
+	m10,
+	m11,
+	m12,
+	m13,
+	m14,
+	m15,
+	m16,
+	m17,
+	m18,
+	m19,
+	m20,
+	m21,
+	m22,
+	m23,
+	m24,
+	m25,
+	m26,
+	m27,
+];
+export const MissionCatalog = {
+	...Current,
+	Get(id: number) {
+		return MISSIONS[id - 1];
+	},
+	All() {
+		return MISSIONS;
+	},
+	ByAct(act: 1 | 2 | 3) {
+		return MISSIONS.filter((bp) => bp.act === act);
+	},
+	Airspace(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.Airspace(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+	Start(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.Start(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+	Scoring(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.Scoring(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+	WorldKey(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.WorldKey(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+	Available(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.Available(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+	CountdownSeconds(v: number | import("../shared/MissionCatalog").MissionBlueprint) {
+		return Current.CountdownSeconds(typeIs(v, "number") ? MISSIONS[v - 1] : v);
+	},
+};

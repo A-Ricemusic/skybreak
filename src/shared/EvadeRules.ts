@@ -20,7 +20,9 @@ const TAIL_SECONDS = 1.2;
 /** The press is honoured for this long so a phone's round trip does not eat the timing. */
 const WINDOW_SECONDS = 0.6;
 
-function finite(value: number): boolean { return value === value && math.abs(value) !== math.huge; }
+function finite(value: number): boolean {
+	return value === value && math.abs(value) !== math.huge;
+}
 
 export const EvadeRules = {
 	MaxCharges: MAX_CHARGES,
@@ -28,11 +30,16 @@ export const EvadeRules = {
 	DecoyRadius: DECOY_RADIUS,
 	TailSeconds: TAIL_SECONDS,
 	WindowSeconds: WINDOW_SECONDS,
-	New(): EvadeState { return { charges: MAX_CHARGES, recharge: 0, window: 0 }; },
+	New(): EvadeState {
+		return { charges: MAX_CHARGES, recharge: 0, window: 0 };
+	},
 	Tick(state: EvadeState, dt: number): void {
 		if (!finite(dt) || dt <= 0) return;
 		state.window = math.max(0, state.window - dt);
-		if (state.charges >= MAX_CHARGES) { state.recharge = 0; return; }
+		if (state.charges >= MAX_CHARGES) {
+			state.recharge = 0;
+			return;
+		}
 		state.recharge += dt;
 		while (state.recharge >= RECHARGE_SECONDS && state.charges < MAX_CHARGES) {
 			state.recharge -= RECHARGE_SECONDS;
@@ -48,10 +55,14 @@ export const EvadeRules = {
 		return true;
 	},
 	/** Whether the decoy window from the last press is still open. */
-	Open(state: EvadeState): boolean { return state.window > 0; },
+	Open(state: EvadeState): boolean {
+		return state.window > 0;
+	},
 	/** Does an open window decoy a hostile missile `distance` studs away with `remainingLife` seconds left? */
 	Decoys(distance: number, remainingLife: number): boolean {
-		return (finite(distance) && distance <= DECOY_RADIUS) || (finite(remainingLife) && remainingLife <= TAIL_SECONDS);
+		return (
+			(finite(distance) && distance <= DECOY_RADIUS) || (finite(remainingLife) && remainingLife <= TAIL_SECONDS)
+		);
 	},
 	/**
 	 * Seconds until EVADE can be pressed again, for the HUD and the client's roll prediction:

@@ -25,8 +25,19 @@ export interface SessionFixtureOptions {
  */
 export function sessionFixture(blueprint: MissionBlueprint, options: SessionFixtureOptions = {}): CombatSession {
 	const folder = options.folder ?? new Instance("Folder");
-	const aircraft = new Instance("Model"); aircraft.Name = "FixtureAircraft"; aircraft.Parent = folder;
+	const aircraft = new Instance("Model");
+	aircraft.Name = "FixtureAircraft";
+	aircraft.Parent = folder;
 	const player = { UserId: options.userId ?? 1 } as Player;
-	return createBlueprintSession(player, 1, folder, aircraft, options.state ?? FlightMath.NewState(), blueprint,
-		options.special ?? "salvo", options.difficulty ?? "normal", options.startedAt ?? 0);
+	return createBlueprintSession(
+		player,
+		1,
+		folder,
+		aircraft,
+		options.state ?? FlightMath.NewState(),
+		blueprint,
+		options.special ?? "salvo",
+		options.difficulty ?? "normal",
+		options.startedAt ?? 0,
+	);
 }

@@ -133,27 +133,42 @@ function glyphs(text: string): number {
 function ammoLines(separator: string): string[] {
 	const lines: string[] = [];
 	for (const special of SpecialWeapons.All()) {
-		for (let missiles = 0; missiles <= WeaponRules.MaxMissiles; missiles++) for (let charges = 0; charges <= special.charges; charges++) {
-			for (const active of [0, 7.2]) for (let evades = 0; evades <= EvadeRules.MaxCharges; evades++) {
-				const cells = statusLine({ missiles, missileCooldown: 0, special: special.short, specialCharges: charges, specialCooldown: 0, specialActive: active, evadeCharges: evades });
-				lines.push(cells.map((cell) => cell.text).join(separator));
+		for (let missiles = 0; missiles <= WeaponRules.MaxMissiles; missiles++)
+			for (let charges = 0; charges <= special.charges; charges++) {
+				for (const active of [0, 7.2])
+					for (let evades = 0; evades <= EvadeRules.MaxCharges; evades++) {
+						const cells = statusLine({
+							missiles,
+							missileCooldown: 0,
+							special: special.short,
+							specialCharges: charges,
+							specialCooldown: 0,
+							specialActive: active,
+							evadeCharges: evades,
+						});
+						lines.push(cells.map((cell) => cell.text).join(separator));
+					}
 			}
-		}
 	}
 	return lines;
 }
 
 describe("mission HUD layout", () => {
 	it("separates touch hit regions, navigation, warnings and toasts around breakpoints, at every stick size", () => {
-		for (const width of [319,320,321,349,350,351,359,360,361,390,560]) for (const height of [160,161,175,176,177,179,180,181,199,200,201,202,239,240,241,568]) for (const stickSize of STICK_SIZES) {
-			const hud=getHudLayout(width,height,"touch",{stickSize});
-			expectSeparate(hudRectangles(hud));
-			// A toast with no free slot borrows the alert lane (it is transient); it never covers anything else.
-			const toast=getToastLayout(width,height,undefined,"touch",{stickSize});
-			const borrowed=sameRectangle(toast,hud.alert);
-			for(const rect of hudRectangles(hud)) if(!(borrowed && sameRectangle(rect,hud.alert))) expect(rectanglesOverlap(toast,rect)).toBe(false);
-			for(const rect of hudRectangles(hud)) expect(rectangleInside(rect,width,height,hud.margin)).toBe(true);
-		}
+		for (const width of [319, 320, 321, 349, 350, 351, 359, 360, 361, 390, 560])
+			for (const height of [160, 161, 175, 176, 177, 179, 180, 181, 199, 200, 201, 202, 239, 240, 241, 568])
+				for (const stickSize of STICK_SIZES) {
+					const hud = getHudLayout(width, height, "touch", { stickSize });
+					expectSeparate(hudRectangles(hud));
+					// A toast with no free slot borrows the alert lane (it is transient); it never covers anything else.
+					const toast = getToastLayout(width, height, undefined, "touch", { stickSize });
+					const borrowed = sameRectangle(toast, hud.alert);
+					for (const rect of hudRectangles(hud))
+						if (!(borrowed && sameRectangle(rect, hud.alert)))
+							expect(rectanglesOverlap(toast, rect)).toBe(false);
+					for (const rect of hudRectangles(hud))
+						expect(rectangleInside(rect, width, height, hud.margin)).toBe(true);
+				}
 	});
 	it("reserves the compact layout for roots at most 200pt tall, never for real phones", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) expect(isCompactHud(width, height)).toBe(false);
@@ -164,9 +179,26 @@ describe("mission HUD layout", () => {
 	});
 
 	it("uses compact type on Studio roots, regular on phones and large from 900x600", () => {
-		for (const [width, height] of [...COMPACT_VIEWPORTS, [320, 240]] as [number, number][]) expect(getHudScale(width, height)).toBe("compact");
-		for (const [width, height] of [[560, 240], [667, 375], [706, 267], [750, 332], [800, 390], [844, 390], [390, 705], [390, 844]] as [number, number][]) expect(getHudScale(width, height)).toBe("regular");
-		for (const [width, height] of [[1024, 768], [1280, 720], [1920, 854], [1920, 1080]] as [number, number][]) expect(getHudScale(width, height)).toBe("large");
+		for (const [width, height] of [...COMPACT_VIEWPORTS, [320, 240]] as [number, number][])
+			expect(getHudScale(width, height)).toBe("compact");
+		for (const [width, height] of [
+			[560, 240],
+			[667, 375],
+			[706, 267],
+			[750, 332],
+			[800, 390],
+			[844, 390],
+			[390, 705],
+			[390, 844],
+		] as [number, number][])
+			expect(getHudScale(width, height)).toBe("regular");
+		for (const [width, height] of [
+			[1024, 768],
+			[1280, 720],
+			[1920, 854],
+			[1920, 1080],
+		] as [number, number][])
+			expect(getHudScale(width, height)).toBe("large");
 		for (const [width, height] of [...HUD_VIEWPORTS, ...KEY_VIEWPORTS]) {
 			const metrics = getHudLayout(width, height, "touch").metrics;
 			expect(metrics.scale).toBe(getHudScale(width, height));
@@ -181,21 +213,25 @@ describe("mission HUD layout", () => {
 				const layout = getHudLayout(width, height, mode);
 				const rectangles = hudRectangles(layout);
 				expectSeparate(rectangles);
-				for (const rectangle of rectangles) expect(rectangleInside(rectangle, width, height, layout.margin)).toBe(true);
+				for (const rectangle of rectangles)
+					expect(rectangleInside(rectangle, width, height, layout.margin)).toBe(true);
 			}
 		}
 	});
 
 	it("stays separate and on screen at every HUD scale the settings allow", () => {
-		for (const [width, height] of [...KEY_VIEWPORTS, [844, 390], [706, 267], [750, 332]] as [number, number][]) for (const mode of MODES) {
-			for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
-				const scale = effectiveHudScale(requested, mode === "touch", width, height);
-				const virtualWidth = math.floor(width / scale), virtualHeight = math.floor(height / scale);
-				const layout = getHudLayout(virtualWidth, virtualHeight, mode, { scale });
-				expectSeparate(hudRectangles(layout));
-				for (const rectangle of hudRectangles(layout)) expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
+		for (const [width, height] of [...KEY_VIEWPORTS, [844, 390], [706, 267], [750, 332]] as [number, number][])
+			for (const mode of MODES) {
+				for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
+					const scale = effectiveHudScale(requested, mode === "touch", width, height);
+					const virtualWidth = math.floor(width / scale),
+						virtualHeight = math.floor(height / scale);
+					const layout = getHudLayout(virtualWidth, virtualHeight, mode, { scale });
+					expectSeparate(hudRectangles(layout));
+					for (const rectangle of hudRectangles(layout))
+						expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
+				}
 			}
-		}
 	});
 
 	it("draws every HUD label at 8 px or more after the HUD scale, and fits every ammo line on one row", () => {
@@ -215,34 +251,51 @@ describe("mission HUD layout", () => {
 			longest.set(separator, chars);
 		}
 		let smallest = math.huge;
-		for (const [width, height] of TEXT_FLOOR_ROOTS) for (const mode of MODES) for (const stickSize of mode === "touch" ? STICK_SIZES : [JOYSTICK_SIZE]) {
-			for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
-				const scale = effectiveHudScale(requested, mode === "touch", width, height);
-				const virtualWidth = math.floor(width / scale), virtualHeight = math.floor(height / scale);
-				const layout = getHudLayout(virtualWidth, virtualHeight, mode, { stickSize, scale });
-				const metrics = layout.metrics;
-				const status = layout.status;
-				// Instrument captions and values, the clock, warnings, radar letters, the shrink-to-fit floor and the ammo line.
-				for (const size of [metrics.text, metrics.label, metrics.instrumentText, metrics.instrumentLabel, metrics.minText, status.text]) {
-					smallest = math.min(smallest, size * scale);
-					expect(size * scale).toBeGreaterThanOrEqual(MIN_PHYSICAL_TEXT - 1e-6);
+		for (const [width, height] of TEXT_FLOOR_ROOTS)
+			for (const mode of MODES)
+				for (const stickSize of mode === "touch" ? STICK_SIZES : [JOYSTICK_SIZE]) {
+					for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
+						const scale = effectiveHudScale(requested, mode === "touch", width, height);
+						const virtualWidth = math.floor(width / scale),
+							virtualHeight = math.floor(height / scale);
+						const layout = getHudLayout(virtualWidth, virtualHeight, mode, { stickSize, scale });
+						const metrics = layout.metrics;
+						const status = layout.status;
+						// Instrument captions and values, the clock, warnings, radar letters, the shrink-to-fit floor and the ammo line.
+						for (const size of [
+							metrics.text,
+							metrics.label,
+							metrics.instrumentText,
+							metrics.instrumentLabel,
+							metrics.minText,
+							status.text,
+						]) {
+							smallest = math.min(smallest, size * scale);
+							expect(size * scale).toBeGreaterThanOrEqual(MIN_PHYSICAL_TEXT - 1e-6);
+						}
+						// Rows hold their text; the SPEED/ALT caption fits beside the arrow tag.
+						expect(metrics.caption).toBeGreaterThanOrEqual(metrics.instrumentLabel);
+						expect(metrics.box).toBeGreaterThanOrEqual(metrics.instrumentText);
+						expect(status.line.height).toBeGreaterThanOrEqual(status.text);
+						for (const instrument of [layout.speed, layout.altitude]) {
+							if (instrument.height < metrics.caption + metrics.box) continue;
+							expect(hudTextWidth(5, metrics.instrumentLabel)).toBeLessThanOrEqual(
+								instrument.width - math.floor(metrics.box / 2),
+							);
+						}
+						// RobotoMono advances 1229/2048 em per glyph: the longest line fits the label at the size the layout picked.
+						expect(
+							status.separator === STATUS_SEPARATOR || status.separator === STATUS_SEPARATOR_TIGHT,
+						).toBe(true);
+						expect(hudTextWidth(longest.get(status.separator)!, status.text)).toBeLessThanOrEqual(
+							status.line.width - STATUS_TEXT_PAD,
+						);
+						// The larger type never costs the separation or safe-margin invariants.
+						expectSeparate(hudRectangles(layout));
+						for (const rectangle of hudRectangles(layout))
+							expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
+					}
 				}
-				// Rows hold their text; the SPEED/ALT caption fits beside the arrow tag.
-				expect(metrics.caption).toBeGreaterThanOrEqual(metrics.instrumentLabel);
-				expect(metrics.box).toBeGreaterThanOrEqual(metrics.instrumentText);
-				expect(status.line.height).toBeGreaterThanOrEqual(status.text);
-				for (const instrument of [layout.speed, layout.altitude]) {
-					if (instrument.height < metrics.caption + metrics.box) continue;
-					expect(hudTextWidth(5, metrics.instrumentLabel)).toBeLessThanOrEqual(instrument.width - math.floor(metrics.box / 2));
-				}
-				// RobotoMono advances 1229/2048 em per glyph: the longest line fits the label at the size the layout picked.
-				expect(status.separator === STATUS_SEPARATOR || status.separator === STATUS_SEPARATOR_TIGHT).toBe(true);
-				expect(hudTextWidth(longest.get(status.separator)!, status.text)).toBeLessThanOrEqual(status.line.width - STATUS_TEXT_PAD);
-				// The larger type never costs the separation or safe-margin invariants.
-				expectSeparate(hudRectangles(layout));
-				for (const rectangle of hudRectangles(layout)) expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
-			}
-		}
 		expect(smallest).toBeGreaterThanOrEqual(MIN_PHYSICAL_TEXT - 1e-6);
 	});
 
@@ -284,7 +337,14 @@ describe("mission HUD layout", () => {
 			// The row is always full size; the Studio-sized grid uses the 44 px minimum.
 			if (touch.arrangement === "row") expect(touch.button).toBe(ACTION_BUTTON_SIZE);
 			else if (getHudScale(width, height) === "compact") expect(touch.button).toBe(MIN_TOUCH_TARGET);
-			for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade]) {
+			for (const control of [
+				touch.joystick,
+				touch.throttle,
+				touch.missile,
+				touch.target,
+				touch.special,
+				touch.evade,
+			]) {
 				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 			}
@@ -296,23 +356,24 @@ describe("mission HUD layout", () => {
 	});
 
 	it("puts TGT, FIRE, SPECIAL and EVADE in one evenly spaced row on one baseline, centred between the sticks", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const stickSize of STICK_SIZES) {
-			const layout = getHudLayout(width, height, "touch", { stickSize });
-			const touch = layout.touch!;
-			// Only Studio-sized roots and narrow portrait roots fall back to the 2x2 grid.
-			if (getHudScale(width, height) !== "compact" && width > height) expect(touch.arrangement).toBe("row");
-			if (touch.arrangement !== "row") continue;
-			const row = [touch.target, touch.missile, touch.special, touch.evade];
-			const spacing = row[1].x - (row[0].x + row[0].width);
-			expect(spacing).toBeGreaterThanOrEqual(6);
-			for (let index = 0; index < row.size(); index++) {
-				expect(row[index].y + row[index].height).toBe(height - layout.margin);
-				if (index > 0) expect(row[index].x - (row[index - 1].x + row[index - 1].width)).toBe(spacing);
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const stickSize of STICK_SIZES) {
+				const layout = getHudLayout(width, height, "touch", { stickSize });
+				const touch = layout.touch!;
+				// Only Studio-sized roots and narrow portrait roots fall back to the 2x2 grid.
+				if (getHudScale(width, height) !== "compact" && width > height) expect(touch.arrangement).toBe("row");
+				if (touch.arrangement !== "row") continue;
+				const row = [touch.target, touch.missile, touch.special, touch.evade];
+				const spacing = row[1].x - (row[0].x + row[0].width);
+				expect(spacing).toBeGreaterThanOrEqual(6);
+				for (let index = 0; index < row.size(); index++) {
+					expect(row[index].y + row[index].height).toBe(height - layout.margin);
+					if (index > 0) expect(row[index].x - (row[index - 1].x + row[index - 1].width)).toBe(spacing);
+				}
+				const left = row[0].x - (touch.joystick.x + touch.joystick.width);
+				const right = touch.throttle.x - (row[3].x + row[3].width);
+				expect(math.abs(left - right)).toBeLessThanOrEqual(1);
 			}
-			const left = row[0].x - (touch.joystick.x + touch.joystick.width);
-			const right = touch.throttle.x - (row[3].x + row[3].width);
-			expect(math.abs(left - right)).toBeLessThanOrEqual(1);
-		}
 	});
 
 	it("puts TIME and progress top-left right of PAUSE, and the objective (two short lines) beside them", () => {
@@ -327,13 +388,17 @@ describe("mission HUD layout", () => {
 				expect(layout.callout.x).toBe(clock.x + clock.width + (layout.metrics.scale === "compact" ? 6 : 8));
 				expect(layout.callout.y).toBe(layout.margin);
 				expect(layout.callout.width).toBeLessThanOrEqual(width * 0.38);
-				expect(layout.callout.height).toBeLessThanOrEqual(layout.metrics.scale === "large" ? layout.metrics.row * 2 + 2 : OBJECTIVE_LINE_HEIGHT);
+				expect(layout.callout.height).toBeLessThanOrEqual(
+					layout.metrics.scale === "large" ? layout.metrics.row * 2 + 2 : OBJECTIVE_LINE_HEIGHT,
+				);
 			}
 		}
 	});
 
 	it("puts the throttle captions outside the disc, centred above and below it", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS].filter(([w, h]) => getHudScale(w, h) !== "compact")) {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS].filter(
+			([w, h]) => getHudScale(w, h) !== "compact",
+		)) {
 			const touch = getHudLayout(width, height, "touch").touch!;
 			const up = touch.throttleUpLabel!;
 			const down = touch.throttleDownLabel!;
@@ -353,7 +418,13 @@ describe("mission HUD layout", () => {
 	});
 
 	it("keeps the top row, radar, status panel and hints out of the forward view on landscape roots", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [1024, 768], [1920, 1080], ...KEY_VIEWPORTS].filter(([w, h]) => w > h && h > COMPACT_MAX_HEIGHT) as [number, number][]) {
+		for (const [width, height] of [
+			...HUD_VIEWPORTS,
+			[568, 320],
+			[1024, 768],
+			[1920, 1080],
+			...KEY_VIEWPORTS,
+		].filter(([w, h]) => w > h && h > COMPACT_MAX_HEIGHT) as [number, number][]) {
 			const centre = getHudCentreBox(width, height);
 			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
@@ -367,34 +438,44 @@ describe("mission HUD layout", () => {
 	});
 
 	it("centres the reticle between SPEED (left) and ALT (right), with the warning and break cue under it", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS].filter(([w, h]) => getHudScale(w, h) !== "compact")) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const reticle = layout.reticle!;
-			const centreX = reticle.x + reticle.width / 2;
-			const centreY = reticle.y + reticle.height / 2;
-			expect(math.abs(centreX - width / 2)).toBeLessThanOrEqual(1);
-			// Same row, mirrored about the reticle, tags pointing at it.
-			expect(layout.speed.y).toBe(layout.altitude.y);
-			expect(layout.speed.width).toBe(layout.altitude.width);
-			expect(layout.speed.x + layout.speed.width).toBeLessThanOrEqual(reticle.x);
-			expect(layout.altitude.x).toBeGreaterThanOrEqual(reticle.x + reticle.width);
-			expect(centreX - (layout.speed.x + layout.speed.width)).toBe(layout.altitude.x - centreX);
-			// The box (under its caption row) is level with the reticle.
-			const boxCentre = layout.speed.y + layout.metrics.caption + layout.metrics.box / 2;
-			expect(math.abs(boxCentre - centreY)).toBeLessThanOrEqual(1);
-			// Warning box under the reticle, the break-cue row directly under it, both centred.
-			expect(layout.alert.y).toBeGreaterThanOrEqual(reticle.y + reticle.height);
-			expect(math.abs(layout.alert.x + layout.alert.width / 2 - centreX)).toBeLessThanOrEqual(1);
-			expect(layout.breakCue.y).toBe(layout.alert.y + layout.alert.height + 2);
-			expect(layout.breakCue.x).toBe(layout.alert.x);
-			expect(layout.breakCue.width).toBe(layout.alert.width);
-			expect(layout.alert.width).toBeGreaterThanOrEqual(110);
-		}
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS].filter(
+			([w, h]) => getHudScale(w, h) !== "compact",
+		))
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const reticle = layout.reticle!;
+				const centreX = reticle.x + reticle.width / 2;
+				const centreY = reticle.y + reticle.height / 2;
+				expect(math.abs(centreX - width / 2)).toBeLessThanOrEqual(1);
+				// Same row, mirrored about the reticle, tags pointing at it.
+				expect(layout.speed.y).toBe(layout.altitude.y);
+				expect(layout.speed.width).toBe(layout.altitude.width);
+				expect(layout.speed.x + layout.speed.width).toBeLessThanOrEqual(reticle.x);
+				expect(layout.altitude.x).toBeGreaterThanOrEqual(reticle.x + reticle.width);
+				expect(centreX - (layout.speed.x + layout.speed.width)).toBe(layout.altitude.x - centreX);
+				// The box (under its caption row) is level with the reticle.
+				const boxCentre = layout.speed.y + layout.metrics.caption + layout.metrics.box / 2;
+				expect(math.abs(boxCentre - centreY)).toBeLessThanOrEqual(1);
+				// Warning box under the reticle, the break-cue row directly under it, both centred.
+				expect(layout.alert.y).toBeGreaterThanOrEqual(reticle.y + reticle.height);
+				expect(math.abs(layout.alert.x + layout.alert.width / 2 - centreX)).toBeLessThanOrEqual(1);
+				expect(layout.breakCue.y).toBe(layout.alert.y + layout.alert.height + 2);
+				expect(layout.breakCue.x).toBe(layout.alert.x);
+				expect(layout.breakCue.width).toBe(layout.alert.width);
+				expect(layout.alert.width).toBeGreaterThanOrEqual(110);
+			}
 		// Roots with room keep the reticle at the exact centre.
-		for (const [width, height] of [[667, 375], [800, 390], [844, 390], [1920, 854], [1280, 720]] as [number, number][]) for (const mode of MODES) {
-			const reticle = getHudLayout(width, height, mode).reticle!;
-			expect(reticle.y + reticle.height / 2).toBe(math.floor(height / 2));
-		}
+		for (const [width, height] of [
+			[667, 375],
+			[800, 390],
+			[844, 390],
+			[1920, 854],
+			[1280, 720],
+		] as [number, number][])
+			for (const mode of MODES) {
+				const reticle = getHudLayout(width, height, mode).reticle!;
+				expect(reticle.y + reticle.height / 2).toBe(math.floor(height / 2));
+			}
 	});
 
 	it("puts SPEED and ALT over the action grid on the Studio compact root, sharing rows where it must", () => {
@@ -410,31 +491,46 @@ describe("mission HUD layout", () => {
 			const layout = getHudLayout(width, height, "touch");
 			if (layout.touch!.arrangement !== "grid") continue;
 			expect(layout.speed.height).toBeGreaterThanOrEqual(layout.metrics.box);
-			if (layout.alert !== layout.callout) expect(layout.alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
+			if (layout.alert !== layout.callout)
+				expect(layout.alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
 		}
 		const shortest = getHudLayout(320, 160, "touch");
 		expect(shortest.alert).toBe(shortest.callout);
 	});
 
 	it("puts a square radar at the bottom of the left column: above the stick on touch, in the corner otherwise", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const radar = layout.radar;
-			if (!radar) continue;
-			expect(radar.width).toBe(radar.height);
-			expect(radar.width).toBeGreaterThanOrEqual(RADAR_MIN_SIZE);
-			expect(radar.width).toBeLessThanOrEqual(layout.metrics.scale === "large" ? RADAR_LARGE_SIZE : RADAR_MAX_SIZE);
-			if (layout.radarPlacement === "column") {
-				expect(radar.x).toBe(layout.margin);
-				const gap = layout.metrics.scale === "compact" ? 6 : 8;
-				expect(radar.y + radar.height).toBe(layout.touch ? layout.touch.joystick.y - gap : height - layout.margin);
-			} else {
-				expect(radar.x + radar.width).toBe(width - layout.margin);
-				expect(radar.y).toBe(layout.margin);
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const radar = layout.radar;
+				if (!radar) continue;
+				expect(radar.width).toBe(radar.height);
+				expect(radar.width).toBeGreaterThanOrEqual(RADAR_MIN_SIZE);
+				expect(radar.width).toBeLessThanOrEqual(
+					layout.metrics.scale === "large" ? RADAR_LARGE_SIZE : RADAR_MAX_SIZE,
+				);
+				if (layout.radarPlacement === "column") {
+					expect(radar.x).toBe(layout.margin);
+					const gap = layout.metrics.scale === "compact" ? 6 : 8;
+					expect(radar.y + radar.height).toBe(
+						layout.touch ? layout.touch.joystick.y - gap : height - layout.margin,
+					);
+				} else {
+					expect(radar.x + radar.width).toBe(width - layout.margin);
+					expect(radar.y).toBe(layout.margin);
+				}
 			}
-		}
 		// Every real phone and desktop root gets the bottom-left scope.
-		for (const [width, height] of [[667, 375], [800, 390], [844, 390], [750, 332], [706, 267], [1920, 854], [1280, 720], [390, 705]] as [number, number][]) {
+		for (const [width, height] of [
+			[667, 375],
+			[800, 390],
+			[844, 390],
+			[750, 332],
+			[706, 267],
+			[1920, 854],
+			[1280, 720],
+			[390, 705],
+		] as [number, number][]) {
 			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
 				if (mode !== "touch" && width < height) continue;
@@ -448,64 +544,109 @@ describe("mission HUD layout", () => {
 	});
 
 	it("puts the hull bar and its one ammo line at the bottom of the right column", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const status = layout.status;
-			expect(status.frame.x + status.frame.width).toBe(width - layout.margin);
-			expect(status.frame.width).toBeGreaterThanOrEqual(math.min(STATUS_MIN_WIDTH, width - layout.margin * 2));
-			// The bar on top, the line directly under it, both the panel's width.
-			expect(status.bar).toEqual({ x: status.frame.x, y: status.frame.y, width: status.frame.width, height: status.bar.height });
-			expect(status.line.y).toBe(status.bar.y + status.bar.height + STATUS_GAP);
-			expect(status.line.x).toBe(status.frame.x);
-			expect(status.line.width).toBe(status.frame.width);
-			expect(status.line.y + status.line.height).toBe(status.frame.y + status.frame.height);
-			expect(status.bar.height).toBeLessThanOrEqual(8);
-			expect(status.text).toBeGreaterThanOrEqual(8);
-			expect(status.text).toBeLessThanOrEqual(status.line.height);
-		}
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const status = layout.status;
+				expect(status.frame.x + status.frame.width).toBe(width - layout.margin);
+				expect(status.frame.width).toBeGreaterThanOrEqual(
+					math.min(STATUS_MIN_WIDTH, width - layout.margin * 2),
+				);
+				// The bar on top, the line directly under it, both the panel's width.
+				expect(status.bar).toEqual({
+					x: status.frame.x,
+					y: status.frame.y,
+					width: status.frame.width,
+					height: status.bar.height,
+				});
+				expect(status.line.y).toBe(status.bar.y + status.bar.height + STATUS_GAP);
+				expect(status.line.x).toBe(status.frame.x);
+				expect(status.line.width).toBe(status.frame.width);
+				expect(status.line.y + status.line.height).toBe(status.frame.y + status.frame.height);
+				expect(status.bar.height).toBeLessThanOrEqual(8);
+				expect(status.text).toBeGreaterThanOrEqual(8);
+				expect(status.text).toBeLessThanOrEqual(status.line.height);
+			}
 		// Phones and desktops: right above the throttle caption on touch, the bottom-right corner otherwise.
-		for (const [width, height] of [[667, 375], [800, 390], [844, 390], [750, 332], [706, 267], [568, 320], [1920, 854], [1280, 720]] as [number, number][]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const bottom = layout.status.frame.y + layout.status.frame.height;
-			if (layout.touch) expect(bottom).toBe(layout.touch.throttleUpLabel!.y - 8);
-			else expect(bottom).toBe(height - layout.margin);
-		}
+		for (const [width, height] of [
+			[667, 375],
+			[800, 390],
+			[844, 390],
+			[750, 332],
+			[706, 267],
+			[568, 320],
+			[1920, 854],
+			[1280, 720],
+		] as [number, number][])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const bottom = layout.status.frame.y + layout.status.frame.height;
+				if (layout.touch) expect(bottom).toBe(layout.touch.throttleUpLabel!.y - 8);
+				else expect(bottom).toBe(height - layout.margin);
+			}
 	});
 
 	it("keeps the touch buttons along the bottom, clear of the radar and the status panel", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const stickSize of STICK_SIZES) {
-			const layout = getHudLayout(width, height, "touch", { stickSize });
-			const touch = layout.touch!;
-			expect(touch.missile.y + touch.missile.height).toBe(height - layout.margin);
-			for (const button of [touch.missile, touch.target, touch.special, touch.evade, touch.joystick, touch.throttle]) {
-				expect(rectanglesOverlap(button, layout.status.frame)).toBe(false);
-				if (layout.radar) expect(rectanglesOverlap(button, layout.radar)).toBe(false);
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const stickSize of STICK_SIZES) {
+				const layout = getHudLayout(width, height, "touch", { stickSize });
+				const touch = layout.touch!;
+				expect(touch.missile.y + touch.missile.height).toBe(height - layout.margin);
+				for (const button of [
+					touch.missile,
+					touch.target,
+					touch.special,
+					touch.evade,
+					touch.joystick,
+					touch.throttle,
+				]) {
+					expect(rectanglesOverlap(button, layout.status.frame)).toBe(false);
+					if (layout.radar) expect(rectanglesOverlap(button, layout.radar)).toBe(false);
+				}
 			}
-		}
 	});
 
 	it("lays the radio subtitle bottom-centre, above the buttons or hint row and under the break cue", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const subtitle = layout.subtitle;
-			if (!subtitle) continue;
-			expect(math.abs(subtitle.x + subtitle.width / 2 - width / 2)).toBeLessThanOrEqual(1);
-			expect(subtitle.y).toBeGreaterThanOrEqual(layout.breakCue.y + layout.breakCue.height);
-			expect(subtitle.height % layout.metrics.row).toBe(0);
-			// Above every button (and the hint row) it shares columns with; wide roots keep it level with a right-hand button row.
-			for (const below of [...(layout.touch ? [layout.touch.target, layout.touch.missile, layout.touch.special, layout.touch.evade] : []), ...(layout.fireCaption ? [layout.fireCaption] : []), ...(layout.hints ? [layout.hints] : [])]) {
-				if (below.x < subtitle.x + subtitle.width && below.x + below.width > subtitle.x) expect(subtitle.y + subtitle.height).toBeLessThanOrEqual(below.y);
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const subtitle = layout.subtitle;
+				if (!subtitle) continue;
+				expect(math.abs(subtitle.x + subtitle.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+				expect(subtitle.y).toBeGreaterThanOrEqual(layout.breakCue.y + layout.breakCue.height);
+				expect(subtitle.height % layout.metrics.row).toBe(0);
+				// Above every button (and the hint row) it shares columns with; wide roots keep it level with a right-hand button row.
+				for (const below of [
+					...(layout.touch
+						? [layout.touch.target, layout.touch.missile, layout.touch.special, layout.touch.evade]
+						: []),
+					...(layout.fireCaption ? [layout.fireCaption] : []),
+					...(layout.hints ? [layout.hints] : []),
+				]) {
+					if (below.x < subtitle.x + subtitle.width && below.x + below.width > subtitle.x)
+						expect(subtitle.y + subtitle.height).toBeLessThanOrEqual(below.y);
+				}
 			}
-		}
-		for (const [width, height] of [[667, 375], [800, 390], [844, 390], [1920, 854], [1280, 720]] as [number, number][]) for (const mode of MODES) {
-			expect(getHudLayout(width, height, mode).subtitle!.height).toBe(getHudLayout(width, height, mode).metrics.row * 2);
-		}
+		for (const [width, height] of [
+			[667, 375],
+			[800, 390],
+			[844, 390],
+			[1920, 854],
+			[1280, 720],
+		] as [number, number][])
+			for (const mode of MODES) {
+				expect(getHudLayout(width, height, mode).subtitle!.height).toBe(
+					getHudLayout(width, height, mode).metrics.row * 2,
+				);
+			}
 		// The Studio compact root has no row for it: radio shares the objective line there.
 		expect(getHudLayout(320, 182, "touch").subtitle).toBeUndefined();
 	});
 
 	it("puts the kill callout in the top row right of the objective, clear of every HUD element and the forward view", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS].filter(([w, h]) => w > h && getHudScale(w, h) !== "compact")) {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS].filter(
+			([w, h]) => w > h && getHudScale(w, h) !== "compact",
+		)) {
 			const centre = getHudCentreBox(width, height);
 			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
@@ -521,13 +662,14 @@ describe("mission HUD layout", () => {
 	});
 
 	it("keeps the kill callout on screen on Studio-sized roots, borrowing the alert lane when no slot fits", () => {
-		for (const [width, height] of [...COMPACT_VIEWPORTS, [320, 240]] as [number, number][]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			const marker = getKillMarkerLayout(width, height, mode);
-			expect(rectangleInside(marker, width, height, layout.margin)).toBe(true);
-			if (sameRectangle(marker, layout.alert)) continue;
-			for (const rectangle of hudRectangles(layout)) expect(rectanglesOverlap(marker, rectangle)).toBe(false);
-		}
+		for (const [width, height] of [...COMPACT_VIEWPORTS, [320, 240]] as [number, number][])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const marker = getKillMarkerLayout(width, height, mode);
+				expect(rectangleInside(marker, width, height, layout.margin)).toBe(true);
+				if (sameRectangle(marker, layout.alert)) continue;
+				for (const rectangle of hudRectangles(layout)) expect(rectanglesOverlap(marker, rectangle)).toBe(false);
+			}
 	});
 
 	it("keeps combat buttons in the lane between independent sticks", () => {
@@ -538,32 +680,56 @@ describe("mission HUD layout", () => {
 				expect(button.x).toBeGreaterThan(touch.joystick.x + touch.joystick.width);
 				expect(button.x + button.width).toBeLessThan(touch.throttle.x);
 			}
-			expectSeparate([layout.alert, touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade]);
+			expectSeparate([
+				layout.alert,
+				touch.joystick,
+				touch.throttle,
+				touch.missile,
+				touch.target,
+				touch.special,
+				touch.evade,
+			]);
 		}
 	});
 
 	it("puts EVADE on the right-thumb side: the end of the row nearest the throttle", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const stickSize of STICK_SIZES) {
-			const touch = getHudLayout(width, height, "touch", { stickSize }).touch!;
-			expect(touch.evade.x + touch.evade.width / 2).toBeGreaterThan(width / 2);
-			if (touch.arrangement === "row") {
-				for (const other of [touch.missile, touch.target, touch.special]) expect(other.x).toBeLessThan(touch.evade.x);
-				expect(touch.evade.y).toBe(touch.missile.y);
-			} else {
-				// Grid: bottom-right cell, beside FIRE.
-				expect(touch.evade.y).toBe(touch.missile.y);
-				expect(touch.evade.x).toBeGreaterThan(touch.missile.x);
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const stickSize of STICK_SIZES) {
+				const touch = getHudLayout(width, height, "touch", { stickSize }).touch!;
+				expect(touch.evade.x + touch.evade.width / 2).toBeGreaterThan(width / 2);
+				if (touch.arrangement === "row") {
+					for (const other of [touch.missile, touch.target, touch.special])
+						expect(other.x).toBeLessThan(touch.evade.x);
+					expect(touch.evade.y).toBe(touch.missile.y);
+				} else {
+					// Grid: bottom-right cell, beside FIRE.
+					expect(touch.evade.y).toBe(touch.missile.y);
+					expect(touch.evade.x).toBeGreaterThan(touch.missile.x);
+				}
 			}
-		}
 		// Every real phone root gets the full-size button.
-		for (const [width, height] of [[706, 267], [750, 332], [844, 390], [800, 390], [667, 375], [568, 320], [390, 705], [1920, 854]] as [number, number][]) {
+		for (const [width, height] of [
+			[706, 267],
+			[750, 332],
+			[844, 390],
+			[800, 390],
+			[667, 375],
+			[568, 320],
+			[390, 705],
+			[1920, 854],
+		] as [number, number][]) {
 			expect(getHudLayout(width, height, "touch").touch!.evade.width).toBe(ACTION_BUTTON_SIZE);
 		}
 	});
 
 	it("honours the requested stick size where it fits and clamps it where it would crowd the lane", () => {
 		for (const stickSize of STICK_SIZES) {
-			for (const [width, height] of [[844, 390], [800, 390], [667, 375], [1920, 854]] as [number, number][]) {
+			for (const [width, height] of [
+				[844, 390],
+				[800, 390],
+				[667, 375],
+				[1920, 854],
+			] as [number, number][]) {
 				expect(getHudLayout(width, height, "touch", { stickSize }).touch!.joystick.width).toBe(stickSize);
 			}
 			for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
@@ -579,30 +745,41 @@ describe("mission HUD layout", () => {
 	});
 
 	it("gives every non-compact root a PAUSE button at the top-left; compact roots rely on the Roblox menu", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) for (const mode of MODES) {
-			const layout = getHudLayout(width, height, mode);
-			if (layout.metrics.scale === "compact") { expect(layout.pause).toBeUndefined(); continue; }
-			const pause = layout.pause!;
-			expect(pause.x).toBe(layout.margin);
-			expect(pause.y).toBe(layout.margin);
-			if (mode === "touch") expect(pause.width).toBe(PAUSE_SIZE);
-			expect(pause.width).toBe(pause.height);
-			expect(rectangleInside(pause, width, height, layout.margin)).toBe(true);
-		}
-		for (const [width, height] of COMPACT_VIEWPORTS) expect(getHudLayout(width, height, "touch").pause).toBeUndefined();
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS])
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				if (layout.metrics.scale === "compact") {
+					expect(layout.pause).toBeUndefined();
+					continue;
+				}
+				const pause = layout.pause!;
+				expect(pause.x).toBe(layout.margin);
+				expect(pause.y).toBe(layout.margin);
+				if (mode === "touch") expect(pause.width).toBe(PAUSE_SIZE);
+				expect(pause.width).toBe(pause.height);
+				expect(rectangleInside(pause, width, height, layout.margin)).toBe(true);
+			}
+		for (const [width, height] of COMPACT_VIEWPORTS)
+			expect(getHudLayout(width, height, "touch").pause).toBeUndefined();
 	});
 
 	it("captions refusals directly above FIRE when the touch row has room, never on the objective line", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) {
 			const layout = getHudLayout(width, height, "touch");
 			const caption = layout.fireCaption;
-			if (layout.touch!.arrangement !== "row") { expect(caption).toBeUndefined(); continue; }
+			if (layout.touch!.arrangement !== "row") {
+				expect(caption).toBeUndefined();
+				continue;
+			}
 			expect(caption!.height).toBe(FIRE_CAPTION_HEIGHT);
 			expect(caption!.y + caption!.height).toBeLessThanOrEqual(layout.touch!.missile.y);
-			expect(math.abs(caption!.x + caption!.width / 2 - (layout.touch!.missile.x + layout.touch!.missile.width / 2))).toBeLessThanOrEqual(1);
+			expect(
+				math.abs(caption!.x + caption!.width / 2 - (layout.touch!.missile.x + layout.touch!.missile.width / 2)),
+			).toBeLessThanOrEqual(1);
 			expect(rectanglesOverlap(caption!, layout.callout)).toBe(false);
 		}
-		for (const mode of ["keyboard", "gamepad"] as InputMode[]) expect(getHudLayout(844, 390, mode).fireCaption).toBeUndefined();
+		for (const mode of ["keyboard", "gamepad"] as InputMode[])
+			expect(getHudLayout(844, 390, mode).fireCaption).toBeUndefined();
 	});
 
 	it("matches the agreed numbers on the key roots", () => {
@@ -684,10 +861,17 @@ describe("mission HUD layout", () => {
 	});
 
 	it("keeps the touch controls, EVADE included, under 14% of a landscape phone screen (PR #44: 17%)", () => {
-		for (const [width, height] of [[706, 267], [750, 332], [844, 390], [800, 390], [667, 375]] as [number, number][]) {
+		for (const [width, height] of [
+			[706, 267],
+			[750, 332],
+			[844, 390],
+			[800, 390],
+			[667, 375],
+		] as [number, number][]) {
 			const touch = getHudLayout(width, height, "touch").touch!;
 			let area = touch.throttle.width * touch.throttle.height;
-			for (const control of [touch.joystick, touch.missile, touch.target, touch.special, touch.evade]) area += control.width * control.height;
+			for (const control of [touch.joystick, touch.missile, touch.target, touch.special, touch.evade])
+				area += control.width * control.height;
 			expect(area / (width * height)).toBeLessThan(0.14);
 		}
 	});
@@ -716,7 +900,10 @@ describe("mission HUD layout", () => {
 
 describe("menu layout", () => {
 	it("keeps the Studio compact panel inside the short safe area", () => {
-		for (const [width, height] of [[319, 181], [320, 182]]) {
+		for (const [width, height] of [
+			[319, 181],
+			[320, 182],
+		]) {
 			const menu = getMenuLayout(width, height);
 			expect(rectangleInside(menu.panel, width, height, 6)).toBe(true);
 			expect(menu.panel.width).toBeGreaterThanOrEqual(280);
@@ -731,7 +918,16 @@ describe("menu layout", () => {
 	});
 
 	it("gives phone landscape copy most of the width and still leaves an open strip for the aircraft", () => {
-		for (const [width, height] of [[560, 240], [568, 320], [706, 267], [750, 332], [844, 390], [1024, 768], [1280, 720], [1920, 1080]] as [number, number][]) {
+		for (const [width, height] of [
+			[560, 240],
+			[568, 320],
+			[706, 267],
+			[750, 332],
+			[844, 390],
+			[1024, 768],
+			[1280, 720],
+			[1920, 1080],
+		] as [number, number][]) {
 			const layout = getMenuLayout(width, height);
 			expect(layout.mode).toBe("side");
 			// At least a third of the root stays open for the display jet.
@@ -741,13 +937,20 @@ describe("menu layout", () => {
 			expect(opening).toBeLessThanOrEqual(0.75);
 		}
 		// Phones: the reading panel is the larger share of the screen.
-		for (const [width, height] of [[706, 267], [750, 332], [844, 390]] as [number, number][]) {
+		for (const [width, height] of [
+			[706, 267],
+			[750, 332],
+			[844, 390],
+		] as [number, number][]) {
 			expect(getMenuLayout(width, height).panel.width).toBeGreaterThanOrEqual(width * 0.55);
 		}
 	});
 
 	it("uses a bottom sheet in portrait so the aircraft stays visible above it", () => {
-		for (const [width, height] of [[320, 568], [390, 844]] as [number, number][]) {
+		for (const [width, height] of [
+			[320, 568],
+			[390, 844],
+		] as [number, number][]) {
 			const layout = getMenuLayout(width, height);
 			expect(layout.mode).toBe("sheet");
 			expect(layout.panel.y).toBeGreaterThanOrEqual(height * 0.3);
@@ -776,14 +979,21 @@ describe("menu layout", () => {
 			expect(rectanglesOverlap(menuToast, getMenuHintsLayout(width, height, menu))).toBe(false);
 			const hud = getHudLayout(width, height, "touch");
 			const missionToast = getToastLayout(width, height, undefined, "touch");
-			expectSeparate([missionToast, ...(sameRectangle(missionToast, hud.alert) ? [] : [hud.alert]), hud.callout, hud.clock, hud.status.frame]);
+			expectSeparate([
+				missionToast,
+				...(sameRectangle(missionToast, hud.alert) ? [] : [hud.alert]),
+				hud.callout,
+				hud.clock,
+				hud.status.frame,
+			]);
 			expect(rectanglesOverlap(missionToast, hud.touch!.joystick)).toBe(false);
 			expect(rectanglesOverlap(missionToast, hud.touch!.missile)).toBe(false);
 		}
 		for (const [width, height] of [...HUD_VIEWPORTS, ...KEY_VIEWPORTS]) {
 			for (const mode of MODES) {
 				const missionToast = getToastLayout(width, height, undefined, mode);
-				for (const rectangle of hudRectangles(getHudLayout(width, height, mode))) expect(rectanglesOverlap(missionToast, rectangle)).toBe(false);
+				for (const rectangle of hudRectangles(getHudLayout(width, height, mode)))
+					expect(rectanglesOverlap(missionToast, rectangle)).toBe(false);
 			}
 		}
 	});
@@ -829,7 +1039,9 @@ describe("input mode and contextual hints", () => {
 			for (const introduction of [true, false]) {
 				for (const locked of [true, false]) {
 					for (const missileReady of [true, false]) {
-						expect(getFlightHints(mode, { introduction, locked, missileReady }).size()).toBeLessThanOrEqual(MAX_FLIGHT_HINTS);
+						expect(getFlightHints(mode, { introduction, locked, missileReady }).size()).toBeLessThanOrEqual(
+							MAX_FLIGHT_HINTS,
+						);
 					}
 				}
 			}
@@ -874,7 +1086,8 @@ describe("pause card and settings sheet", () => {
 			expect(sheet.rowHeight).toBeGreaterThanOrEqual(sheet.control);
 			expect(sheet.done.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 			expectSeparate([sheet.header, sheet.list, sheet.done]);
-			for (const part of [sheet.header, sheet.list, sheet.done]) expect(rectangleInside(part, sheet.panel.width, sheet.panel.height, 0)).toBe(true);
+			for (const part of [sheet.header, sheet.list, sheet.done])
+				expect(rectangleInside(part, sheet.panel.width, sheet.panel.height, 0)).toBe(true);
 			// Label + − value + fit on one row.
 			expect(sheet.list.width - (sheet.control * 2 + sheet.valueWidth)).toBeGreaterThanOrEqual(100);
 		}
@@ -884,14 +1097,13 @@ describe("pause card and settings sheet", () => {
 	});
 });
 
-
 describe("movement lesson indicators", () => {
 	it("distinguishes either unfinished axis, both complete, and unknown/default progress", () => {
 		for (const mode of MODES) {
-			expect(getMovementIndicators(mode, 3, 0).map(cell => cell.done)).toEqual([true, false]);
-			expect(getMovementIndicators(mode, 0, 3).map(cell => cell.done)).toEqual([false, true]);
-			expect(getMovementIndicators(mode, 3, 3).map(cell => cell.done)).toEqual([true, true]);
-			expect(getMovementIndicators(mode, 0, 0).map(cell => cell.done)).toEqual([false, false]);
+			expect(getMovementIndicators(mode, 3, 0).map((cell) => cell.done)).toEqual([true, false]);
+			expect(getMovementIndicators(mode, 0, 3).map((cell) => cell.done)).toEqual([false, true]);
+			expect(getMovementIndicators(mode, 3, 3).map((cell) => cell.done)).toEqual([true, true]);
+			expect(getMovementIndicators(mode, 0, 0).map((cell) => cell.done)).toEqual([false, false]);
 			expect(getMovementIndicators(mode)[0].text.find("–/3s")[0]).toBeDefined();
 			expect(getMovementIndicators(mode, 2.99, 3)[0].done).toBe(false);
 		}
@@ -901,21 +1113,33 @@ describe("movement lesson indicators", () => {
 		expect(getMovementIndicators("gamepad", 0, 0)[1].text.find("LS ↑↓")[0]).toBeDefined();
 	});
 	it("fits both cells in the existing objective row on phone and compact roots at every HUD scale", () => {
-		for (const [width, height] of [[319,181],[390,705],[750,332],[800,390],[844,390]]) for (const scale of [0.8,1,1.3]) for (const mode of MODES) {
-			const layout = getHudLayout(width / scale, height / scale, mode, { scale });
-			const size = layout.metrics.scale === "large" ? 16 : layout.metrics.scale === "compact" ? 10 : 11;
-			const cells = getMovementIndicatorLayout(layout.callout, size);
-			expect(rectanglesOverlap(cells[0], cells[1])).toBe(false);
-			const indicators = getMovementIndicators(mode, 0, 0);
-			for (let index = 0; index < indicators.size(); index++) {
-				const cell = indicators[index];
-				let chars = 0;
-				for (const _ of utf8.codes(cell.text)) chars += 1;
-				expect(hudTextWidth(chars, size)).toBeLessThanOrEqual(cells[index].width);
-				expect(cells[index].height).toBeGreaterThanOrEqual(size);
-				expect(cells[index].x + cells[index].width).toBeLessThanOrEqual(layout.callout.x + layout.callout.width);
-				expect(cells[index].y + cells[index].height).toBeLessThanOrEqual(layout.callout.y + layout.callout.height);
-			}
-		}
+		for (const [width, height] of [
+			[319, 181],
+			[390, 705],
+			[750, 332],
+			[800, 390],
+			[844, 390],
+		])
+			for (const scale of [0.8, 1, 1.3])
+				for (const mode of MODES) {
+					const layout = getHudLayout(width / scale, height / scale, mode, { scale });
+					const size = layout.metrics.scale === "large" ? 16 : layout.metrics.scale === "compact" ? 10 : 11;
+					const cells = getMovementIndicatorLayout(layout.callout, size);
+					expect(rectanglesOverlap(cells[0], cells[1])).toBe(false);
+					const indicators = getMovementIndicators(mode, 0, 0);
+					for (let index = 0; index < indicators.size(); index++) {
+						const cell = indicators[index];
+						let chars = 0;
+						for (const _ of utf8.codes(cell.text)) chars += 1;
+						expect(hudTextWidth(chars, size)).toBeLessThanOrEqual(cells[index].width);
+						expect(cells[index].height).toBeGreaterThanOrEqual(size);
+						expect(cells[index].x + cells[index].width).toBeLessThanOrEqual(
+							layout.callout.x + layout.callout.width,
+						);
+						expect(cells[index].y + cells[index].height).toBeLessThanOrEqual(
+							layout.callout.y + layout.callout.height,
+						);
+					}
+				}
 	});
 });

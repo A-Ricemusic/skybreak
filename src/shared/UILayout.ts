@@ -233,19 +233,82 @@ const HUD_SIZES: { [scale in HudScale]: HudSizes } = {
 	// SPEED/ALT (instrument, caption, box and their type) are ~20% under PR #44's 62/11/20 (regular) and 96/15/30 (large);
 	// Studio-compact boxes already sit at the smallest readable type and keep their size.
 	compact: {
-		metrics: { scale: "compact", text: 10, label: 8, row: 11, caption: 8, box: 14, instrumentText: 10, instrumentLabel: 8, minText: 8 },
-		clockWidth: 64, instrument: 44, reticle: 0, alertHeight: 18, alertWidth: 200, breakCue: 14,
-		status: 100, statusBar: 5, statusText: 8, statusRow: 10, radarMax: RADAR_MAX_SIZE, subtitleWidth: 300, objectiveWidth: OBJECTIVE_MAX_WIDTH,
+		metrics: {
+			scale: "compact",
+			text: 10,
+			label: 8,
+			row: 11,
+			caption: 8,
+			box: 14,
+			instrumentText: 10,
+			instrumentLabel: 8,
+			minText: 8,
+		},
+		clockWidth: 64,
+		instrument: 44,
+		reticle: 0,
+		alertHeight: 18,
+		alertWidth: 200,
+		breakCue: 14,
+		status: 100,
+		statusBar: 5,
+		statusText: 8,
+		statusRow: 10,
+		radarMax: RADAR_MAX_SIZE,
+		subtitleWidth: 300,
+		objectiveWidth: OBJECTIVE_MAX_WIDTH,
 	},
 	regular: {
-		metrics: { scale: "regular", text: 12, label: 10, row: 14, caption: 9, box: 16, instrumentText: 10, instrumentLabel: 8, minText: 8 },
-		clockWidth: 96, instrument: 50, reticle: 24, alertHeight: ALERT_HEIGHT, alertWidth: ALERT_MAX_WIDTH, breakCue: 16,
-		status: 144, statusBar: 6, statusText: 10, statusRow: 12, radarMax: RADAR_MAX_SIZE, subtitleWidth: 440, objectiveWidth: OBJECTIVE_MAX_WIDTH,
+		metrics: {
+			scale: "regular",
+			text: 12,
+			label: 10,
+			row: 14,
+			caption: 9,
+			box: 16,
+			instrumentText: 10,
+			instrumentLabel: 8,
+			minText: 8,
+		},
+		clockWidth: 96,
+		instrument: 50,
+		reticle: 24,
+		alertHeight: ALERT_HEIGHT,
+		alertWidth: ALERT_MAX_WIDTH,
+		breakCue: 16,
+		status: 144,
+		statusBar: 6,
+		statusText: 10,
+		statusRow: 12,
+		radarMax: RADAR_MAX_SIZE,
+		subtitleWidth: 440,
+		objectiveWidth: OBJECTIVE_MAX_WIDTH,
 	},
 	large: {
-		metrics: { scale: "large", text: 18, label: 13, row: 22, caption: 12, box: 24, instrumentText: 14, instrumentLabel: 10, minText: 8 },
-		clockWidth: 140, instrument: 76, reticle: 34, alertHeight: 28, alertWidth: 300, breakCue: 22,
-		status: 192, statusBar: 8, statusText: 13, statusRow: 16, radarMax: RADAR_LARGE_SIZE, subtitleWidth: 640, objectiveWidth: 420,
+		metrics: {
+			scale: "large",
+			text: 18,
+			label: 13,
+			row: 22,
+			caption: 12,
+			box: 24,
+			instrumentText: 14,
+			instrumentLabel: 10,
+			minText: 8,
+		},
+		clockWidth: 140,
+		instrument: 76,
+		reticle: 34,
+		alertHeight: 28,
+		alertWidth: 300,
+		breakCue: 22,
+		status: 192,
+		statusBar: 8,
+		statusText: 13,
+		statusRow: 16,
+		radarMax: RADAR_LARGE_SIZE,
+		subtitleWidth: 640,
+		objectiveWidth: 420,
 	},
 };
 
@@ -303,7 +366,12 @@ function scaledMetrics(base: HudMetrics, minText: number): HudMetrics {
 	const instrumentText = math.max(base.instrumentText, minText);
 	const instrumentLabel = math.max(base.instrumentLabel, minText);
 	return {
-		...base, text, label, instrumentText, instrumentLabel, minText,
+		...base,
+		text,
+		label,
+		instrumentText,
+		instrumentLabel,
+		minText,
 		row: base.row + text - base.text,
 		caption: base.caption + instrumentLabel - base.instrumentLabel,
 		box: base.box + instrumentText - base.instrumentText,
@@ -314,7 +382,14 @@ function scaledMetrics(base: HudMetrics, minText: number): HudMetrics {
  * Half-width of the widest span centred on `centreX` in the row y..y+height that stays
  * clear of every obstacle and the side margins; -1 when an obstacle covers the centre.
  */
-function freeHalf(centreX: number, y: number, height: number, obstacles: Rectangle[], viewportWidth: number, margin: number): number {
+function freeHalf(
+	centreX: number,
+	y: number,
+	height: number,
+	obstacles: Rectangle[],
+	viewportWidth: number,
+	margin: number,
+): number {
 	let half = math.min(centreX - margin, viewportWidth - margin - centreX);
 	for (const obstacle of obstacles) {
 		if (obstacle.y >= y + height || bottomOf(obstacle) <= y) continue;
@@ -329,7 +404,16 @@ function freeHalf(centreX: number, y: number, height: number, obstacles: Rectang
  * Widest rectangle centred on `centreX` (at most `maxWidth`) in the row y..y+height
  * that stays clear of every obstacle; undefined when narrower than `minWidth`.
  */
-function centredFree(centreX: number, y: number, height: number, maxWidth: number, minWidth: number, obstacles: Rectangle[], viewportWidth: number, margin: number): Rectangle | undefined {
+function centredFree(
+	centreX: number,
+	y: number,
+	height: number,
+	maxWidth: number,
+	minWidth: number,
+	obstacles: Rectangle[],
+	viewportWidth: number,
+	margin: number,
+): Rectangle | undefined {
 	const half = math.min(maxWidth / 2, freeHalf(centreX, y, height, obstacles, viewportWidth, margin));
 	if (half < 0) return undefined;
 	const width = math.floor(half) * 2;
@@ -337,12 +421,22 @@ function centredFree(centreX: number, y: number, height: number, maxWidth: numbe
 	return { x: centreX - width / 2, y, width, height };
 }
 
-const clear = (candidate: Rectangle, obstacles: Rectangle[]) => !obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
+const clear = (candidate: Rectangle, obstacles: Rectangle[]) =>
+	!obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
 
 /** Right end of the free top-row lane that starts at `left`: the first obstacle in the row y..y+height, or `limit`. */
-function topLaneRight(left: number, y: number, height: number, obstacles: Rectangle[], limit: number, gap: number): number {
+function topLaneRight(
+	left: number,
+	y: number,
+	height: number,
+	obstacles: Rectangle[],
+	limit: number,
+	gap: number,
+): number {
 	let right = limit;
-	for (const obstacle of obstacles) if (obstacle.x >= left && obstacle.y < y + height && bottomOf(obstacle) > y) right = math.min(right, obstacle.x - gap);
+	for (const obstacle of obstacles)
+		if (obstacle.x >= left && obstacle.y < y + height && bottomOf(obstacle) > y)
+			right = math.min(right, obstacle.x - gap);
 	return right;
 }
 
@@ -356,7 +450,11 @@ function topLaneRight(left: number, y: number, height: number, obstacles: Rectan
  * The stick limit reserves the top rows as fixed numbers: the 30 px objective,
  * 2 px, the 41 px navigation slot, then an 18 px warning row.
  */
-function getTouchLayout(width: number, height: number, options?: HudOptions): { touch: TouchLayout; fireCaption?: Rectangle } {
+function getTouchLayout(
+	width: number,
+	height: number,
+	options?: HudOptions,
+): { touch: TouchLayout; fireCaption?: Rectangle } {
 	const compact = height < 240;
 	const margin = compact || width < 360 ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
 	const gap = compact ? 6 : 8;
@@ -370,25 +468,41 @@ function getTouchLayout(width: number, height: number, options?: HudOptions): { 
 	const stickFor = (lane: number) => math.floor((width - margin * 2 - controlGap * 2 - lane) / 2);
 	// The row with the touch spacing, then a tighter one; else the 2x2 grid.
 	let arrangement: TouchArrangement = "grid";
-	let button = MIN_TOUCH_TARGET, spacing = controlGap;
+	let button = MIN_TOUCH_TARGET,
+		spacing = controlGap;
 	for (const between of [controlGap, 6]) {
 		if (stickFor(ACTION_BUTTON_SIZE * 4 + between * 3) < STICK_MIN_SIZE) continue;
-		arrangement = "row"; button = ACTION_BUTTON_SIZE; spacing = between;
+		arrangement = "row";
+		button = ACTION_BUTTON_SIZE;
+		spacing = between;
 		break;
 	}
 	// Grid: the 44 px minimum on short roots (Studio), as large as the lane allows on tall portrait ones.
-	if (arrangement === "grid" && getHudScale(width, height) !== "compact") button = math.clamp(math.floor((width - margin * 2 - controlGap * 3 - STICK_MIN_SIZE * 2) / 2), MIN_TOUCH_TARGET, ACTION_BUTTON_SIZE);
+	if (arrangement === "grid" && getHudScale(width, height) !== "compact")
+		button = math.clamp(
+			math.floor((width - margin * 2 - controlGap * 3 - STICK_MIN_SIZE * 2) / 2),
+			MIN_TOUCH_TARGET,
+			ACTION_BUTTON_SIZE,
+		);
 	const lane = arrangement === "row" ? button * 4 + spacing * 3 : button * 2 + controlGap;
 	// Stick size: the request, limited so the action lane and the reserved top rows still fit.
 	const fitsTall = compact
 		? height - margin - (objectiveBottom + NAVIGATION_ROW_HEIGHT + 2)
 		: height - margin - labelLift - (objectiveBottom + 41 + gap + 18 + gap);
-	const requested = math.clamp(math.floor((options?.stickSize ?? JOYSTICK_SIZE) + 0.5), STICK_MIN_SIZE, STICK_MAX_SIZE);
+	const requested = math.clamp(
+		math.floor((options?.stickSize ?? JOYSTICK_SIZE) + 0.5),
+		STICK_MIN_SIZE,
+		STICK_MAX_SIZE,
+	);
 	const stick = math.max(STICK_MIN_SIZE, math.min(requested, stickFor(lane), fitsTall));
 	const joystick = { x: margin, y: height - margin - labelLift - stick, width: stick, height: stick };
 	const throttle = { ...joystick, x: width - margin - stick };
-	const throttleUpLabel = compact ? undefined : { x: throttle.x, y: throttle.y - labelLift, width: stick, height: THROTTLE_LABEL_HEIGHT };
-	const throttleDownLabel = compact ? undefined : { x: throttle.x, y: throttle.y + stick + 2, width: stick, height: THROTTLE_LABEL_HEIGHT };
+	const throttleUpLabel = compact
+		? undefined
+		: { x: throttle.x, y: throttle.y - labelLift, width: stick, height: THROTTLE_LABEL_HEIGHT };
+	const throttleDownLabel = compact
+		? undefined
+		: { x: throttle.x, y: throttle.y + stick + 2, width: stick, height: THROTTLE_LABEL_HEIGHT };
 	const centreX = math.floor(width / 2);
 	const bottom = height - margin;
 	const cell = (x: number, y: number): Rectangle => ({ x, y, width: button, height: button });
@@ -401,7 +515,12 @@ function getTouchLayout(width: number, height: number, options?: HudOptions): { 
 		[target, missile, special, evade] = [0, 1, 2, 3].map((index) => cell(left + index * (button + spacing), y));
 		const fireCentre = missile.x + button / 2;
 		const captionWidth = math.min(FIRE_CAPTION_WIDTH, math.floor(fireCentre - rightOf(joystick) - controlGap) * 2);
-		fireCaption = { x: math.floor(fireCentre - captionWidth / 2), y: missile.y - 2 - FIRE_CAPTION_HEIGHT, width: captionWidth, height: FIRE_CAPTION_HEIGHT };
+		fireCaption = {
+			x: math.floor(fireCentre - captionWidth / 2),
+			y: missile.y - 2 - FIRE_CAPTION_HEIGHT,
+			width: captionWidth,
+			height: FIRE_CAPTION_HEIGHT,
+		};
 	} else {
 		// TGT SPECIAL over FIRE EVADE, centred between the sticks.
 		const left = centreX - math.floor(controlGap / 2) - button;
@@ -421,23 +540,49 @@ function getTouchLayout(width: number, height: number, options?: HudOptions): { 
 		const taken = [joystick, throttle, missile, target, special, evade];
 		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption]) if (optional) taken.push(optional);
 		const above = (rectangle: Rectangle) => cell(rectangle.x, rectangle.y - controlGap - button);
-		const candidates = arrangement === "row"
-			? [above(target), above(special), above(evade), above(fireCaption ?? missile)]
-			: compact
-				// Studio's compact grid keeps SPEED/ALT above it: try beside the lower row instead.
-				? [cell(missile.x - controlGap - button, missile.y), cell(rightOf(evade) + controlGap, evade.y)]
-				: [above(target), above(special)];
+		const candidates =
+			arrangement === "row"
+				? [above(target), above(special), above(evade), above(fireCaption ?? missile)]
+				: compact
+					? // Studio's compact grid keeps SPEED/ALT above it: try beside the lower row instead.
+						[cell(missile.x - controlGap - button, missile.y), cell(rightOf(evade) + controlGap, evade.y)]
+					: [above(target), above(special)];
 		for (const candidate of candidates) {
-			if (candidate.y < reservedTop || !rectangleInside(candidate, width, height, margin) || !clear(candidate, taken)) continue;
+			if (
+				candidate.y < reservedTop ||
+				!rectangleInside(candidate, width, height, margin) ||
+				!clear(candidate, taken)
+			)
+				continue;
 			gun = candidate;
 			break;
 		}
 	}
-	return { touch: { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade, gun, button, arrangement }, fireCaption };
+	return {
+		touch: {
+			joystick,
+			throttle,
+			throttleUpLabel,
+			throttleDownLabel,
+			missile,
+			target,
+			special,
+			evade,
+			gun,
+			button,
+			arrangement,
+		},
+		fireCaption,
+	};
 }
 
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
-export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode, options?: HudOptions): HudLayout {
+export function getHudLayout(
+	viewportWidth: number,
+	viewportHeight: number,
+	inputMode: InputMode,
+	options?: HudOptions,
+): HudLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const touchMode = inputMode === "touch";
@@ -462,11 +607,19 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const callout = {
 		x: calloutX,
 		y: margin,
-		width: math.max(0, math.min(sizes.objectiveWidth, math.floor(width * OBJECTIVE_MAX_SHARE), width - margin - calloutX)),
+		width: math.max(
+			0,
+			math.min(sizes.objectiveWidth, math.floor(width * OBJECTIVE_MAX_SHARE), width - margin - calloutX),
+		),
 		height: compact ? 26 : scale === "large" ? metrics.row * 2 + 2 : OBJECTIVE_LINE_HEIGHT,
 	};
 	const topBottom = math.max(bottomOf(clock), bottomOf(callout), pause ? bottomOf(pause) : 0);
-	const navigation = { x: calloutX, y: bottomOf(callout) + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_SLOT_HEIGHT };
+	const navigation = {
+		x: calloutX,
+		y: bottomOf(callout) + 2,
+		width: NAVIGATION_CAPTION_WIDTH,
+		height: NAVIGATION_SLOT_HEIGHT,
+	};
 
 	let touch: TouchLayout | undefined;
 	let fireCaption: Rectangle | undefined;
@@ -482,7 +635,8 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		fireCaption = controls.fireCaption;
 		const { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade } = touch;
 		placed.push(joystick, throttle, missile, target, special, evade);
-		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption, touch.gun]) if (optional) placed.push(optional);
+		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption, touch.gun])
+			if (optional) placed.push(optional);
 		leftBottom = joystick.y - gap;
 		rightBottom = (throttleUpLabel?.y ?? throttle.y) - gap;
 	} else {
@@ -501,7 +655,9 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const statusPreferred = math.max(sizes.status, lineWidth(tightChars, statusFull));
 	const statusWidth = math.min(statusPreferred, math.max(statusMinWidth, forwardRight), width - margin * 2);
 	const statusSpaced = lineWidth(statusMaxChars(false), statusFull) <= statusWidth;
-	const statusText = statusSpaced ? statusFull : math.clamp(math.floor((statusWidth - STATUS_TEXT_PAD) / hudTextWidth(tightChars, 1)), minText, statusFull);
+	const statusText = statusSpaced
+		? statusFull
+		: math.clamp(math.floor((statusWidth - STATUS_TEXT_PAD) / hudTextWidth(tightChars, 1)), minText, statusFull);
 	const statusRow = math.max(sizes.statusRow, statusText + 2);
 	const statusHeight = sizes.statusBar + STATUS_GAP + statusRow;
 	const statusX = width - margin - statusWidth;
@@ -509,7 +665,9 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const outsideForward = (candidate: Rectangle) => !landscape || compact || !rectanglesOverlap(candidate, forward);
 	// On top of whatever is under its span: the throttle caption, or (portrait) a grid button reaching under it.
 	let statusBottom = rightBottom;
-	for (const rectangle of placed) if (rectangle.y > topBottom && rectangle.x < statusX + statusWidth && rightOf(rectangle) > statusX) statusBottom = math.min(statusBottom, rectangle.y - gap);
+	for (const rectangle of placed)
+		if (rectangle.y > topBottom && rectangle.x < statusX + statusWidth && rightOf(rectangle) > statusX)
+			statusBottom = math.min(statusBottom, rectangle.y - gap);
 	const bottomRight = { x: statusX, y: statusBottom - statusHeight, width: statusWidth, height: statusHeight };
 	const corner = { x: statusX, y: margin, width: statusWidth, height: statusHeight };
 	const besideObjective = placed.filter((rectangle) => rectangle !== callout);
@@ -517,13 +675,25 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	// Above the throttle; else the top-right corner, narrowing the objective (never below OBJECTIVE_MIN_WIDTH);
 	// else above the throttle reaching into the forward view's edge (crowded small roots at HUD SCALE 130%).
 	let statusFrame: Rectangle | undefined = bottomFits && outsideForward(bottomRight) ? bottomRight : undefined;
-	if (!statusFrame && bottomOf(corner) <= rightBottom && clear(corner, besideObjective) && outsideForward(corner) && corner.x - gap - callout.x >= OBJECTIVE_MIN_WIDTH) {
+	if (
+		!statusFrame &&
+		bottomOf(corner) <= rightBottom &&
+		clear(corner, besideObjective) &&
+		outsideForward(corner) &&
+		corner.x - gap - callout.x >= OBJECTIVE_MIN_WIDTH
+	) {
 		if (rectanglesOverlap(corner, callout)) callout.width = corner.x - gap - callout.x;
 		statusFrame = corner;
 	}
 	if (!statusFrame && bottomFits) statusFrame = bottomRight;
 	// Nothing fits (portrait slivers): the top-right corner regardless.
-	const status = statusPanel(statusFrame ?? { x: statusX, y: margin, width: statusWidth, height: statusHeight }, sizes.statusBar, statusRow, statusText, statusSpaced ? STATUS_SEPARATOR : STATUS_SEPARATOR_TIGHT);
+	const status = statusPanel(
+		statusFrame ?? { x: statusX, y: margin, width: statusWidth, height: statusHeight },
+		sizes.statusBar,
+		statusRow,
+		statusText,
+		statusSpaced ? STATUS_SEPARATOR : STATUS_SEPARATOR_TIGHT,
+	);
 	placed.push(status.frame);
 
 	// Left column: a square radar under the top row (above the steering stick on touch), as large as fits.
@@ -532,7 +702,11 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const radarLimit = math.min(sizes.radarMax, math.max(RADAR_MIN_SIZE, math.floor(height * 0.3)));
 	for (let size = math.min(radarLimit, leftBottom - (topBottom + gap)); size >= RADAR_MIN_SIZE; size -= 2) {
 		const candidate = { x: margin, y: leftBottom - size, width: size, height: size };
-		if (clear(candidate, [...placed, ...(hints ? [hints] : [])]) && outsideForward(candidate)) { radar = candidate; radarPlacement = "column"; break; }
+		if (clear(candidate, [...placed, ...(hints ? [hints] : [])]) && outsideForward(candidate)) {
+			radar = candidate;
+			radarPlacement = "column";
+			break;
+		}
 	}
 	if (!radar && !compact) {
 		// Short roots: the top-right corner, when the status panel left it free and the top row keeps a lane for the kill callout and toasts.
@@ -540,14 +714,21 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			const candidate = { x: width - margin - size, y: margin, width: size, height: size };
 			const laneLeft = rightOf(callout) + gap;
 			if (candidate.x - gap - laneLeft < KILL_MARKER_MIN_WIDTH) break;
-			if (bottomOf(candidate) <= rightBottom && clear(candidate, placed) && outsideForward(candidate)) { radar = candidate; radarPlacement = "corner"; break; }
+			if (bottomOf(candidate) <= rightBottom && clear(candidate, placed) && outsideForward(candidate)) {
+				radar = candidate;
+				radarPlacement = "corner";
+				break;
+			}
 		}
 	}
 	if (radar) placed.push(radar);
 
 	// Keyboard and gamepad hints: bottom-centre, narrowed between the radar and the status panel.
 	if (hints) {
-		hints = centredFree(math.floor(width / 2), hints.y, hints.height, hints.width, 0, placed, width, margin) ?? { ...hints, width: 0 };
+		hints = centredFree(math.floor(width / 2), hints.y, hints.height, hints.width, 0, placed, width, margin) ?? {
+			...hints,
+			width: 0,
+		};
 		if (hints.width > 0) placed.push(hints);
 	}
 
@@ -564,26 +745,71 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const cluster = (centreY: number, fit = 0) => {
 		const boxTop = centreY - math.floor(metrics.box / 2);
 		const top = boxTop - metrics.caption;
-		const reticle = reticleSize > 0 ? { x: centreX - reticleSize / 2, y: centreY - reticleSize / 2, width: reticleSize, height: reticleSize } : undefined;
+		const reticle =
+			reticleSize > 0
+				? {
+						x: centreX - reticleSize / 2,
+						y: centreY - reticleSize / 2,
+						width: reticleSize,
+						height: reticleSize,
+					}
+				: undefined;
 		const below = math.max(boxTop + metrics.box, reticle ? bottomOf(reticle) : 0) + 4;
-		let instrumentOffset = offset, warningWidth = alertWidth;
+		let instrumentOffset = offset,
+			warningWidth = alertWidth;
 		const sharedCue = fit >= 2;
 		if (fit >= 1) {
-			instrumentOffset = math.min(offset, freeHalf(centreX, top, metrics.caption + metrics.box, placed, width, margin) - sizes.instrument);
-			warningWidth = math.min(alertWidth, 2 * freeHalf(centreX, below, sizes.alertHeight + (sharedCue ? 0 : 2 + sizes.breakCue), placed, width, margin));
+			instrumentOffset = math.min(
+				offset,
+				freeHalf(centreX, top, metrics.caption + metrics.box, placed, width, margin) - sizes.instrument,
+			);
+			warningWidth = math.min(
+				alertWidth,
+				2 *
+					freeHalf(
+						centreX,
+						below,
+						sizes.alertHeight + (sharedCue ? 0 : 2 + sizes.breakCue),
+						placed,
+						width,
+						margin,
+					),
+			);
 		}
-		const speed = { x: centreX - instrumentOffset - sizes.instrument, y: top, width: sizes.instrument, height: metrics.caption + metrics.box };
-		const altitude = { x: centreX + instrumentOffset, y: top, width: sizes.instrument, height: metrics.caption + metrics.box };
-		const alert = { x: centreX - math.floor(warningWidth / 2), y: below, width: math.floor(warningWidth / 2) * 2, height: sizes.alertHeight };
+		const speed = {
+			x: centreX - instrumentOffset - sizes.instrument,
+			y: top,
+			width: sizes.instrument,
+			height: metrics.caption + metrics.box,
+		};
+		const altitude = {
+			x: centreX + instrumentOffset,
+			y: top,
+			width: sizes.instrument,
+			height: metrics.caption + metrics.box,
+		};
+		const alert = {
+			x: centreX - math.floor(warningWidth / 2),
+			y: below,
+			width: math.floor(warningWidth / 2) * 2,
+			height: sizes.alertHeight,
+		};
 		const breakCue = sharedCue ? alert : { ...alert, y: bottomOf(alert) + 2, height: sizes.breakCue };
 		const usable = instrumentOffset >= math.floor(reticleSize / 2) + 4 && alert.width >= ALERT_MIN_WIDTH;
 		return { speed, altitude, reticle, alert, breakCue, usable };
 	};
 	type Cluster = ReturnType<typeof cluster>;
-	const clusterRects = (candidate: Cluster) => [candidate.speed, candidate.altitude, ...(candidate.alert !== callout ? [candidate.alert] : []), ...(candidate.breakCue !== candidate.alert ? [candidate.breakCue] : []), ...(candidate.reticle ? [candidate.reticle] : [])];
+	const clusterRects = (candidate: Cluster) => [
+		candidate.speed,
+		candidate.altitude,
+		...(candidate.alert !== callout ? [candidate.alert] : []),
+		...(candidate.breakCue !== candidate.alert ? [candidate.breakCue] : []),
+		...(candidate.reticle ? [candidate.reticle] : []),
+	];
 	const fitsCluster = (candidate: Cluster) => {
 		if (!candidate.usable) return false;
-		for (const rectangle of clusterRects(candidate)) if (!rectangleInside(rectangle, width, height, margin) || !clear(rectangle, placed)) return false;
+		for (const rectangle of clusterRects(candidate))
+			if (!rectangleInside(rectangle, width, height, margin) || !clear(rectangle, placed)) return false;
 		return true;
 	};
 	let instruments: Cluster | undefined;
@@ -597,7 +823,12 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const top = touch.target.y - gap - instrumentHeight;
 		const speed = { x: touch.target.x, y: top, width: touch.target.width, height: instrumentHeight };
 		const altitude = { ...speed, x: touch.special.x };
-		let alert = { x: touch.target.x, y: top - 2 - sizes.alertHeight, width: rightOf(touch.special) - touch.target.x, height: sizes.alertHeight };
+		let alert = {
+			x: touch.target.x,
+			y: top - 2 - sizes.alertHeight,
+			width: rightOf(touch.special) - touch.target.x,
+			height: sizes.alertHeight,
+		};
 		if (alert.y < topBottom + 2) alert = callout;
 		instruments = { speed, altitude, reticle: undefined, alert, breakCue: alert, usable: true };
 	} else {
@@ -606,9 +837,15 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		for (const fit of [0, 1, 2]) {
 			for (let step = 0; !instruments && step <= height; step += 2) {
 				const up = cluster(ideal - step, fit);
-				if (fitsCluster(up)) { instruments = up; break; }
+				if (fitsCluster(up)) {
+					instruments = up;
+					break;
+				}
 				const down = cluster(ideal + step, fit);
-				if (fitsCluster(down)) { instruments = down; break; }
+				if (fitsCluster(down)) {
+					instruments = down;
+					break;
+				}
 				if (ideal - step < 0 && ideal + step > height) break;
 			}
 			if (instruments) break;
@@ -625,13 +862,23 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		let floor = height - margin;
 		for (const rectangle of placed) {
 			// Only what crosses the middle 120 px sets the floor; side columns just narrow the line.
-			if (rectangle.y > bottomOf(breakCue) && rectangle.x < centreX + 60 && rightOf(rectangle) > centreX - 60) floor = math.min(floor, rectangle.y);
+			if (rectangle.y > bottomOf(breakCue) && rectangle.x < centreX + 60 && rightOf(rectangle) > centreX - 60)
+				floor = math.min(floor, rectangle.y);
 		}
 		const room = floor - 4 - (bottomOf(breakCue) + 4);
 		const lines = math.min(SUBTITLE_LINES, math.floor(room / metrics.row));
 		if (lines >= 1) {
 			const lineHeight = lines * metrics.row;
-			subtitle = centredFree(centreX, floor - 4 - lineHeight, lineHeight, sizes.subtitleWidth, 120, placed, width, margin);
+			subtitle = centredFree(
+				centreX,
+				floor - 4 - lineHeight,
+				lineHeight,
+				sizes.subtitleWidth,
+				120,
+				placed,
+				width,
+				margin,
+			);
 			if (subtitle) placed.push(subtitle);
 		}
 	}
@@ -645,20 +892,46 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	let navigationRight = math.min(navigation.x + NAVIGATION_CAPTION_MAX_WIDTH, width - margin);
 	let navigationBottom = navigation.y + NAVIGATION_SLOT_HEIGHT;
 	for (const rectangle of placed) {
-		if (rectangle.y < navigationBottom && bottomOf(rectangle) > navigation.y && rectangle.x >= navigation.x + NAVIGATION_CAPTION_WIDTH / 2) navigationRight = math.min(navigationRight, rectangle.x - gap);
+		if (
+			rectangle.y < navigationBottom &&
+			bottomOf(rectangle) > navigation.y &&
+			rectangle.x >= navigation.x + NAVIGATION_CAPTION_WIDTH / 2
+		)
+			navigationRight = math.min(navigationRight, rectangle.x - gap);
 	}
 	navigation.width = compact ? navigation.width : math.max(0, navigationRight - navigation.x);
 	// Anything under it ends the slot; an instrument crossing its top edge (crowded touch roots, large sticks) empties it.
 	for (const rectangle of placed) {
-		if (rectangle.x < navigation.x + navigation.width && rightOf(rectangle) > navigation.x && bottomOf(rectangle) > navigation.y) navigationBottom = math.min(navigationBottom, rectangle.y - 2);
+		if (
+			rectangle.x < navigation.x + navigation.width &&
+			rightOf(rectangle) > navigation.x &&
+			bottomOf(rectangle) > navigation.y
+		)
+			navigationBottom = math.min(navigationBottom, rectangle.y - 2);
 	}
 	navigation.height = math.max(0, math.min(NAVIGATION_SLOT_HEIGHT, navigationBottom - navigation.y));
 	// An empty slot is empty both ways; the floating caption then always has to find its own spot.
 	if (navigation.height <= 0) navigation.width = 0;
 
 	return {
-		margin, metrics, clock, callout, navigation, pause, reticle, speed, altitude, alert, breakCue,
-		radar, radarPlacement, status, subtitle, fireCaption, hints, touch,
+		margin,
+		metrics,
+		clock,
+		callout,
+		navigation,
+		pause,
+		reticle,
+		speed,
+		altitude,
+		alert,
+		breakCue,
+		radar,
+		radarPlacement,
+		status,
+		subtitle,
+		fireCaption,
+		hints,
+		touch,
 	};
 }
 
@@ -668,7 +941,12 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
  * (still above the forward view). The Studio compact root has room for
  * neither and borrows the alert lane for the moment.
  */
-export function getKillMarkerLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode, options?: HudOptions): Rectangle {
+export function getKillMarkerLayout(
+	viewportWidth: number,
+	viewportHeight: number,
+	inputMode: InputMode,
+	options?: HudOptions,
+): Rectangle {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const hud = getHudLayout(width, height, inputMode, options);
@@ -677,12 +955,27 @@ export function getKillMarkerLayout(viewportWidth: number, viewportHeight: numbe
 	const forward = getHudCentreBox(width, height);
 	const laneLeft = rightOf(hud.callout) + gap;
 	const laneRight = topLaneRight(laneLeft, hud.margin, KILL_MARKER_HEIGHT, obstacles, width - hud.margin, gap);
-	const fits = (candidate: Rectangle) => candidate.width >= KILL_MARKER_MIN_WIDTH && bottomOf(candidate) <= forward.y && clear(candidate, obstacles);
+	const fits = (candidate: Rectangle) =>
+		candidate.width >= KILL_MARKER_MIN_WIDTH && bottomOf(candidate) <= forward.y && clear(candidate, obstacles);
 	const laneWidth = math.min(KILL_MARKER_MAX_WIDTH, laneRight - laneLeft);
-	const lane = { x: laneLeft + math.floor((laneRight - laneLeft - laneWidth) / 2), y: hud.margin, width: laneWidth, height: KILL_MARKER_HEIGHT };
+	const lane = {
+		x: laneLeft + math.floor((laneRight - laneLeft - laneWidth) / 2),
+		y: hud.margin,
+		width: laneWidth,
+		height: KILL_MARKER_HEIGHT,
+	};
 	if (fits(lane)) return lane;
 	const below = math.max(bottomOf(hud.callout), bottomOf(hud.clock), hud.pause ? bottomOf(hud.pause) : 0) + gap;
-	const banner = centredFree(math.floor(width / 2), below, KILL_MARKER_HEIGHT, KILL_MARKER_MAX_WIDTH, KILL_MARKER_MIN_WIDTH, obstacles, width, hud.margin);
+	const banner = centredFree(
+		math.floor(width / 2),
+		below,
+		KILL_MARKER_HEIGHT,
+		KILL_MARKER_MAX_WIDTH,
+		KILL_MARKER_MIN_WIDTH,
+		obstacles,
+		width,
+		hud.margin,
+	);
 	if (banner && fits(banner)) return banner;
 	return hud.alert;
 }
@@ -722,25 +1015,44 @@ export function getMenuLayout(viewportWidth: number, viewportHeight: number): Me
 	return {
 		mode: "sheet",
 		compact: panelHeight < 400,
-		panel: { x: math.floor((width - panelWidth) / 2), y: height - margin - panelHeight, width: panelWidth, height: panelHeight },
+		panel: {
+			x: math.floor((width - panelWidth) / 2),
+			y: height - margin - panelHeight,
+			width: panelWidth,
+			height: panelHeight,
+		},
 	};
 }
 
 /** Status toasts stay clear of the menu panel, or of the mission HUD (for that input mode) when no menu is shown. */
-export function getToastLayout(viewportWidth: number, viewportHeight: number, menu?: MenuLayout, inputMode: InputMode = "keyboard", options?: HudOptions): Rectangle {
+export function getToastLayout(
+	viewportWidth: number,
+	viewportHeight: number,
+	menu?: MenuLayout,
+	inputMode: InputMode = "keyboard",
+	options?: HudOptions,
+): Rectangle {
 	const width = math.max(1, viewportWidth);
 	const toastHeight = 44;
 	if (menu?.mode === "side") {
 		const left = menu.panel.x + menu.panel.width + 16;
 		const toastWidth = math.min(380, width - left - 16);
-		return { x: left + math.floor((width - left - 16 - toastWidth) / 2), y: 16, width: toastWidth, height: toastHeight };
+		return {
+			x: left + math.floor((width - left - 16 - toastWidth) / 2),
+			y: 16,
+			width: toastWidth,
+			height: toastHeight,
+		};
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, inputMode, options);
 	const height = math.max(1, viewportHeight);
 	const obstacles = hudObstacles(hud);
-	const free = (candidate: Rectangle) => candidate.width >= 1 && candidate.height >= 1 && rectangleInside(candidate, width, height, 0)
-		&& !obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
+	const free = (candidate: Rectangle) =>
+		candidate.width >= 1 &&
+		candidate.height >= 1 &&
+		rectangleInside(candidate, width, height, 0) &&
+		!obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
 	const missionToastHeight = hud.metrics.scale === "compact" ? ALERT_HEIGHT : 30;
 	const candidates: Rectangle[] = [];
 	// In a mission the toast lives in the top row right of the objective, so it never enters the forward view.
@@ -748,14 +1060,41 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	const right = topLaneRight(left, hud.callout.y, missionToastHeight, obstacles, width - hud.margin, 8);
 	if (right - left >= (hud.metrics.scale === "compact" ? 96 : 120)) {
 		const toastWidth = math.min(380, right - left);
-		candidates.push({ x: left + math.floor((right - left - toastWidth) / 2), y: hud.callout.y, width: toastWidth, height: missionToastHeight });
+		candidates.push({
+			x: left + math.floor((right - left - toastWidth) / 2),
+			y: hud.callout.y,
+			width: toastWidth,
+			height: missionToastHeight,
+		});
 	}
 	// Otherwise a banner under the top row, then the column under the navigation slot.
-	const topBottom = math.max(hud.callout.y + hud.callout.height, hud.clock.y + hud.clock.height, hud.pause ? hud.pause.y + hud.pause.height : 0);
-	const banner = centredFree(math.floor(width / 2), topBottom + 8, missionToastHeight, math.min(380, math.floor(width * 0.5)), 140, obstacles, width, hud.margin);
+	const topBottom = math.max(
+		hud.callout.y + hud.callout.height,
+		hud.clock.y + hud.clock.height,
+		hud.pause ? hud.pause.y + hud.pause.height : 0,
+	);
+	const banner = centredFree(
+		math.floor(width / 2),
+		topBottom + 8,
+		missionToastHeight,
+		math.min(380, math.floor(width * 0.5)),
+		140,
+		obstacles,
+		width,
+		hud.margin,
+	);
 	if (banner) candidates.push(banner);
 	const below = hud.navigation.y + hud.navigation.height + 8;
-	const beside = centredFree(math.floor(width / 2), below, missionToastHeight, math.min(380, width - hud.margin * 2), 140, obstacles, width, hud.margin);
+	const beside = centredFree(
+		math.floor(width / 2),
+		below,
+		missionToastHeight,
+		math.min(380, width - hud.margin * 2),
+		140,
+		obstacles,
+		width,
+		hud.margin,
+	);
 	if (beside) candidates.push(beside);
 	// Compact: the right column between the status panel and the throttle stick.
 	if (hud.touch) {
@@ -774,7 +1113,16 @@ export function hudObstacles(hud: HudLayout): Rectangle[] {
 	// Compact roots may share rows: the warning with the objective, the break cue with the warning.
 	if (hud.alert !== hud.callout) rectangles.push(hud.alert);
 	if (hud.breakCue !== hud.alert) rectangles.push(hud.breakCue);
-	for (const optional of [hud.navigation, hud.reticle, hud.subtitle, hud.hints, hud.pause, hud.radar, hud.fireCaption]) if (optional && optional.width > 0) rectangles.push(optional);
+	for (const optional of [
+		hud.navigation,
+		hud.reticle,
+		hud.subtitle,
+		hud.hints,
+		hud.pause,
+		hud.radar,
+		hud.fireCaption,
+	])
+		if (optional && optional.width > 0) rectangles.push(optional);
 	const touch = hud.touch;
 	if (touch) {
 		rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade);
@@ -806,7 +1154,8 @@ export function inputModeFromPreferred(name: string): InputMode | undefined {
 export function inputModeFromInputType(name: string): InputMode | undefined {
 	if (name === "Touch") return "touch";
 	if (name.sub(1, 7) === "Gamepad") return "gamepad";
-	if (name === "Keyboard" || name === "MouseMovement" || name === "MouseWheel" || name.sub(1, 11) === "MouseButton") return "keyboard";
+	if (name === "Keyboard" || name === "MouseMovement" || name === "MouseWheel" || name.sub(1, 11) === "MouseButton")
+		return "keyboard";
 	return undefined;
 }
 
@@ -814,7 +1163,11 @@ export function inputModeFromInputType(name: string): InputMode | undefined {
  * Hybrid devices can report mouse or gamepad activity mid-drag. Leaving touch
  * waits until the active joystick touch ends so the stick is always released.
  */
-export function shouldAcceptInputModeChange(current: InputMode, nextMode: InputMode, touchDragActive: boolean): boolean {
+export function shouldAcceptInputModeChange(
+	current: InputMode,
+	nextMode: InputMode,
+	touchDragActive: boolean,
+): boolean {
 	if (current === nextMode) return false;
 	return !(touchDragActive && current === "touch");
 }
@@ -842,11 +1195,17 @@ export const MAX_FLIGHT_HINTS = 2;
 export function getFlightHints(inputMode: InputMode, context: FlightHintContext): ControlHint[] {
 	if (inputMode === "touch") return [];
 	const gamepad = inputMode === "gamepad";
-	const fire: ControlHint = gamepad ? { keyCode: "ButtonR2", label: "RT", action: "FIRE" } : { label: "SPACE", action: "FIRE" };
+	const fire: ControlHint = gamepad
+		? { keyCode: "ButtonR2", label: "RT", action: "FIRE" }
+		: { label: "SPACE", action: "FIRE" };
 	if (context.locked && context.missileReady) return [fire];
 	if (context.introduction) {
-		const target: ControlHint = gamepad ? { keyCode: "ButtonY", label: "Y", action: "TARGET" } : { label: "TAB", action: "TARGET" };
-		const fly: ControlHint = gamepad ? { keyCode: "Thumbstick1", label: "LS", action: "FLY" } : { label: "WASD", action: "FLY" };
+		const target: ControlHint = gamepad
+			? { keyCode: "ButtonY", label: "Y", action: "TARGET" }
+			: { label: "TAB", action: "TARGET" };
+		const fly: ControlHint = gamepad
+			? { keyCode: "Thumbstick1", label: "LS", action: "FLY" }
+			: { label: "WASD", action: "FLY" };
 		return [fly, target];
 	}
 	return [];
@@ -856,16 +1215,20 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 export function getMovementIndicatorLayout(area: Rectangle, textSize: number): Rectangle[] {
 	// Each half must fit the longest cell: "Tap W/S ↑↓ 0/3s" (15 characters).
 	const stack = area.width < hudTextWidth(30, textSize);
-	return [0, 1].map(index => ({
-		x: area.x + (stack ? 0 : index * area.width / 2),
-		y: area.y + (stack ? index * area.height / 2 : 0),
+	return [0, 1].map((index) => ({
+		x: area.x + (stack ? 0 : (index * area.width) / 2),
+		y: area.y + (stack ? (index * area.height) / 2 : 0),
 		width: stack ? area.width : area.width / 2,
 		height: stack ? area.height / 2 : area.height,
 	}));
 }
 
 /** Two cells share the existing objective row; unfinished controls keep the amber teaching emphasis. */
-export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: number): { text: string; done: boolean }[] {
+export function getMovementIndicators(
+	mode: InputMode,
+	turn?: number,
+	pitch?: number,
+): { text: string; done: boolean }[] {
 	const labels = mode === "keyboard" ? ["A/D", "W/S ↑↓"] : mode === "touch" ? ["L ↔", "L ↑↓"] : ["LS ↔", "LS ↑↓"];
 	return [turn ?? -1, pitch ?? -1].map((value, index) => {
 		const known = value >= 0 && value === value && math.abs(value) !== math.huge;
@@ -877,9 +1240,24 @@ export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: nu
 
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
-	if (step === "move") return mode === "touch" ? "Tap L turn/pitch; 3s total each" : mode === "gamepad" ? "Tap LS turn/pitch; 3s total each" : "Tap A/D, W/S; 3s total each";
-	if (step === "target") return mode === "touch" ? "Tap radar box or TGT to select it" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
-	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
+	if (step === "move")
+		return mode === "touch"
+			? "Tap L turn/pitch; 3s total each"
+			: mode === "gamepad"
+				? "Tap LS turn/pitch; 3s total each"
+				: "Tap A/D, W/S; 3s total each";
+	if (step === "target")
+		return mode === "touch"
+			? "Tap radar box or TGT to select it"
+			: mode === "gamepad"
+				? "Press Y to select the radar"
+				: "Press Tab to select the radar";
+	if (step === "missile")
+		return mode === "touch"
+			? "Hold the lock, then tap FIRE"
+			: mode === "gamepad"
+				? "Hold the lock, then press RT"
+				: "Hold the lock, then press Space";
 	return "";
 }
 
@@ -888,7 +1266,12 @@ export function rectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
 }
 
 export function rectangleInside(inner: Rectangle, width: number, height: number, inset = 0): boolean {
-	return inner.x >= inset && inner.y >= inset && inner.x + inner.width <= width - inset && inner.y + inner.height <= height - inset;
+	return (
+		inner.x >= inset &&
+		inner.y >= inset &&
+		inner.x + inner.width <= width - inset &&
+		inner.y + inner.height <= height - inset
+	);
 }
 
 /**
@@ -919,15 +1302,34 @@ export function getPauseLayout(viewportWidth: number, viewportHeight: number): P
 	const panelWidth = math.min(300, width - 24);
 	// Too short for a column of three (Studio compact): one row of three buttons.
 	const row = available < MIN_TOUCH_TARGET * 3;
-	const panelHeight = row ? padding * 2 + titleHeight + gap + MIN_TOUCH_TARGET : padding * 2 + titleHeight + gap * 3 + button * 3;
-	const panel = { x: math.floor((width - panelWidth) / 2), y: math.max(6, math.floor((height - panelHeight) / 2)), width: panelWidth, height: panelHeight };
+	const panelHeight = row
+		? padding * 2 + titleHeight + gap + MIN_TOUCH_TARGET
+		: padding * 2 + titleHeight + gap * 3 + button * 3;
+	const panel = {
+		x: math.floor((width - panelWidth) / 2),
+		y: math.max(6, math.floor((height - panelHeight) / 2)),
+		width: panelWidth,
+		height: panelHeight,
+	};
 	const title = { x: padding, y: padding, width: panelWidth - padding * 2, height: titleHeight };
 	const buttons: Rectangle[] = [];
 	const cell = math.floor((panelWidth - padding * 2 - gap * 2) / 3);
 	for (let index = 0; index < 3; index++) {
-		buttons.push(row
-			? { x: padding + index * (cell + gap), y: title.y + titleHeight + gap, width: cell, height: MIN_TOUCH_TARGET }
-			: { x: padding, y: title.y + titleHeight + gap + index * (button + gap), width: panelWidth - padding * 2, height: button });
+		buttons.push(
+			row
+				? {
+						x: padding + index * (cell + gap),
+						y: title.y + titleHeight + gap,
+						width: cell,
+						height: MIN_TOUCH_TARGET,
+					}
+				: {
+						x: padding,
+						y: title.y + titleHeight + gap + index * (button + gap),
+						width: panelWidth - padding * 2,
+						height: button,
+					},
+		);
 	}
 	return { panel, title, buttons };
 }
@@ -957,11 +1359,29 @@ export function getSettingsLayout(viewportWidth: number, viewportHeight: number)
 	const headerHeight = height < 240 ? 22 : 30;
 	const rowHeight = MIN_TOUCH_TARGET + 4;
 	const panelWidth = math.min(460, width - 16);
-	const panelHeight = math.min(height - 12, padding * 2 + headerHeight + 6 + SETTINGS_ROWS * rowHeight + 8 + MIN_TOUCH_TARGET);
-	const panel = { x: math.floor((width - panelWidth) / 2), y: math.floor((height - panelHeight) / 2), width: panelWidth, height: panelHeight };
+	const panelHeight = math.min(
+		height - 12,
+		padding * 2 + headerHeight + 6 + SETTINGS_ROWS * rowHeight + 8 + MIN_TOUCH_TARGET,
+	);
+	const panel = {
+		x: math.floor((width - panelWidth) / 2),
+		y: math.floor((height - panelHeight) / 2),
+		width: panelWidth,
+		height: panelHeight,
+	};
 	const header = { x: padding, y: padding, width: panelWidth - padding * 2, height: headerHeight };
-	const done = { x: padding, y: panelHeight - padding - MIN_TOUCH_TARGET, width: panelWidth - padding * 2, height: MIN_TOUCH_TARGET };
+	const done = {
+		x: padding,
+		y: panelHeight - padding - MIN_TOUCH_TARGET,
+		width: panelWidth - padding * 2,
+		height: MIN_TOUCH_TARGET,
+	};
 	const listTop = header.y + headerHeight + 6;
-	const list = { x: padding, y: listTop, width: panelWidth - padding * 2, height: math.max(rowHeight, done.y - 8 - listTop) };
+	const list = {
+		x: padding,
+		y: listTop,
+		width: panelWidth - padding * 2,
+		height: math.max(rowHeight, done.y - 8 - listTop),
+	};
 	return { panel, header, list, rowHeight, done, control: MIN_TOUCH_TARGET, valueWidth: panelWidth < 360 ? 52 : 64 };
 }

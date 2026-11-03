@@ -1,10 +1,25 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { WeaponRules } from "../shared/WeaponRules";
 
-interface Candidate { position: { x: number; y: number; z: number }; allowed: boolean }
-function candidate(x: number, y: number, z: number, allowed = true): Candidate { return { position: { x, y, z }, allowed }; }
-function fuse(from: { x: number; y: number; z: number }, to: { x: number; y: number; z: number }, candidates: Candidate[]): number | undefined {
-	return WeaponRules.Fuse(from, to, candidates, (c) => c.position, (c) => c.allowed);
+interface Candidate {
+	position: { x: number; y: number; z: number };
+	allowed: boolean;
+}
+function candidate(x: number, y: number, z: number, allowed = true): Candidate {
+	return { position: { x, y, z }, allowed };
+}
+function fuse(
+	from: { x: number; y: number; z: number },
+	to: { x: number; y: number; z: number },
+	candidates: Candidate[],
+): number | undefined {
+	return WeaponRules.Fuse(
+		from,
+		to,
+		candidates,
+		(c) => c.position,
+		(c) => c.allowed,
+	);
 }
 const launchReady = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 900, dot: 1 };
 
@@ -59,17 +74,27 @@ describe("WeaponRules launch decision", () => {
 		// Air targets: 40 degree half-cone out to 1800 studs.
 		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.AirLockRange + 1 }).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.LockDot - 0.01 }).kind).toBe("blind");
-		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.AirLockRange, dot: WeaponRules.LockDot }).kind).toBe("guided");
+		expect(
+			WeaponRules.Launch({ ...launchReady, distance: WeaponRules.AirLockRange, dot: WeaponRules.LockDot }).kind,
+		).toBe("guided");
 		expect(WeaponRules.LockDot).toBeCloseTo(math.cos(math.rad(40)), 6);
 		expect(WeaponRules.AirLockRange).toBe(1800);
 		// Ground targets keep the wide cone and the long range.
-		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange, groundTarget: true }).kind).toBe("guided");
-		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange + 1, groundTarget: true }).kind).toBe("blind");
+		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange, groundTarget: true }).kind).toBe(
+			"guided",
+		);
+		expect(
+			WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange + 1, groundTarget: true }).kind,
+		).toBe("blind");
 		expect(WeaponRules.EnvelopeRange(WeaponRules.LockRange, false)).toBeCloseTo(WeaponRules.AirLockRange, 6);
 		expect(WeaponRules.EnvelopeRange(3000, true)).toBe(3000);
 		// Ground targets lock through the wider cone; a protected target never gets a guided shot.
-		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: true }).kind).toBe("guided");
-		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: false }).kind).toBe("blind");
+		expect(
+			WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: true }).kind,
+		).toBe("guided");
+		expect(
+			WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: false }).kind,
+		).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, canDamage: false }).kind).toBe("blind");
 	});
 	it("refuses with a reason only for ammo and cooldown, ammo first", () => {
@@ -82,7 +107,9 @@ describe("WeaponRules launch decision", () => {
 		expect(both.kind === "denied" && both.reason).toBe("no_ammo");
 		expect(WeaponRules.Launch({ ...launchReady, missiles: 0 / 0 }).kind).toBe("denied");
 		// A blind shot never needs a target: nothing is refused for "no target".
-		expect(WeaponRules.Launch({ ...launchReady, hasTarget: false, lockProgress: 0, distance: 0 / 0, dot: 0 / 0 }).kind).toBe("blind");
+		expect(
+			WeaponRules.Launch({ ...launchReady, hasTarget: false, lockProgress: 0, distance: 0 / 0, dot: 0 / 0 }).kind,
+		).toBe("blind");
 	});
 });
 
@@ -115,20 +142,67 @@ describe("WeaponRules proximity fuse", () => {
 
 describe("WeaponRules FIRE button state", () => {
 	it("reports EMPTY, cooldown seconds, lock progress and a filled FIRE when locked", () => {
-		expect(WeaponRules.FireButton(0, 0, true, 1)).toEqual({ text: "EMPTY", filled: false, enabled: true, dimmed: true });
-		expect(WeaponRules.FireButton(3, 0.84, true, 1)).toEqual({ text: "0.8", filled: false, enabled: true, dimmed: true });
-		expect(WeaponRules.FireButton(3, 0, true, 0.6)).toEqual({ text: "LOCK 60%", filled: false, enabled: true, dimmed: true });
-		expect(WeaponRules.FireButton(3, 0, true, 0.99)).toEqual({ text: "FIRE", filled: true, enabled: true, dimmed: false });
+		expect(WeaponRules.FireButton(0, 0, true, 1)).toEqual({
+			text: "EMPTY",
+			filled: false,
+			enabled: true,
+			dimmed: true,
+		});
+		expect(WeaponRules.FireButton(3, 0.84, true, 1)).toEqual({
+			text: "0.8",
+			filled: false,
+			enabled: true,
+			dimmed: true,
+		});
+		expect(WeaponRules.FireButton(3, 0, true, 0.6)).toEqual({
+			text: "LOCK 60%",
+			filled: false,
+			enabled: true,
+			dimmed: true,
+		});
+		expect(WeaponRules.FireButton(3, 0, true, 0.99)).toEqual({
+			text: "FIRE",
+			filled: true,
+			enabled: true,
+			dimmed: false,
+		});
 	});
 	it("stays an enabled, unfilled FIRE (blind shot) without a target or lock", () => {
-		expect(WeaponRules.FireButton(3, 0, false, 1)).toEqual({ text: "FIRE", filled: false, enabled: true, dimmed: false });
-		expect(WeaponRules.FireButton(3, 0, true, 0)).toEqual({ text: "FIRE", filled: false, enabled: true, dimmed: false });
-		expect(WeaponRules.FireButton(3, 0, true, 0 / 0)).toEqual({ text: "FIRE", filled: false, enabled: true, dimmed: false });
+		expect(WeaponRules.FireButton(3, 0, false, 1)).toEqual({
+			text: "FIRE",
+			filled: false,
+			enabled: true,
+			dimmed: false,
+		});
+		expect(WeaponRules.FireButton(3, 0, true, 0)).toEqual({
+			text: "FIRE",
+			filled: false,
+			enabled: true,
+			dimmed: false,
+		});
+		expect(WeaponRules.FireButton(3, 0, true, 0 / 0)).toEqual({
+			text: "FIRE",
+			filled: false,
+			enabled: true,
+			dimmed: false,
+		});
 		expect(WeaponRules.FireButton(0 / 0, 0, true, 1).text).toBe("EMPTY");
 	});
 });
 
- describe("responsive acquisition tuning", () => { it("acquires within half a second without weakening the damage gate", () => {
- expect(WeaponRules.LockBuildSeconds).toBe(0.45);
- expect(WeaponRules.Launch({missiles: 3, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 200, dot: 1, canDamage: false}).kind).toBe("blind");
- }); });
+describe("responsive acquisition tuning", () => {
+	it("acquires within half a second without weakening the damage gate", () => {
+		expect(WeaponRules.LockBuildSeconds).toBe(0.45);
+		expect(
+			WeaponRules.Launch({
+				missiles: 3,
+				missileCooldown: 0,
+				hasTarget: true,
+				lockProgress: 1,
+				distance: 200,
+				dot: 1,
+				canDamage: false,
+			}).kind,
+		).toBe("blind");
+	});
+});

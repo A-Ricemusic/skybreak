@@ -21,7 +21,8 @@ describe("launch loading screen lifetime", () => {
 	});
 	it("restores briefing eligibility after refusal, build failure or timeout and ignores late readiness", () => {
 		for (const phase of ["building", "queued", "preloading"]) {
-			const launch = new LaunchLoading(); launch.Begin();
+			const launch = new LaunchLoading();
+			launch.Begin();
 			if (phase === "queued") launch.Queued();
 			if (phase === "preloading") launch.Preload();
 			launch.Fail();
@@ -55,10 +56,13 @@ describe("launch loading screen lifetime", () => {
 		expect(launch.Pending()).toBe(true);
 	});
 	it("expires queued cleanup but leaves post-build replication to its existing watchdog", () => {
-		const launch = new LaunchLoading(); launch.Begin(0); launch.Queued();
+		const launch = new LaunchLoading();
+		launch.Begin(0);
+		launch.Queued();
 		expect(launch.Watchdog(launch.Generation(), LAUNCH_REQUEST_TIMEOUT)).toBe(true);
 		expect(launch.Screen()).toBe("briefing");
-		launch.Begin(1000); launch.Preload();
+		launch.Begin(1000);
+		launch.Preload();
 		expect(launch.Watchdog(launch.Generation(), 1000 + LAUNCH_REQUEST_TIMEOUT)).toBe(false);
 		expect(launch.Phase()).toBe("preloading");
 	});
@@ -67,19 +71,24 @@ describe("launch loading screen lifetime", () => {
 		cancellation.Cancel(1);
 		expect(cancellation.Cancelled(1)).toBe(true);
 		expect(cancellation.Cancelled(2)).toBe(false);
-		cancellation.Cancel(3); cancellation.Cancel(1);
+		cancellation.Cancel(3);
+		cancellation.Cancel(1);
 		expect(cancellation.Cancelled(3)).toBe(true);
 		expect(cancellation.Cancelled(4)).toBe(false);
 	});
 
 	it("queues on the same loading screen, then builds and preloads without allowing a second launch", () => {
-		const launch = new LaunchLoading(); launch.Begin(); launch.Queued();
+		const launch = new LaunchLoading();
+		launch.Begin();
+		launch.Queued();
 		expect(launch.Phase()).toBe("queued");
 		expect(launch.Screen()).toBe("loading");
 		expect(launch.Begin()).toBe(false);
-		launch.Building(); expect(launch.Phase()).toBe("building");
+		launch.Building();
+		expect(launch.Phase()).toBe("building");
 		expect(launch.Preload()).toBe(true);
-		launch.Queued(); launch.Building();
+		launch.Queued();
+		launch.Building();
 		expect(launch.Phase()).toBe("preloading");
 		expect(launch.Started()).toBe(true);
 	});

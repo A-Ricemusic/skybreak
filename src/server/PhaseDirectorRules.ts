@@ -9,6 +9,11 @@ export function fixedRaiders(blueprint: MissionBlueprint | undefined): boolean {
 
 /** Authored arrivals use their exact count, without the legacy extra-raider wave rule. */
 export function authoredAirRequest(arrival: FighterArrival | StandaloneAce): AirRequest {
- return { arrival, role: "name" in arrival ? "ace" : arrival.role,
-  count: "name" in arrival ? 1 : arrival.count, behind: false, call: arrival.call };
+	return {
+		arrival,
+		role: "name" in arrival ? "ace" : arrival.role,
+		count: "name" in arrival ? 1 : arrival.count,
+		behind: false,
+		call: arrival.call,
+	};
 }

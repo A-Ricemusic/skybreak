@@ -14,8 +14,14 @@ function finiteVector(v: Vector3): boolean {
  * origin, not the last segment's origin or the surface contact position.
  * As with Spherecast, initial overlaps are not detected. Callers own filters.
  */
-export function sphereSweep(origin: Vector3, radius: number, delta: Vector3, params: RaycastParams): { hit: RaycastResult; distance: number } | undefined {
-	if (!finiteVector(origin) || !finiteVector(delta) || !FlightMath.IsFinite(radius) || radius <= 0 || radius > 256) return undefined;
+export function sphereSweep(
+	origin: Vector3,
+	radius: number,
+	delta: Vector3,
+	params: RaycastParams,
+): { hit: RaycastResult; distance: number } | undefined {
+	if (!finiteVector(origin) || !finiteVector(delta) || !FlightMath.IsFinite(radius) || radius <= 0 || radius > 256)
+		return undefined;
 	const length = delta.Magnitude;
 	// Reject corrupt paths rather than spending unbounded time in the render loop.
 	// One million studs is far beyond any mission/correction, not an airspeed cap.
@@ -24,7 +30,12 @@ export function sphereSweep(origin: Vector3, radius: number, delta: Vector3, par
 	const count = math.ceil(length / SPHERE_SEGMENT_LENGTH);
 	for (let i = 0; i < count; i++) {
 		const offset = i * SPHERE_SEGMENT_LENGTH;
-		const hit = Workspace.Spherecast(origin.add(unit.mul(offset)), radius, unit.mul(math.min(SPHERE_SEGMENT_LENGTH, length - offset)), params);
+		const hit = Workspace.Spherecast(
+			origin.add(unit.mul(offset)),
+			radius,
+			unit.mul(math.min(SPHERE_SEGMENT_LENGTH, length - offset)),
+			params,
+		);
 		if (hit) return { hit, distance: offset + hit.Distance };
 	}
 	return undefined;

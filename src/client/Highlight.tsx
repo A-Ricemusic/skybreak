@@ -15,12 +15,15 @@ export function useHighlight(enabled: boolean) {
 	const mode = useContext(InputModeContext);
 	const [hovered, setHovered] = useState(false);
 	const [selected, setSelected] = useState(false);
-	const events = useMemo(() => ({
-		MouseEnter: () => setHovered(true),
-		MouseLeave: () => setHovered(false),
-		SelectionGained: () => setSelected(true),
-		SelectionLost: () => setSelected(false),
-	}), []);
+	const events = useMemo(
+		() => ({
+			MouseEnter: () => setHovered(true),
+			MouseLeave: () => setHovered(false),
+			SelectionGained: () => setSelected(true),
+			SelectionLost: () => setSelected(false),
+		}),
+		[],
+	);
 	return {
 		hot: enabled && ((mode === "keyboard" && hovered) || (mode === "gamepad" && selected)),
 		events,

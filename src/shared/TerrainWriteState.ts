@@ -7,7 +7,14 @@ export class TerrainWriteState {
 		this.clear();
 		this.dirty = false;
 	}
-	public BeginWrite(): void { this.ClearIfDirty(); this.dirty = true; }
-	public MarkClean(): void { this.dirty = false; }
-	public Dirty(): boolean { return this.dirty; }
+	public BeginWrite(): void {
+		this.ClearIfDirty();
+		this.dirty = true;
+	}
+	public MarkClean(): void {
+		this.dirty = false;
+	}
+	public Dirty(): boolean {
+		return this.dirty;
+	}
 }

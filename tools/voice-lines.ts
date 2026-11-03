@@ -6,14 +6,17 @@
 //   bun tools/voice-lines.ts --check                          fail when lines.json is stale
 // System text (objective labels, flare/drone notices, mission results) is never
 // in the catalog's radio fields, so it is never voiced.
-import {resolve} from "node:path";
-const root=resolve(import.meta.dir,".."),dir=resolve(root,"build/offline-relay"),out=resolve(root,"assets/voice/lines.json");
-if(!(await Bun.file(resolve(dir,"MissionCatalog.luau")).exists()))throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
-const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
-if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI.");
-const casting=await Bun.file(resolve(root,"assets/voice/casting.json")).json();
+import { resolve } from "node:path";
+const root = resolve(import.meta.dir, ".."),
+	dir = resolve(root, "build/offline-relay"),
+	out = resolve(root, "assets/voice/lines.json");
+if (!(await Bun.file(resolve(dir, "MissionCatalog.luau")).exists()))
+	throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
+const executable = process.env.LUAU_BIN ?? resolve(root, "build/offline-luau/luau");
+if (!(await Bun.file(executable).exists())) throw new Error("Set LUAU_BIN to the official Luau CLI.");
+const casting = await Bun.file(resolve(root, "assets/voice/casting.json")).json();
 // One record per line: id TAB kind TAB speaker TAB text. Catalog text never holds tabs or newlines.
-const generator=String.raw`
+const generator = String.raw`
 local C=require("./MissionCatalog")
 local S=require("./RelayStory")
 local M=require("./StoryMissionText")
@@ -66,49 +69,69 @@ for _,bp in C.MISSIONS do
 	end
 end
 `;
-await Bun.write(resolve(dir,"voice-lines.luau"),generator);
-const proc=Bun.spawn([executable,resolve(dir,"voice-lines.luau")],{cwd:dir,stdout:"pipe",stderr:"pipe"});
-const [stdout,stderr,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
-if(code!==0)throw new Error(`Luau line dump failed: ${stderr}`);
-interface Line { id:string; kind:"story"|"radio"; speaker:string; voice:string; tape:boolean; text:string; spoken:string }
-const speakers=casting.speakers as Record<string,{voice:string;tape?:boolean}>;
-const aliases=casting.aliases as Record<string,string>;
-const replacements=casting.spokenReplacements as [string,string][];
+await Bun.write(resolve(dir, "voice-lines.luau"), generator);
+const proc = Bun.spawn([executable, resolve(dir, "voice-lines.luau")], { cwd: dir, stdout: "pipe", stderr: "pipe" });
+const [stdout, stderr, code] = await Promise.all([
+	new Response(proc.stdout).text(),
+	new Response(proc.stderr).text(),
+	proc.exited,
+]);
+if (code !== 0) throw new Error(`Luau line dump failed: ${stderr}`);
+interface Line {
+	id: string;
+	kind: "story" | "radio";
+	speaker: string;
+	voice: string;
+	tape: boolean;
+	text: string;
+	spoken: string;
+}
+const speakers = casting.speakers as Record<string, { voice: string; tape?: boolean }>;
+const aliases = casting.aliases as Record<string, string>;
+const replacements = casting.spokenReplacements as [string, string][];
 /** Text sent to the voice: no radio prefix, numbers and shouted records said the way a person would. */
-function spoken(text:string): string {
-	let value=text;
-	for(const [from,to] of replacements)value=value.split(from).join(to);
+function spoken(text: string): string {
+	let value = text;
+	for (const [from, to] of replacements) value = value.split(from).join(to);
 	return value;
 }
-const lines:Line[]=[];
-const seen=new Set<string>();
-for(const row of stdout.split("\n")){
-	if(row==="")continue;
-	const [id,kind,rawSpeaker,text]=row.split("\t");
-	if(seen.has(id))throw new Error(`Duplicate line id ${id}`);
+const lines: Line[] = [];
+const seen = new Set<string>();
+for (const row of stdout.split("\n")) {
+	if (row === "") continue;
+	const [id, kind, rawSpeaker, text] = row.split("\t");
+	if (seen.has(id)) throw new Error(`Duplicate line id ${id}`);
 	seen.add(id);
-	let speaker=rawSpeaker,body=text,tape=false;
-	if(kind==="radio"){
+	let speaker = rawSpeaker,
+		body = text,
+		tape = false;
+	if (kind === "radio") {
 		// "SERA: ...", "TEAL (tape): ...". Unprefixed catalog beats are Varda Control (Sera).
-		const match=/^([A-Z][A-Z0-9 ]*[A-Z0-9])( \(tape\))?: (.*)$/.exec(text);
-		if(match){speaker=match[1];tape=match[2]!==undefined;body=match[3];}
-		else speaker=casting.unprefixedRadio;
+		const match = /^([A-Z][A-Z0-9 ]*[A-Z0-9])( \(tape\))?: (.*)$/.exec(text);
+		if (match) {
+			speaker = match[1];
+			tape = match[2] !== undefined;
+			body = match[3];
+		} else speaker = casting.unprefixedRadio;
 	}
-	speaker=aliases[speaker] ?? speaker;
-	const cast=speakers[speaker];
-	if(!cast)throw new Error(`${id}: no casting for speaker ${speaker}`);
-	tape=tape || cast.tape===true;
-	lines.push({id,kind:kind as Line["kind"],speaker,voice:cast.voice,tape,text,spoken:spoken(body)});
+	speaker = aliases[speaker] ?? speaker;
+	const cast = speakers[speaker];
+	if (!cast) throw new Error(`${id}: no casting for speaker ${speaker}`);
+	tape = tape || cast.tape === true;
+	lines.push({ id, kind: kind as Line["kind"], speaker, voice: cast.voice, tape, text, spoken: spoken(body) });
 }
-const json=JSON.stringify({generatedBy:"bun tools/voice-lines.ts",lines},null,1)+"\n";
-if(process.argv.includes("--check")){
-	const current=await Bun.file(out).exists() ? await Bun.file(out).text() : "";
-	if(current!==json){console.error("assets/voice/lines.json is stale: run bun tools/voice-lines.ts");process.exit(1);}
+const json = JSON.stringify({ generatedBy: "bun tools/voice-lines.ts", lines }, null, 1) + "\n";
+if (process.argv.includes("--check")) {
+	const current = (await Bun.file(out).exists()) ? await Bun.file(out).text() : "";
+	if (current !== json) {
+		console.error("assets/voice/lines.json is stale: run bun tools/voice-lines.ts");
+		process.exit(1);
+	}
 	console.log(`lines.json current (${lines.length} lines)`);
-}else{
-	await Bun.write(out,json);
-	const chars=lines.reduce((n,l)=>n+l.spoken.length,0);
-	const by:Record<string,number>={};
-	for(const l of lines)by[l.speaker]=(by[l.speaker]??0)+1;
-	console.log(`${lines.length} lines, ${chars} spoken characters`,by);
+} else {
+	await Bun.write(out, json);
+	const chars = lines.reduce((n, l) => n + l.spoken.length, 0);
+	const by: Record<string, number> = {};
+	for (const l of lines) by[l.speaker] = (by[l.speaker] ?? 0) + 1;
+	console.log(`${lines.length} lines, ${chars} spoken characters`, by);
 }

@@ -13,12 +13,15 @@ describe("Ace stages", () => {
 	});
 	it("needs three stages of hits: 500 hull at 55 a missile is twelve hits, not ten", () => {
 		const state = AceRules.New();
-		let health = 500, hits = 0, now = 0;
+		let health = 500,
+			hits = 0,
+			now = 0;
 		while (health > 0 && hits < 50) {
 			now += 5; // every hit lands after any invulnerability has ended
 			const damage = AceRules.CapDamage(health, 500, state.stage, 55);
 			const before = health;
-			health -= damage; hits += 1;
+			health -= damage;
+			hits += 1;
 			AceRules.Cross(state, 500, before, health, now, false);
 		}
 		expect(hits).toBe(12);
@@ -56,7 +59,10 @@ describe("Ace stages", () => {
 		expect(event).toBe("called");
 		event = undefined;
 		let held = 0;
-		while (event === undefined && held < 30) { held += 0.1; event = AceRules.Step(state, 0.1, 2000, 3); }
+		while (event === undefined && held < 30) {
+			held += 0.1;
+			event = AceRules.Step(state, 0.1, 2000, 3);
+		}
 		expect(event).toBe("returned");
 		expect(math.abs(held - AceRules.HoldMaxSeconds) < 0.2).toBe(true);
 	});

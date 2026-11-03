@@ -19,7 +19,10 @@ function findJetTemplate(root: Instance = ReplicatedStorage): Model | undefined 
 /** Calls `found` once the template exists (now or when it replicates); returns a disconnect. */
 export function whenJetTemplate(found: (template: Model) => void, root: Instance = ReplicatedStorage): () => void {
 	const now = findJetTemplate(root);
-	if (now) { found(now); return () => undefined; }
+	if (now) {
+		found(now);
+		return () => undefined;
+	}
 	let connection: RBXScriptConnection | undefined;
 	let listening: Instance | undefined;
 	const listen = (target: Instance) => {
@@ -28,7 +31,8 @@ export function whenJetTemplate(found: (template: Model) => void, root: Instance
 		connection = target.ChildAdded.Connect(() => {
 			const template = findJetTemplate(root);
 			if (template) {
-				connection?.Disconnect(); connection = undefined;
+				connection?.Disconnect();
+				connection = undefined;
 				found(template);
 				return;
 			}
@@ -38,14 +42,21 @@ export function whenJetTemplate(found: (template: Model) => void, root: Instance
 		});
 	};
 	listen(root.FindFirstChild(JET_TEMPLATE_FOLDER) ?? root);
-	return () => { connection?.Disconnect(); connection = undefined; };
+	return () => {
+		connection?.Disconnect();
+		connection = undefined;
+	};
 }
 
 /** Camera poses for the slow sweep, looking at the jet's bounds centre (nose along -Z). */
 function jetCameraPoses(radius: number, fieldOfView: number): [CFrame, CFrame] {
 	const distance = (radius / math.tan(math.rad(fieldOfView) / 2)) * 1.08;
 	const pose = (yaw: number, pitch: number, roll: number) => {
-		const position = new Vector3(math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch)).mul(distance);
+		const position = new Vector3(
+			math.sin(yaw) * math.cos(pitch),
+			math.sin(pitch),
+			-math.cos(yaw) * math.cos(pitch),
+		).mul(distance);
 		return CFrame.lookAt(position, Vector3.zero).mul(CFrame.Angles(0, 0, roll));
 	};
 	// Front-quarter from the right, drifting toward the beam with a gentle bank.
@@ -61,7 +72,17 @@ export interface JetRig {
 	Destroy(): void;
 }
 
-const COSMETIC = ["Trail", "ParticleEmitter", "Light", "Sound", "LuaSourceContainer", "Beam", "Fire", "Smoke", "Sparkles"] as const;
+const COSMETIC = [
+	"Trail",
+	"ParticleEmitter",
+	"Light",
+	"Sound",
+	"LuaSourceContainer",
+	"Beam",
+	"Fire",
+	"Smoke",
+	"Sparkles",
+] as const;
 
 /** Builds the viewport inside `holder` (React-owned, positioned by the layout). */
 export function createJetRig(holder: GuiObject, template: Model | undefined, motion: boolean): JetRig {
@@ -96,7 +117,11 @@ export function createJetRig(holder: GuiObject, template: Model | undefined, mot
 			clone.Parent = viewport;
 			model = clone;
 			if (motion) {
-				const sweep = TweenService.Create(camera, new TweenInfo(11, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { CFrame: b });
+				const sweep = TweenService.Create(
+					camera,
+					new TweenInfo(11, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+					{ CFrame: b },
+				);
 				tweens.push(sweep);
 			}
 		});
@@ -104,7 +129,14 @@ export function createJetRig(holder: GuiObject, template: Model | undefined, mot
 	}
 	// A slow bob of the whole viewport reads as flight without moving the camera every frame twice.
 	viewport.Position = UDim2.fromScale(0, 0.015);
-	if (motion) tweens.push(TweenService.Create(viewport, new TweenInfo(3.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Position: UDim2.fromScale(0, -0.015) }));
+	if (motion)
+		tweens.push(
+			TweenService.Create(
+				viewport,
+				new TweenInfo(3.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{ Position: UDim2.fromScale(0, -0.015) },
+			),
+		);
 	viewport.Parent = holder;
 
 	// HUD scan line sweeping the frame top to bottom.
@@ -117,7 +149,14 @@ export function createJetRig(holder: GuiObject, template: Model | undefined, mot
 	scan.Position = UDim2.fromScale(0, 0);
 	scan.ZIndex = 3;
 	scan.Parent = holder;
-	if (motion) tweens.push(TweenService.Create(scan, new TweenInfo(4.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, false, 0.8), { Position: UDim2.fromScale(0, 1) }));
+	if (motion)
+		tweens.push(
+			TweenService.Create(
+				scan,
+				new TweenInfo(4.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, false, 0.8),
+				{ Position: UDim2.fromScale(0, 1) },
+			),
+		);
 	for (const tween of tweens) tween.Play();
 
 	let destroyed = false;
@@ -133,7 +172,10 @@ export function createJetRig(holder: GuiObject, template: Model | undefined, mot
 		Destroy() {
 			if (destroyed) return;
 			destroyed = true;
-			for (const tween of tweens) { tween.Cancel(); tween.Destroy(); }
+			for (const tween of tweens) {
+				tween.Cancel();
+				tween.Destroy();
+			}
 			tweens.clear();
 			scan.Destroy();
 			viewport.Destroy();
@@ -155,7 +197,9 @@ export class Fader {
 		this.connection = this.value.Changed.Connect((value) => changed(value));
 		changed(initial);
 	}
-	public Get(): number { return this.value.Value; }
+	public Get(): number {
+		return this.value.Value;
+	}
 	public Set(value: number): void {
 		this.Stop();
 		this.value.Value = value;
@@ -167,7 +211,11 @@ export class Fader {
 			done?.();
 			return;
 		}
-		const tween = TweenService.Create(this.value, new TweenInfo(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value: target });
+		const tween = TweenService.Create(
+			this.value,
+			new TweenInfo(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Value: target },
+		);
 		this.tween = tween;
 		tween.Completed.Once((state) => {
 			if (this.tween !== tween) return;
@@ -180,7 +228,10 @@ export class Fader {
 	public Stop(): void {
 		const tween = this.tween;
 		this.tween = undefined;
-		if (tween) { tween.Cancel(); tween.Destroy(); }
+		if (tween) {
+			tween.Cancel();
+			tween.Destroy();
+		}
 	}
 	public Destroy(): void {
 		this.Stop();

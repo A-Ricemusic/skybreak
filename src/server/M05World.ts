@@ -2,7 +2,13 @@ import { WORLD_FILL_CHUNK } from "../shared/SealedWorldSurface";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
-import { buildM05Plan, M05_TERRAIN_BUDGET, M05_ENVIRONMENT, M05_WORLD_KEY, m05TargetLayout } from "../shared/M05WorldPlan";
+import {
+	buildM05Plan,
+	M05_TERRAIN_BUDGET,
+	M05_ENVIRONMENT,
+	M05_WORLD_KEY,
+	m05TargetLayout,
+} from "../shared/M05WorldPlan";
 import { M05_BUILD_LIMITS } from "../shared/M05Limits";
 import { M05_TARGET_TYPES } from "../shared/missions/m05";
 import { buildComposition, compositionClear } from "./CompositionWorld";
@@ -15,8 +21,16 @@ import { adoptGroundTarget } from "./GroundTargetFactory";
  */
 export const M05World = {
 	Build(parent: Instance, seed = 505): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
-  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
-		const built = buildComposition(parent, M05_ENVIRONMENT, checkpoint => buildM05Plan(seed, checkpoint), M05_BUILD_LIMITS.descendants, 14000, M05_TERRAIN_BUDGET, WORLD_FILL_CHUNK);
+		WorldAssets.Preload(MILITARY_GROUND_ASSETS);
+		const built = buildComposition(
+			parent,
+			M05_ENVIRONMENT,
+			(checkpoint) => buildM05Plan(seed, checkpoint),
+			M05_BUILD_LIMITS.descendants,
+			14000,
+			M05_TERRAIN_BUDGET,
+			WORLD_FILL_CHUNK,
+		);
 
 		const scene = parent.FindFirstChild(M05_WORLD_KEY);
 		assert(scene !== undefined, "M05 scene folder is missing");
@@ -24,8 +38,14 @@ export const M05World = {
 		for (const t of m05TargetLayout()) {
 			const model = scene.FindFirstChild(t.id);
 			assert(model !== undefined && model.IsA("Model"), `M05 target ${t.id} was not drawn`);
-			if (t.type === "helicopter") { model.Destroy(); continue; }
-			visuals.set(t.id, adoptGroundTarget(model, t.id, M05_TARGET_TYPES[t.type as Exclude<typeof t.type, "helicopter">]));
+			if (t.type === "helicopter") {
+				model.Destroy();
+				continue;
+			}
+			visuals.set(
+				t.id,
+				adoptGroundTarget(model, t.id, M05_TARGET_TYPES[t.type as Exclude<typeof t.type, "helicopter">]),
+			);
 		}
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: built.groundTargets, targetVisuals: visuals };

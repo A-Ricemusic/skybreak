@@ -4,9 +4,12 @@ export type ExplosionKind = "air" | "ace" | "ground" | "player" | "missile" | "h
 export interface ExplosionProfile {
 	/** Fireball diameter in studs; also the scale reported to OnExplosion listeners. */
 	size: number;
-	fire: number; smoke: number; sparks: number;
+	fire: number;
+	smoke: number;
+	sparks: number;
 	/** Seconds the smoke lingers, and the flash light's range. */
-	smokeLife: number; light: number;
+	smokeLife: number;
+	light: number;
 }
 const KINDS: ExplosionKind[] = ["air", "ace", "ground", "player", "missile", "hit", "wreck"];
 const BASE: Record<ExplosionKind, ExplosionProfile> = {
@@ -38,7 +41,14 @@ export const ExplosionFx = {
 		const base = BASE[kind];
 		const s = math.clamp(scale, 0.5, 2.5);
 		const count = (value: number) => math.min(30, math.round(value * math.sqrt(s)));
-		return { size: base.size * s, fire: count(base.fire), smoke: count(base.smoke), sparks: count(base.sparks), smokeLife: base.smokeLife, light: base.light * s };
+		return {
+			size: base.size * s,
+			fire: count(base.fire),
+			smoke: count(base.smoke),
+			sparks: count(base.sparks),
+			smokeLife: base.smokeLife,
+			light: base.light * s,
+		};
 	},
 	/** How many of the oldest entries to drop so one more fits under `cap`. */
 	Overflow(active: number, cap: number): number {

@@ -111,45 +111,87 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 	const tag = `Mission ${missionId} policy`;
 	if (policy.pressure !== undefined) {
 		const p = policy.pressure;
-		assert(finite(p.playerPriority) && p.playerPriority >= 0 && p.playerPriority <= 1, `${tag} playerPriority must be 0..1`);
-		assert(finite(p.forwardConeDegrees) && p.forwardConeDegrees >= 10 && p.forwardConeDegrees <= 75, `${tag} forward cone must be 10..75`);
+		assert(
+			finite(p.playerPriority) && p.playerPriority >= 0 && p.playerPriority <= 1,
+			`${tag} playerPriority must be 0..1`,
+		);
+		assert(
+			finite(p.forwardConeDegrees) && p.forwardConeDegrees >= 10 && p.forwardConeDegrees <= 75,
+			`${tag} forward cone must be 10..75`,
+		);
 		assert(typeIs(p.tailDefence, "boolean"), `${tag} tailDefence must be boolean`);
 	}
 	if (policy.allies !== undefined) {
 		const a = policy.allies;
-		assert(finite(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6, `${tag} allies.count must be 1..6`);
+		assert(
+			finite(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6,
+			`${tag} allies.count must be 1..6`,
+		);
 		assert(a.model === "Kestrel", `${tag} allies.model must be friendly Kestrel`);
-		assert(a.callsignPrefix.size() > 0 && a.callsignPrefix.size() <= 24, `${tag} allies callsign must be 1..24 characters, original text only`);
+		assert(
+			a.callsignPrefix.size() > 0 && a.callsignPrefix.size() <= 24,
+			`${tag} allies callsign must be 1..24 characters, original text only`,
+		);
 		assert(a.formation.size() === a.count, `${tag} allies formation must match count`);
 		for (const offset of a.formation) {
-			for (const value of [offset.x, offset.y, offset.z]) assert(finite(value) && math.abs(value) <= 1500, `${tag} allies offsets must be finite within 1500 studs`);
-			assert(offset.x * offset.x + offset.y * offset.y + offset.z * offset.z >= 6400, `${tag} allies need 80 studs clearance`);
+			for (const value of [offset.x, offset.y, offset.z])
+				assert(
+					finite(value) && math.abs(value) <= 1500,
+					`${tag} allies offsets must be finite within 1500 studs`,
+				);
+			assert(
+				offset.x * offset.x + offset.y * offset.y + offset.z * offset.z >= 6400,
+				`${tag} allies need 80 studs clearance`,
+			);
 		}
-		for (const value of [a.mayKill, a.creditPlayerKills, a.allowRequiredTargets]) if (value !== undefined) assert(typeIs(value, "boolean"), `${tag} allies switches must be boolean`);
-		if (a.killBudget !== undefined) assert(finite(a.killBudget) && a.killBudget >= 0 && a.killBudget % 1 === 0, `${tag} allies.killBudget must be a nonnegative integer`);
-		assert(!a.allowRequiredTargets || a.creditPlayerKills === true, `${tag} required allied kills must explicitly credit objective progress`);
+		for (const value of [a.mayKill, a.creditPlayerKills, a.allowRequiredTargets])
+			if (value !== undefined) assert(typeIs(value, "boolean"), `${tag} allies switches must be boolean`);
+		if (a.killBudget !== undefined)
+			assert(
+				finite(a.killBudget) && a.killBudget >= 0 && a.killBudget % 1 === 0,
+				`${tag} allies.killBudget must be a nonnegative integer`,
+			);
+		assert(
+			!a.allowRequiredTargets || a.creditPlayerKills === true,
+			`${tag} required allied kills must explicitly credit objective progress`,
+		);
 	}
 	if (policy.countdownSeconds !== undefined) {
-		assert(finite(policy.countdownSeconds) && policy.countdownSeconds > 0, `${tag} countdownSeconds must be finite and > 0`);
+		assert(
+			finite(policy.countdownSeconds) && policy.countdownSeconds > 0,
+			`${tag} countdownSeconds must be finite and > 0`,
+		);
 	}
 	if (policy.airspace !== undefined) {
 		const airspace = policy.airspace;
 		for (const [name, value] of pairs(airspace)) {
 			assert(finite(value) && value > 0, `${tag} airspace.${name} must be finite and > 0`);
 		}
-		assert(airspace.hardHalfWidth >= airspace.softHalfWidth, `${tag} airspace hardHalfWidth must be >= softHalfWidth`);
+		assert(
+			airspace.hardHalfWidth >= airspace.softHalfWidth,
+			`${tag} airspace hardHalfWidth must be >= softHalfWidth`,
+		);
 		assert(airspace.spawnLimit <= airspace.hardHalfWidth, `${tag} airspace spawnLimit must be <= hardHalfWidth`);
 	}
 	if (policy.start !== undefined) {
 		const start = policy.start;
 		assert(start.kind === "airborne" || start.kind === "carrier_flyoff", `${tag} start.kind is invalid`);
-		for (const [name, value] of pairs({ x: start.x, y: start.y, z: start.z, headingDegrees: start.headingDegrees })) {
+		for (const [name, value] of pairs({
+			x: start.x,
+			y: start.y,
+			z: start.z,
+			headingDegrees: start.headingDegrees,
+		})) {
 			assert(finite(value), `${tag} start.${name} must be finite`);
 		}
-		if (start.speed !== undefined) assert(finite(start.speed) && start.speed > 0, `${tag} start.speed must be finite and > 0`);
+		if (start.speed !== undefined)
+			assert(finite(start.speed) && start.speed > 0, `${tag} start.speed must be finite and > 0`);
 		if (policy.airspace !== undefined) {
-			assert(math.abs(start.x) <= policy.airspace.hardHalfWidth && math.abs(start.z) <= policy.airspace.hardHalfWidth,
-				`${tag} start must be inside airspace.hardHalfWidth`);
+			assert(
+				math.abs(start.x) <= policy.airspace.hardHalfWidth &&
+					math.abs(start.z) <= policy.airspace.hardHalfWidth,
+				`${tag} start must be inside airspace.hardHalfWidth`,
+			);
 		}
 	}
 	if (policy.scoring !== undefined) {
@@ -163,10 +205,13 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 		const basis = policy.scoring.basis;
 		assert(basis === "points" || basis === "rating", `${tag} scoring.basis must be "points" or "rating"`);
 		const rank = policy.scoring.rank;
-		if (basis === "rating") assert(rank.S <= 100, `${tag} scoring.rank thresholds on the rating basis must be <= 100`);
+		if (basis === "rating")
+			assert(rank.S <= 100, `${tag} scoring.rank thresholds on the rating basis must be <= 100`);
 		for (const [name, value] of pairs(rank)) assert(finite(value), `${tag} scoring.rank.${name} must be finite`);
-		assert(rank.S > rank.A && rank.A > rank.B && rank.B > rank.C && rank.C >= 0,
-			`${tag} scoring rank thresholds must satisfy S > A > B > C >= 0`);
+		assert(
+			rank.S > rank.A && rank.A > rank.B && rank.B > rank.C && rank.C >= 0,
+			`${tag} scoring rank thresholds must satisfy S > A > B > C >= 0`,
+		);
 	}
 	if (policy.worldKey !== undefined) assert(policy.worldKey.size() > 0, `${tag} worldKey must not be empty`);
 	if (policy.available !== undefined) assert(typeIs(policy.available, "boolean"), `${tag} available must be boolean`);

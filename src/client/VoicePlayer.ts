@@ -60,13 +60,21 @@ function setup(): void {
 	radio.Volume = 1.1;
 	radio.Parent = master;
 	const equalizer = new Instance("EqualizerSoundEffect");
-	equalizer.LowGain = -24; equalizer.MidGain = 3; equalizer.HighGain = -14; equalizer.Priority = 2;
+	equalizer.LowGain = -24;
+	equalizer.MidGain = 3;
+	equalizer.HighGain = -14;
+	equalizer.Priority = 2;
 	equalizer.Parent = radio;
 	const distortion = new Instance("DistortionSoundEffect");
-	distortion.Level = 0.12; distortion.Priority = 1;
+	distortion.Level = 0.12;
+	distortion.Priority = 1;
 	distortion.Parent = radio;
 	const compressor = new Instance("CompressorSoundEffect");
-	compressor.Threshold = -18; compressor.Ratio = 3; compressor.Attack = 0.005; compressor.Release = 0.12; compressor.Priority = 0;
+	compressor.Threshold = -18;
+	compressor.Ratio = 3;
+	compressor.Attack = 0.005;
+	compressor.Release = 0.12;
+	compressor.Priority = 0;
 	compressor.Parent = radio;
 	channels.set("cutscene", cutscene);
 	channels.set("radio", radio);
@@ -85,10 +93,18 @@ function preload(): void {
 	}
 	if (probes.size() === 0) return;
 	task.spawn(() => {
-		const [ok, problem] = pcall(() => ContentProvider.PreloadAsync(probes, (id, status) => {
-			if (status !== Enum.AssetFetchStatus.Success) warn(`SKYBREAK voice fetch ${id}: ${status.Name}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`);
-		}));
-		if (!ok) warn(`SKYBREAK voice preload failed: ${tostring(problem)}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`);
+		const [ok, problem] = pcall(() =>
+			ContentProvider.PreloadAsync(probes, (id, status) => {
+				if (status !== Enum.AssetFetchStatus.Success)
+					warn(
+						`SKYBREAK voice fetch ${id}: ${status.Name}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`,
+					);
+			}),
+		);
+		if (!ok)
+			warn(
+				`SKYBREAK voice preload failed: ${tostring(problem)}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`,
+			);
 		for (const probe of probes) probe.Destroy();
 	});
 }
@@ -105,7 +121,9 @@ function refreshSpeaking(): void {
 
 export const VoicePlayer = {
 	/** Warm banks during client boot, before the first cinematic requests a line. */
-	Preload(): void { if (RunService.IsClient()) preload(); },
+	Preload(): void {
+		if (RunService.IsClient()) preload();
+	},
 	/** Plays one line on a channel. Returns undefined (silently) when the clip has no asset yet. */
 	Play(clip: VoiceClip | undefined, channel: VoiceChannel): VoiceHandle | undefined {
 		if (!clip || clip.assetId === "" || !RunService.IsClient()) return undefined;
@@ -140,7 +158,11 @@ export const VoicePlayer = {
 				active.delete(handle);
 				refreshSpeaking();
 				if (fade > 0 && sound.IsPlaying) {
-					fading = TweenService.Create(sound, new TweenInfo(fade, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Volume: 0 });
+					fading = TweenService.Create(
+						sound,
+						new TweenInfo(fade, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{ Volume: 0 },
+					);
 					fading.Completed.Once(() => sound.Destroy());
 					fading.Play();
 				} else sound.Destroy();
@@ -155,51 +177,66 @@ export const VoicePlayer = {
 				paused = false;
 				if (started) sound.Resume();
 			},
-			IsLoading() { return alive && !started; },
-			HasFailed() { return failed; },
+			IsLoading() {
+				return alive && !started;
+			},
+			HasFailed() {
+				return failed;
+			},
 			IsPlaying() {
 				return alive;
 			},
 		};
 		connections.push(sound.Ended.Connect(() => handle.Stop()));
 		let loading = 0;
-		connections.push(RunService.Heartbeat.Connect((dt) => {
-			if (paused) return;
-			// The clock runs from when audio is really available; a bank that never loads releases the line (and the duck).
-			if (!sound.IsLoaded) {
-				loading += dt;
-				const action = voiceLoadAction(loading, retried);
-				if (action === "retry") {
-					retried = true;
-					warn(`SKYBREAK voice ${clip.id}: bank ${clip.assetId} still loading; retrying preload`);
-					task.spawn(() => {
-						const [ok, problem] = pcall(() => ContentProvider.PreloadAsync([clip.assetId], (id, status) => {
-							if (status !== Enum.AssetFetchStatus.Success) warn(`SKYBREAK voice fetch ${id}: ${status.Name}`);
-						}));
-						if (!ok) warn(`SKYBREAK voice preload ${clip.id}: ${tostring(problem)}`);
-					});
+		connections.push(
+			RunService.Heartbeat.Connect((dt) => {
+				if (paused) return;
+				// The clock runs from when audio is really available; a bank that never loads releases the line (and the duck).
+				if (!sound.IsLoaded) {
+					loading += dt;
+					const action = voiceLoadAction(loading, retried);
+					if (action === "retry") {
+						retried = true;
+						warn(`SKYBREAK voice ${clip.id}: bank ${clip.assetId} still loading; retrying preload`);
+						task.spawn(() => {
+							const [ok, problem] = pcall(() =>
+								ContentProvider.PreloadAsync([clip.assetId], (id, status) => {
+									if (status !== Enum.AssetFetchStatus.Success)
+										warn(`SKYBREAK voice fetch ${id}: ${status.Name}`);
+								}),
+							);
+							if (!ok) warn(`SKYBREAK voice preload ${clip.id}: ${tostring(problem)}`);
+						});
+					}
+					if (action === "fail") {
+						failed = true;
+						unavailableUntil.set(clip.assetId, os.clock() + 60);
+						warn(
+							`SKYBREAK voice ${clip.id} unavailable after 12s (${clip.assetId}); continuing with subtitles. universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}. Check Output fetch errors and experience asset permissions.`,
+						);
+						handle.Stop();
+					}
+					return;
 				}
-				if (action === "fail") {
-					failed = true;
-					unavailableUntil.set(clip.assetId, os.clock() + 60);
-					warn(`SKYBREAK voice ${clip.id} unavailable after 12s (${clip.assetId}); continuing with subtitles. universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}. Check Output fetch errors and experience asset permissions.`);
-					handle.Stop();
+				if (!started) {
+					started = true;
+					sound.SetAttribute("VoiceState", "Playing");
+					// Seek only after load: some clients discard a seek on an unloaded bank.
+					sound.TimePosition = clip.start;
+					const noticeUntil = disclosureSession.FirstVoice(os.clock());
+					if (noticeUntil !== undefined)
+						Players.LocalPlayer.FindFirstChildOfClass("PlayerGui")?.SetAttribute(
+							VOICE_NOTICE_ATTRIBUTE,
+							noticeUntil,
+						);
+					sound.Play();
+					return;
 				}
-				return;
-			}
-			if (!started) {
-				started = true;
-				sound.SetAttribute("VoiceState", "Playing");
-				// Seek only after load: some clients discard a seek on an unloaded bank.
-				sound.TimePosition = clip.start;
-				const noticeUntil = disclosureSession.FirstVoice(os.clock());
-				if (noticeUntil !== undefined) Players.LocalPlayer.FindFirstChildOfClass("PlayerGui")?.SetAttribute(VOICE_NOTICE_ATTRIBUTE, noticeUntil);
-				sound.Play();
-				return;
-			}
-			remaining -= dt;
-			if (remaining <= 0) handle.Stop(0.05);
-		}));
+				remaining -= dt;
+				if (remaining <= 0) handle.Stop(0.05);
+			}),
+		);
 		active.add(handle);
 		refreshSpeaking();
 		return handle;

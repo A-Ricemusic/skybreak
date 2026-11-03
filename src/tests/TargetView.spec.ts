@@ -37,13 +37,19 @@ describe("TargetView.FromClient", () => {
 		const far = CFrame.lookAt(jet.add(new Vector3(0, 0, TargetPriority.MaxCameraOffset + 50)), jet);
 		expect(TargetView.FromClient({ cframe: far, fov: 70, aspect: 1.7 }, jet, nose).position.z).toBe(jet.Z);
 		const nan = new CFrame(0 / 0, 0, 0);
-		expect(TargetView.FromClient({ cframe: nan, fov: 70, aspect: 1.7 }, jet, nose).position).toEqual({ x: jet.X, y: jet.Y, z: jet.Z });
+		expect(TargetView.FromClient({ cframe: nan, fov: 70, aspect: 1.7 }, jet, nose).position).toEqual({
+			x: jet.X,
+			y: jet.Y,
+			z: jet.Z,
+		});
 	});
 	it("clamps implausible FOV and aspect from a valid camera", () => {
 		const view = TargetView.FromClient({ cframe: chase, fov: 1e9, aspect: -3 }, jet, nose);
 		expect(view.tanHalfFov).toBeCloseTo(math.tan(math.rad(TargetPriority.FovBounds.max) / 2), 6);
 		expect(view.aspect).toBe(TargetPriority.AspectBounds.min);
-		expect(TargetView.FromClient({ cframe: chase, fov: "wide", aspect: 0 / 0 }, jet, nose).aspect).toBe(TargetPriority.AspectBounds.default);
+		expect(TargetView.FromClient({ cframe: chase, fov: "wide", aspect: 0 / 0 }, jet, nose).aspect).toBe(
+			TargetPriority.AspectBounds.default,
+		);
 	});
 	it("still answers from the nose when the jet frame itself is unusable", () => {
 		const broken = new CFrame(0 / 0, 0 / 0, 0 / 0);

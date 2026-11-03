@@ -16,17 +16,31 @@ describe("flight and combat warnings shared by touch, keyboard and gamepad", () 
 	it("uses complete compact guidance and prioritizes threats on narrow touch screens", () => {
 		expect(flightWarning({ speed: 15, altitude: 80, incoming: false }, true)).toBe("STALL: POWER↑ NOSE↓");
 		expect(flightWarning({ speed: 15, altitude: 80, incoming: true }, true)).toBe("MISSILE INBOUND");
-		expect(flightWarning({ speed: 230, altitude: 250, incoming: false, terrainSeconds: 1 }, true)).toBe("TERRAIN · PULL UP");
+		expect(flightWarning({ speed: 230, altitude: 250, incoming: false, terrainSeconds: 1 }, true)).toBe(
+			"TERRAIN · PULL UP",
+		);
 	});
 	it("retains incoming and lock threats alongside each flight warning", () => {
-		for (const [speed, altitude, label] of [[230, 80, "LOW ALTITUDE"], [18, 250, "LOW SPEED"], [15, 250, "STALL"]] as Array<[number, number, string]>) {
-			expect(flightWarning({ speed, altitude, incoming: true, lockWarning: true })).toBe(`MISSILE INBOUND · ${label}`);
-			expect(flightWarning({ speed, altitude, incoming: false, lockWarning: true })).toBe(`MISSILE LOCK · ${label}`);
+		for (const [speed, altitude, label] of [
+			[230, 80, "LOW ALTITUDE"],
+			[18, 250, "LOW SPEED"],
+			[15, 250, "STALL"],
+		] as Array<[number, number, string]>) {
+			expect(flightWarning({ speed, altitude, incoming: true, lockWarning: true })).toBe(
+				`MISSILE INBOUND · ${label}`,
+			);
+			expect(flightWarning({ speed, altitude, incoming: false, lockWarning: true })).toBe(
+				`MISSILE LOCK · ${label}`,
+			);
 		}
-		expect(flightWarning({ speed: 230, altitude: 250, incoming: true, terrainSeconds: 1.5 })).toBe("MISSILE INBOUND · TERRAIN");
+		expect(flightWarning({ speed: 230, altitude: 250, incoming: true, terrainSeconds: 1.5 })).toBe(
+			"MISSILE INBOUND · TERRAIN",
+		);
 	});
 	it("gives recovery advice when stalled without a combat threat", () => {
-		expect(flightWarning({ speed: 15, altitude: 250, incoming: false, lockWarning: false })).toBe("STALL · ACCELERATE + NOSE DOWN");
+		expect(flightWarning({ speed: 15, altitude: 250, incoming: false, lockWarning: false })).toBe(
+			"STALL · ACCELERATE + NOSE DOWN",
+		);
 		expect(flightWarning({ speed: 230, altitude: 250, incoming: false, lockWarning: false })).toBe("");
 	});
 	it("suppresses flight advice during a locked launch without hiding combat threats", () => {
@@ -48,11 +62,17 @@ describe("flight and combat warnings shared by touch, keyboard and gamepad", () 
 		expect(flightAdvice({ speed: 70, altitude: 400, incoming: false, acceleration: -32 })).toBe("LOW SPEED");
 	});
 	it("ranks terrain first, then stall, low speed, absolute altitude and the airspace edge", () => {
-		expect(flightAdvice({ speed: 15, altitude: 50, incoming: false, terrainSeconds: 0.5, boundaryWarning: true })).toBe("PULL UP");
+		expect(
+			flightAdvice({ speed: 15, altitude: 50, incoming: false, terrainSeconds: 0.5, boundaryWarning: true }),
+		).toBe("PULL UP");
 		expect(flightAdvice({ speed: 15, altitude: 50, incoming: false, boundaryWarning: true })).toBe("STALL");
 		expect(flightAdvice({ speed: 18, altitude: 50, incoming: false, boundaryWarning: true })).toBe("LOW SPEED");
-		expect(flightAdvice({ speed: 250, altitude: LOW_ALTITUDE - 1, incoming: false, boundaryWarning: true })).toBe("LOW ALTITUDE");
-		expect(flightAdvice({ speed: 250, altitude: 300, incoming: false, boundaryWarning: true })).toBe("AIRSPACE LIMIT");
+		expect(flightAdvice({ speed: 250, altitude: LOW_ALTITUDE - 1, incoming: false, boundaryWarning: true })).toBe(
+			"LOW ALTITUDE",
+		);
+		expect(flightAdvice({ speed: 250, altitude: 300, incoming: false, boundaryWarning: true })).toBe(
+			"AIRSPACE LIMIT",
+		);
 		expect(flightAdvice({ speed: 250, altitude: 300, incoming: false })).toBe("");
 	});
 	it("turns the 2 s forward probe into seconds to impact", () => {

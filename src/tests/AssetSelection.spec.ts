@@ -52,13 +52,17 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.Resolve({ Kestrel: 10, KestrelV2: undefined }, kestrel, new Set())?.name).toBe("Kestrel");
 		// A v2 upload that failed to load (moderated, untextured, misshapen) falls back to v1.
 		expect(AssetSelection.Resolve({ Kestrel: 10, KestrelV2: 11 }, kestrel, new Set([11]))?.assetId).toBe(10);
-		expect(AssetSelection.Resolve({ Kestrel: undefined, KestrelV2: undefined }, kestrel, new Set())).toBeUndefined();
+		expect(
+			AssetSelection.Resolve({ Kestrel: undefined, KestrelV2: undefined }, kestrel, new Set()),
+		).toBeUndefined();
 		const enemy = AssetSelection.AircraftCandidates(true);
 		expect(AssetSelection.Resolve({ Vanta: 20, VantaV2: 21 }, enemy, new Set())?.name).toBe("VantaV2");
 		expect(AssetSelection.Resolve({ Vanta: 20 }, enemy, new Set())?.name).toBe("Vanta");
 		// An ace keeps a livery (v1) before switching to the plain v2 Vanta.
 		const rusk = AssetSelection.AircraftCandidates(true, "Rusk");
-		expect(AssetSelection.Resolve({ VantaRusk: 30, VantaV2: 21, Vanta: 20 }, rusk, new Set())?.name).toBe("VantaRusk");
+		expect(AssetSelection.Resolve({ VantaRusk: 30, VantaV2: 21, Vanta: 20 }, rusk, new Set())?.name).toBe(
+			"VantaRusk",
+		);
 		expect(AssetSelection.Resolve({ VantaV2Rusk: 31, VantaRusk: 30 }, rusk, new Set())?.name).toBe("VantaV2Rusk");
 		expect(AssetSelection.Resolve({ VantaV2: 21, Vanta: 20 }, rusk, new Set())?.name).toBe("VantaV2");
 	});
@@ -78,15 +82,23 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(math.abs(imported[1] * scale - 5.9265) < 0.05).toBe(true);
 		expect(math.abs(imported[2] * scale - 26) < 1e-6).toBe(true);
 		// The coordinator's trial ScaleTo(0.07) result (45 x 12 x 52.8) is fitted down the same way.
-		expect(math.abs((AssetSelection.FitScale([45.08, 12.04, 52.82], inGame) as number) * 52.82 - 26) < 1e-6).toBe(true);
+		expect(math.abs((AssetSelection.FitScale([45.08, 12.04, 52.82], inGame) as number) * 52.82 - 26) < 1e-6).toBe(
+			true,
+		);
 	});
 	it("leaves a correctly sized import alone and fits world props to their authored size", () => {
 		// A 0.01 m-per-stud export arrives at its authored size: world props keep it (gameScale 1).
 		expect(AssetSelection.FitScale([61.5, 49, 76], [61.5, 49, 76])).toBe(1);
 		expect(AssetSelection.FitScale([61.0, 48.6, 75.4], [61.5, 49, 76])).toBe(1);
-		expect(math.abs((AssetSelection.FitScale([1722, 1372, 2128], [61.5, 49, 76]) as number) - 1 / 28) < 1e-9).toBe(true);
+		expect(math.abs((AssetSelection.FitScale([1722, 1372, 2128], [61.5, 49, 76]) as number) - 1 / 28) < 1e-9).toBe(
+			true,
+		);
 		// Aircraft authored a little larger than the procedural jet are shrunk to it.
-		expect(math.abs((AssetSelection.FitScale([24.76, 8.02, 27.75], [23.5555, 7.6298, 26.4]) as number) - 26.4 / 27.75) < 1e-9).toBe(true);
+		expect(
+			math.abs(
+				(AssetSelection.FitScale([24.76, 8.02, 27.75], [23.5555, 7.6298, 26.4]) as number) - 26.4 / 27.75,
+			) < 1e-9,
+		).toBe(true);
 	});
 	it("rejects absurd ratios and imports whose proportions do not match", () => {
 		expect(AssetSelection.FitScale([0, 0, 0], [23, 6, 27])).toBeUndefined();
@@ -122,24 +134,48 @@ describe("AssetSelection uploaded-asset decisions", () => {
 	});
 	it("accepts an import only when every part is a MeshPart with a textured SurfaceAppearance", () => {
 		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
-		const part = (name: string, meshPart = true, appearance = true, colorMap = true) => ({ name, meshPart, appearance, maps: { ...all, ColorMap: colorMap } });
+		const part = (name: string, meshPart = true, appearance = true, colorMap = true) => ({
+			name,
+			meshPart,
+			appearance,
+			maps: { ...all, ColorMap: colorMap },
+		});
 		const kestrel = ["Aileron_L", "Aileron_R", "Elevator_L", "Elevator_R", "Rudder_L", "Rudder_R"];
 		const required = ["Body", ...kestrel];
 		const pilot = [part("Body"), ...kestrel.map((name) => part(name))];
 		expect(AssetSelection.AppearanceProblem(pilot, required)).toBeUndefined();
 		expect(AssetSelection.AppearanceProblem([part("barn")])).toBeUndefined();
 		expect(AssetSelection.AppearanceProblem([])).toBe("contains no parts");
-		expect(AssetSelection.AppearanceProblem([part("Body"), part("Aileron_L", true, false)], ["Body"])).toBe("Aileron_L has no SurfaceAppearance");
-		expect(AssetSelection.AppearanceProblem([part("Body", true, true, false)])).toBe("Body SurfaceAppearance has no ColorMap");
+		expect(AssetSelection.AppearanceProblem([part("Body"), part("Aileron_L", true, false)], ["Body"])).toBe(
+			"Aileron_L has no SurfaceAppearance",
+		);
+		expect(AssetSelection.AppearanceProblem([part("Body", true, true, false)])).toBe(
+			"Body SurfaceAppearance has no ColorMap",
+		);
 		expect(AssetSelection.AppearanceProblem([part("Hull", false)])).toBe("Hull is not a MeshPart");
-		expect(AssetSelection.AppearanceProblem(pilot.filter((p) => p.name !== "Rudder_R"), required)).toBe("missing part Rudder_R");
+		expect(
+			AssetSelection.AppearanceProblem(
+				pilot.filter((p) => p.name !== "Rudder_R"),
+				required,
+			),
+		).toBe("missing part Rudder_R");
 	});
 	it("requires all four SurfaceAppearance maps on every part, including control surfaces and the canopy", () => {
 		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
-		const part = (name: string, maps: Partial<Record<SurfaceMap, boolean>> = all) => ({ name, meshPart: true, appearance: true, maps });
+		const part = (name: string, maps: Partial<Record<SurfaceMap, boolean>> = all) => ({
+			name,
+			meshPart: true,
+			appearance: true,
+			maps,
+		});
 		expect(SURFACE_MAPS.size()).toBe(4);
 		const names = AssetSelection.RequiredAircraftParts({ Rudder: 1, Aileron_L: 1 }, ["Canopy"]);
-		expect(AssetSelection.AppearanceProblem(names.map((name) => part(name)), names)).toBeUndefined();
+		expect(
+			AssetSelection.AppearanceProblem(
+				names.map((name) => part(name)),
+				names,
+			),
+		).toBeUndefined();
 		for (const map of SURFACE_MAPS) {
 			for (const lossy of ["Body", "Aileron_L", "Canopy"]) {
 				const parts = names.map((name) => part(name, name === lossy ? { ...all, [map]: false } : all));
@@ -151,11 +187,15 @@ describe("AssetSelection uploaded-asset decisions", () => {
 					maps[map] = undefined;
 					return part(name, maps);
 				});
-				expect(AssetSelection.AppearanceProblem(absent, names)).toBe(`${lossy} SurfaceAppearance has no ${map}`);
+				expect(AssetSelection.AppearanceProblem(absent, names)).toBe(
+					`${lossy} SurfaceAppearance has no ${map}`,
+				);
 			}
 		}
 		// Only ColorMap, as the pre-v2 rule checked, is no longer enough.
-		expect(AssetSelection.AppearanceProblem([part("barn", { ColorMap: true })])).toBe("barn SurfaceAppearance has no NormalMap");
+		expect(AssetSelection.AppearanceProblem([part("barn", { ColorMap: true })])).toBe(
+			"barn SurfaceAppearance has no NormalMap",
+		);
 	});
 	it("requires the v2 Canopy by exact name alongside Body and the control surfaces", () => {
 		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
@@ -172,9 +212,18 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.AppearanceProblem(complete, required)).toBeUndefined();
 		const withoutCanopy = complete.filter((p) => p.name !== "Canopy");
 		expect(AssetSelection.AppearanceProblem(withoutCanopy, required)).toBe("missing part Canopy");
-		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("Canopy.001")], required)).toBe("missing part Canopy");
-		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("canopy")], required)).toBe("missing part Canopy");
-		expect(AssetSelection.AppearanceProblem(complete.filter((p) => p.name !== "Body"), required)).toBe("missing part Body");
+		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("Canopy.001")], required)).toBe(
+			"missing part Canopy",
+		);
+		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("canopy")], required)).toBe(
+			"missing part Canopy",
+		);
+		expect(
+			AssetSelection.AppearanceProblem(
+				complete.filter((p) => p.name !== "Body"),
+				required,
+			),
+		).toBe("missing part Body");
 	});
 	it("lists an aircraft's control surfaces in a stable order", () => {
 		const names = AssetSelection.ControlSurfaceNames({ Rudder: 1, Aileron_R: 1, Aileron_L: 1 });
@@ -190,7 +239,10 @@ describe("AssetSelection uploaded-asset decisions", () => {
 describe("Bomber asset selection", () => {
 	it("falls back without a bomber spec and discovers only the heavy-bomber aircraft folder", () => {
 		expect(AssetSelection.BomberCandidates({ Kestrel: { kind: "aircraft", folder: "kestrel" } })).toEqual([]);
-		const specs = { HeavyBomber: { kind: "aircraft", folder: "heavy-bomber" }, Prop: { kind: "world", folder: "heavy-bomber" } };
+		const specs = {
+			HeavyBomber: { kind: "aircraft", folder: "heavy-bomber" },
+			Prop: { kind: "world", folder: "heavy-bomber" },
+		};
 		const candidates = AssetSelection.BomberCandidates(specs);
 		expect(candidates).toEqual(["HeavyBomber"]);
 		expect(AssetSelection.Resolve({}, candidates, new Set())).toBeUndefined();
@@ -202,7 +254,10 @@ describe("Bomber asset selection", () => {
 describe("Carrier asset selection", () => {
 	it("falls back without a carrier spec and discovers only the carrier world folder", () => {
 		expect(AssetSelection.CarrierCandidates({ Frigate: { kind: "world", folder: "frigate" } })).toEqual([]);
-		const specs = { Carrier: { kind: "world", folder: "carrier" }, Aircraft: { kind: "aircraft", folder: "carrier" } };
+		const specs = {
+			Carrier: { kind: "world", folder: "carrier" },
+			Aircraft: { kind: "aircraft", folder: "carrier" },
+		};
 		expect(AssetSelection.CarrierCandidates(specs)).toEqual(["Carrier"]);
 	});
 });

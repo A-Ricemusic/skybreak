@@ -3,8 +3,12 @@ import { VoiceDisclosureSession, VOICE_DISCLOSURE, VOICE_DISCLOSURE_DETAIL } fro
 
 describe("AI voice disclosure", () => {
 	it("identifies artificial voices, provider and non-human origin in the settings credit", () => {
-		expect(VOICE_DISCLOSURE).toBe("Character voices are AI-generated (ElevenLabs text-to-speech); they are not real people.");
-		expect(VOICE_DISCLOSURE_DETAIL).toBe("Artificially generated output is not human views or advice and may be inaccurate.");
+		expect(VOICE_DISCLOSURE).toBe(
+			"Character voices are AI-generated (ElevenLabs text-to-speech); they are not real people.",
+		);
+		expect(VOICE_DISCLOSURE_DETAIL).toBe(
+			"Artificially generated output is not human views or advice and may be inaccurate.",
+		);
 	});
 	it("shows once across cutscene/radio lines and later sorties in a session", () => {
 		const session = new VoiceDisclosureSession();
