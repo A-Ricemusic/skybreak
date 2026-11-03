@@ -11,8 +11,8 @@ roblox-ts 3.0.0 (TypeScript 5.5) compiled to Luau, Rojo for the place tree, Bun 
 | Path | What lives there |
 |---|---|
 | `src/server/` | Server authority: `index.server.ts` creates the remotes and starts services; `CampaignService.ts` (save slots, launch requests, DataStore); `CombatService.ts` (the sortie loop); `CombatSession.ts` (the session record); `CombatSessionFactory.ts` (the only way to build a session); `PhaseDirector.ts` (spawns per phase); `MissionWorld.ts` plus `M01World.ts` to `M18World.ts` (world construction); `GroundTargetFactory.ts` (typed targets and their uploaded-kit decoration); `WorldInstanceBudget.ts` (world instance caps); `*Runtime.ts` adapters for opt-in engine features. |
-| `src/shared/` | Pure, Roblox-free rules shared by server, client and tests: `MissionCatalog.ts` and `missions/` (blueprints), `BlueprintRunner.ts` (phase progression), `FlightMath.ts` (the one flight integrator), `*Rules.ts` (feature rules), `M01WorldPlan.ts` to `M18WorldPlan.ts` and `M*Limits.ts` (world geometry and airspace), HUD layout (`UILayout.ts`), `Types.ts` (remote payloads), `RobloxAssetIds.ts` (approved uploaded asset ids), `UploadedAssetSpecs.ts` (generated sizes of uploaded models) and `MilitaryGroundKit.ts` (which ground target types get kit models). Anything here must compile and run in the standalone Luau CLI. |
-| `src/client/` | `index.client.tsx` wires remotes, `FlightController.ts` (input, prediction, HUD data), `GameUI.tsx` and `screens/` (React Lua menus and HUD), `CombatEffects.ts`, `Weather.ts`, audio and voice players. The client never decides gameplay outcomes. |
+| `src/shared/` | Code shared by server, client and tests. Most of it is pure rules: `MissionCatalog.ts` and `missions/` (blueprints), `BlueprintRunner.ts` (phase progression), `FlightMath.ts` (the one flight integrator), `*Rules.ts` (feature rules), `M01WorldPlan.ts` to `M18WorldPlan.ts` and `M*Limits.ts` (world geometry and airspace), HUD layout (`UILayout.ts`), `Types.ts` (remote payloads), `RobloxAssetIds.ts` (approved uploaded asset ids), `UploadedAssetSpecs.ts` (generated sizes of uploaded models) and `MilitaryGroundKit.ts` (which ground target types get kit models). A minority are engine adapters or Roblox-typed presentation data; see [Shared module purity](#shared-module-purity) before registering a module offline. |
+| `src/client/` | `index.client.tsx` wires remotes and starts the controller, UI, effects and weather; see [Client module map](#client-module-map). The client never decides gameplay outcomes. |
 | `src/tests/` | `@rbxts/jest` specs. Pure specs also run offline through `tools/test-relay-offline.ts`; Studio-only specs (anything touching Instances, services or `CombatService`) run only through `bun run test:roblox`. `legacy/` holds frozen captures of the retired 27-mission campaign that several specs still use as fixtures. |
 | `tools/` | Bun validation scripts (`validate-offline.ts` is the gate), the Studio test runner, Python asset builders, the Open Cloud upload and publish gate (`roblox_upload.py`, `upload-models.py`, `check-place-assets.py`, `publish-place.sh`, unit tests in `tests/`), `fixtures/` (the frozen catalog snapshot), `verification/` (hand playthrough scripts), `spikes/` (archived performance experiments). |
 | `assets/` | Audio cue definitions, voice casting and generated line lists. `roblox-upload/<asset>/` holds each Blender export (FBX, PBR textures, previews, `checklist.json`, and `export-manifest.json` with SHA-256 hashes); `roblox-upload/manifest.json` is the uploaded-asset catalog. Generated media stays out of git. |
@@ -21,6 +21,58 @@ roblox-ts 3.0.0 (TypeScript 5.5) compiled to Luau, Rojo for the place tree, Bun 
 | `docs/qa/` | Review evidence: `asset-reviews/decisions/*.json` (authoritative independent safety decisions), `asset-reviews/approvals/*.json` (approved upload hash sets), the review reports they cite, `uploaded-assets.md` (uploaded id ledger), `place-publish-asset-gate.md`, and dated hotfix and playtest notes. |
 | `docs/*.md` | Topic references: flight model, special weapons, asset pipelines, controller QA. `docs/broken-relay.md` is the retired campaign's record and still feeds `tools/relay-tables.ts --check`. |
 | `.github/workflows/` | `validate.yml` (PRs, no secrets), `publish-roblox.yml` (main pushes: validate then publish), two manual Open Cloud maintenance workflows. See `SECURITY.md`. |
+
+### Shared module purity
+
+Not everything in `src/shared/` runs in the standalone Luau CLI. Check which group a module belongs to before adding it to an offline harness:
+
+| Group | Modules | Covered by |
+|---|---|---|
+| Pure rules and data | Everything in the `MODULES` list of `tools/test-relay-offline.ts` (rules, catalog, `missions/`, world plans, `UILayout*`, `Finite`, `InputStamp`, voice/story data). `GameConfig` and `UploadedAssetSpecs` get `Vector3`/`CFrame` shims there. | Offline Luau (`bun run test:offline`, part of `validate:offline`) and Studio Jest |
+| Engine adapters (import `@rbxts/services` and/or build Instances) | `BlenderAircraft`, `BomberFactory`, `JetFactory`, `LoadingRig`, `LoadingScreen.tsx`, `MissionAssets`, `SphereSweep`, `UploadedAssets`; also `MissionParts` and `RenderedTarget`, which walk or move Instances | Studio Jest only (`bun run test:roblox`) |
+| Roblox-typed presentation data | `Theme` (`Color3`, fonts), `CoreGuiPolicy` (`Enum.CoreGuiType`), `MenuWorldGeometry` (`Vector3` specs) | Studio Jest only |
+| Pure but not registered offline | `BriefingLayout`, `SaveSlotLayout` (candidates for `MODULES`); `Types` is type-only | Studio Jest only |
+| Generated audio bank | `SoundBank` | `tools/test-audio-offline.ts` (engine-double simulation of compiled `GameAudio`) |
+
+The cinematic and voice harnesses (`tools/test-cinematic-offline.ts`, `tools/test-voice-offline.ts`) run compiled `client/RelayCinematic` and `client/VoicePlayer` against engine doubles, using shared modules that are already in the pure list. `tools/test-audio-offline.ts` does the same for `client/GameAudio`. These are deterministic simulations, not Roblox playback tests.
+
+### Client module map
+
+| Module | Purpose |
+|---|---|
+| `FlightController.ts` | Local jet: input binding, prediction (`FlightPrediction`) reconciled against the 20 Hz `FlightState` stream, camera, target cues and the HUD data feed. |
+| `GameUI.tsx` and `screens/` | React Lua root: screen routing, `CampaignRequest` calls, touch sticks, pause/settings; `screens/` holds the title, campaign, briefing, outcome and HUD screens plus `UIFormat`/`UIState`/`UIInput` helpers. |
+| `HudControls.tsx` | Touch GUN and EVADE buttons, radar disc, pause overlay and settings sheet. |
+| `screens/MissionHud.tsx` | In-mission HUD composition: objective, mission-update box, score, callouts, controls. |
+| `AceHud.tsx` | Ace-style line-art HUD pieces (reticle, labels, instrument and warning boxes, banner, status panel). |
+| `TargetBoxOverlay.ts` | Pooled boxes on every valid in-view target, using the server's `Damageable` attribute. |
+| `RelayCinematic.tsx` | Story cinematics: staged beats, subtitles, skip/pause and motion/text controls. |
+| `shared/LoadingScreen.tsx`, `shared/LoadingRig.ts` | Loading overlay (React) and its imperative jet viewport, scan line and tween faders. |
+| `EnemySmoothing.ts` | Hides replicated enemy jets and draws locally dead-reckoned clones between server updates. |
+| `MissileTrails.ts` | Local smoke and motor flame for replicated missile parts. |
+| `CombatEffects.ts` | Client-only explosions, wrecks and ground-kill smoke from `CombatEffect` events. |
+| `VoicePlayer.ts` | Plays cutscene and radio voice lines on two channels with fades and bounded load failures. |
+| `GameAudio.ts` | Music, engine and effects sound groups; ducks under speaking voice. |
+| `Weather.ts` | Rain, dust, fog wisps and lightning for the mission presets chosen by `shared/WeatherRules`. |
+
+### Navigation for recent splits
+
+- `src/shared/WorldGeometry.ts` holds the live world geometry. `src/shared/WorldPlan.ts` keeps the retired procedural builder for legacy fixture specs and `tools/world-report.ts`, and re-exports the `WorldGeometry` names so older imports still resolve to live geometry. New code imports `WorldGeometry` directly.
+- `src/shared/UILayout.ts` is a barrel over `UILayoutGeometry.ts`, `UILayoutInput.ts`, `UILayoutMenu.ts`, `UILayoutOverlay.ts` and `UILayoutHud.ts`. Add new exports to the module and list them in the barrel.
+- `src/server/SessionTuning.ts`: per-act threat tuning tables and the difficulty knob used by `CombatService` and the combat runtimes.
+- `src/shared/Finite.ts`: the shared finite-number guards (replaces per-module `finite` copies).
+- `src/shared/InputStamp.ts`: staleness and reset rules for `FlightInput` packet stamps.
+
+### Tools that read source or compiled text
+
+These checks match literal text, so renaming or moving the code they read breaks `validate:offline`. Update them in the same PR:
+
+- `tools/test-results-wiring.ts`: substrings in `src/server/CombatService.ts`, `src/server/CampaignService.ts`, `src/client/GameUI.tsx`, `src/client/RelayCinematic.tsx` and two `screens/` files.
+- `tools/test-voice-offline.ts`: patches compiled `out/client/RelayCinematic.luau` at the `local function RelayCinematic(_param)` marker.
+- `tools/test-radio-delivery.ts`: slices compiled `FlightController.luau` and `GameUI.luau` and runs them against `RadioQueue`.
+- `tools/test-client-gun-input.ts`: extracts code from compiled `FlightController.luau` and `HudControls.luau`.
+- `tools/test-m03-builder-contract.ts`: parses `src/server/M03World.ts`.
+- `tools/test-world-budget-fixtures.ts`: parses the imports of `src/tests/WorldInstanceBudget.spec.ts`.
 
 ## Runtime data flow
 
