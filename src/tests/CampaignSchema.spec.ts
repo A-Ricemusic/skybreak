@@ -6,6 +6,7 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 	let writes = 0;
 	let attempts = 0;
 	let failLoads = 0;
+	let beforeUpdate: (() => void) | undefined;
 	const deferred: (() => void)[] = [];
 	const coordinator = new CampaignCoordinator(
 		"schema",
@@ -19,6 +20,7 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 			},
 			update(_key, transform) {
 				attempts++;
+				beforeUpdate?.();
 				const updated = transform(stored);
 				writes++;
 				stored = updated;
@@ -40,6 +42,9 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 		attempts: () => attempts,
 		failNextLoads: (count: number) => {
 			failLoads = count;
+		},
+		onBeforeUpdate: (hook: (() => void) | undefined) => {
+			beforeUpdate = hook;
 		},
 		writes: () => writes,
 		stored: () => stored,
@@ -143,6 +148,28 @@ describe("Campaign fail-closed schema", () => {
 		f.drain();
 		expect(f.coordinator.hasCloudLoaded()).toBe(true);
 		expect(f.coordinator.getLoadError()).toBeUndefined();
+		expect(f.writes()).toBe(1);
+		expect(normalizeProfile(f.stored()).slots[0].missions?.[1]?.completed).toBe(true);
+	});
+
+	it("keeps retrying a transient write error when another thread raised a refusal mid-operation", () => {
+		const f = fixture({ version: 3, slots: {} }, 3);
+		expect(f.coordinator.load()).toBe(true);
+		let interleaved = false;
+		f.onBeforeUpdate(() => {
+			if (interleaved) return;
+			interleaved = true;
+			// While this write is "yielding" in UpdateAsync, a concurrent load on another thread refuses a v4 record.
+			const valid = f.stored();
+			f.replace({ version: 4, slots: {} });
+			coroutine.wrap(() => f.coordinator.load())();
+			f.replace(valid);
+			error("transient update failure");
+		});
+		f.coordinator.recordMissionResult(1, 1, true, 6, 100);
+		f.drain();
+		expect(interleaved).toBe(true);
+		expect(f.attempts()).toBe(2);
 		expect(f.writes()).toBe(1);
 		expect(normalizeProfile(f.stored()).slots[0].missions?.[1]?.completed).toBe(true);
 	});

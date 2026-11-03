@@ -580,8 +580,8 @@ export class CampaignCoordinator {
 	private persistence: Persistence;
 	private cloudLoaded = false;
 	private loadError?: string;
-	/** Counts schema/structure refusals so a retry loop can tell a refusal raised by its own operation from a stale one. */
-	private schemaRefusals = 0;
+	/** Thread that raised the latest schema/structure refusal, so a retry loop only reacts to its own refusal. */
+	private refusalThread?: thread;
 	private dirty = false;
 	private writeRunning = false;
 	private writeScheduled = false;
@@ -778,7 +778,7 @@ export class CampaignCoordinator {
 		const issue = profileReadError(raw);
 		if (issue !== undefined) {
 			this.loadError = issue;
-			this.schemaRefusals += 1;
+			this.refusalThread = coroutine.running();
 			this.cloudLoaded = false;
 			error(issue);
 		}
@@ -861,15 +861,21 @@ export class CampaignCoordinator {
 
 	private tryOperation(name: string, callback: () => unknown): LuaTuple<[boolean, unknown]> {
 		let lastError: unknown;
-		const refusalsBefore = this.schemaRefusals;
+		const currentThread = coroutine.running();
+		// A refusal this thread raised in an earlier operation is stale for this one.
+		if (this.refusalThread === currentThread) this.refusalThread = undefined;
 		for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
 			const [success, result] = pcall(callback);
 			if (success) return $tuple(true, result);
 			lastError = result;
 			this.logWarning(`SKYBREAK ${name} attempt ${attempt} failed: ${tostring(result)}`);
 			// A schema/structure refusal raised by this operation needs a fresh explicit load, never an automatic
-			// retry. A stale refusal from an earlier operation must not stop transient-error retries (e.g. recovery).
-			if (this.schemaRefusals !== refusalsBefore) break;
+			// retry. Refusals raised by other threads (a concurrent load while this write yielded) or stale ones
+			// must not stop transient-error retries.
+			if (this.refusalThread === currentThread) {
+				this.refusalThread = undefined;
+				break;
+			}
 			if (attempt < this.maxAttempts) this.retryWait(attempt);
 		}
 		return $tuple(false, lastError);
