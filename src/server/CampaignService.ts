@@ -1,3 +1,4 @@
+import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } from "./CampaignSettlement";
 import { awaitResultSettlement } from "../shared/ResultContinuation";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
@@ -11,7 +12,6 @@ import {
 	CampaignCoordinator,
 	CampaignStore,
 	canAttemptRecovery,
-	completeMission,
 	isValidSlot,
 	resolveMissionRequest,
 	StoredProfile,
@@ -37,6 +37,7 @@ interface PlayerState {
 	readonly coordinator: CampaignCoordinator;
 	loaded: boolean;
 	loadStarted: boolean;
+	activeSortie?: CampaignSortie;
 	activeSlot?: number;
 	activeMission?: number;
 	activeLaunchId?: number;
@@ -218,6 +219,12 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	}
 	if (started !== true) return refuse(tostring(startError ?? "The mission could not be started."));
 
+	state.activeSortie = table.freeze({
+		identity: combatService.GetSession(state.player),
+		slot,
+		missionId,
+		difficulty,
+	});
 	state.activeLaunchId = launchId;
 	state.activeSlot = slot;
 	state.activeMission = missionId;
@@ -243,6 +250,7 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 }
 
 function returnToMenu(state: PlayerState): CampaignResponse {
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
 	state.activeLaunchId = undefined;
@@ -276,6 +284,7 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 		combatService?.CancelLaunch(player, launchId);
 		if (state.activeLaunchId === launchId) {
 			state.activeLaunchId = undefined;
+			state.activeSortie = undefined;
 			state.activeSlot = undefined;
 			state.activeMission = undefined;
 		}
@@ -321,36 +330,37 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	return refuse("Campaign service encountered an error.");
 }
 
-const onFinished: FinishedCallback = (player, won, stats) => {
+const onFinished: FinishedCallback = (player, won, stats, sessionIdentity) => {
 	const state = states.get(player);
-	if (!state || state.closing) return;
-	const slotIndex = state.activeSlot;
-	const missionId = state.activeMission;
-	const recorded = completeMission(state.coordinator, slotIndex, missionId, won, stats, (message) => {
-		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
-	});
-	if (!recorded) {
+	if (!state || state.closing || !state.activeSortie) return;
+	const settlement = admitCampaignSettlement(state.coordinator, state.activeSortie, sessionIdentity, won, stats);
+	if (!settlement) {
 		warn("SKYBREAK did not record a mission result that did not match the active server session");
-		// Still end the client's flight on a result screen instead of a frozen HUD. Nothing was saved or
-		// unlocked, so it must never read as a win (no rank, NEXT, or finale cinematic).
-		if (player.Parent === Players)
-			remotes!.MissionState.FireClient(player, {
-				kind: "Failed",
-				...stats,
-				reason: "not_recorded",
-				saved: false,
-				persistence: state.coordinator.getPersistence(),
-			});
-		return;
+		return () => {
+			if (!state.closing && player.Parent === Players)
+				remotes!.MissionState.FireClient(player, {
+					kind: "Failed",
+					...stats,
+					reason: "not_recorded",
+					saved: false,
+					persistence: state.coordinator.getPersistence(),
+				});
+		};
 	}
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
+	return () =>
+		finishCampaignSettlement(state.coordinator, settlement, (message) => {
+			if (!state.closing && player.Parent === Players) remotes!.MissionState.FireClient(player, message);
+		});
 };
 
 function shutdownPlayer(player: Player): void {
 	const state = states.get(player);
 	if (!state || state.closing) return;
 	state.closing = true;
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
 	if (combatService) pcall(() => combatService!.EndMission(player));
@@ -422,6 +432,7 @@ export function installCampaignSmokePlayer(
 				"Release sortie before smoke recovery",
 			);
 			const state = states.get(player)!;
+			state.activeSortie = undefined;
 			state.activeSlot = undefined;
 			state.activeMission = undefined;
 			state.activeLaunchId = undefined;

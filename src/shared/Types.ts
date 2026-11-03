@@ -303,4 +303,10 @@ export type MissionMessage =
 	| FlightControlHandoff
 	| HudState
 	| MissionFinished;
-export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;
+/** Called synchronously to admit progress; the returned cloud/message work may be deferred. */
+export type FinishedCallback = (
+	player: Player,
+	won: boolean,
+	stats: MissionStats,
+	sessionIdentity?: unknown,
+) => (() => void) | void;

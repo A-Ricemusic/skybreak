@@ -123,6 +123,7 @@ const MODULES: string[] = [
 	"tests/DeletionObservation.spec",
 	"shared/CampaignProgress",
 	"server/CampaignRepository",
+	"server/CampaignSettlement",
 	"tests/DeletionStatus.spec",
 	"tests/RelayCampaign.spec",
 	"tests/BlueprintProgress.spec",
