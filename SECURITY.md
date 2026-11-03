@@ -27,3 +27,7 @@ Pull-request validation, including fork PRs, must run without repository secrets
 ## Blender-origin asset uploads
 
 Blender-origin asset uploads require the independent review gate described in [AGENTS.md](AGENTS.md). Complete that review before uploading; CI success or the generating agent's own review does not replace the independent gate. If the gate is absent from your checkout, obtain the owner's independent review instructions before uploading.
+
+## Single-player sortie servers
+
+Each server runs one sortie and refuses missions to any additional player, so the published place must set `MaxPlayers` to 1 (a place setting outside this repository); the server warns at startup when it does not.

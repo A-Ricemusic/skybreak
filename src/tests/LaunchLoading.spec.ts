@@ -1,5 +1,10 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { LAUNCH_REQUEST_TIMEOUT, LaunchCancellation, LaunchLoading } from "../shared/LaunchLoading";
+import {
+	LAUNCH_CANCEL_WINDOW,
+	LAUNCH_REQUEST_TIMEOUT,
+	LaunchCancellation,
+	LaunchLoading,
+} from "../shared/LaunchLoading";
 
 describe("launch loading screen lifetime", () => {
 	it("covers construction immediately and holds the input lock through preload until Started", () => {
@@ -75,6 +80,31 @@ describe("launch loading screen lifetime", () => {
 		cancellation.Cancel(1);
 		expect(cancellation.Cancelled(3)).toBe(true);
 		expect(cancellation.Cancelled(4)).toBe(false);
+	});
+	it("ignores a cancel far ahead of every observed launch so it cannot poison later launches", () => {
+		const cancellation = new LaunchCancellation();
+		expect(cancellation.Cancel(1e9)).toBe(false);
+		expect(cancellation.Cancelled(1)).toBe(false);
+		expect(cancellation.Cancelled(1e9)).toBe(false);
+		cancellation.Observe(5);
+		expect(cancellation.Cancel(5 + LAUNCH_CANCEL_WINDOW + 1)).toBe(false);
+		expect(cancellation.Cancelled(6)).toBe(false);
+		expect(cancellation.Cancel(5 + LAUNCH_CANCEL_WINDOW)).toBe(true);
+		expect(cancellation.Cancelled(6)).toBe(true);
+		expect(cancellation.Cancelled(5 + LAUNCH_CANCEL_WINDOW)).toBe(true);
+		expect(cancellation.Cancelled(5 + LAUNCH_CANCEL_WINDOW + 1)).toBe(false);
+	});
+	it("honours a cancel that arrives before its own delayed launch request", () => {
+		const cancellation = new LaunchCancellation();
+		// First launch of a session: nothing observed yet, the cancel for generation 1 still lands.
+		expect(cancellation.Cancel(1)).toBe(true);
+		cancellation.Observe(1);
+		expect(cancellation.Cancelled(1)).toBe(true);
+		cancellation.Observe(2);
+		expect(cancellation.Cancelled(2)).toBe(false);
+		// Observe never lowers the watermark; a stale generation leaves the window where it was.
+		cancellation.Observe(1);
+		expect(cancellation.Cancel(2 + LAUNCH_CANCEL_WINDOW)).toBe(true);
 	});
 
 	it("queues on the same loading screen, then builds and preloads without allowing a second launch", () => {

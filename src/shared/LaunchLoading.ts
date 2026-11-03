@@ -64,11 +64,26 @@ export class LaunchLoading {
 	}
 }
 
+/**
+ * A cancel may legitimately precede its own delayed StartMission RPC, so it may point a little
+ * ahead of the newest generation the server has observed; further ahead it is ignored so a
+ * client cannot tombstone all of its own later launches (security audit F5).
+ */
+export const LAUNCH_CANCEL_WINDOW = 8;
+
 /** Cancellation tombstone survives a missing/stalled RPC and cannot cancel a newer generation. */
 export class LaunchCancellation {
 	private through = 0;
-	public Cancel(generation: number): void {
+	private observed = 0;
+	/** Record a launch generation the server has seen in a StartMission request. */
+	public Observe(generation: number): void {
+		this.observed = math.max(this.observed, generation);
+	}
+	/** Returns false when the id is implausibly far ahead of every observed launch and was ignored. */
+	public Cancel(generation: number): boolean {
+		if (generation > this.observed + LAUNCH_CANCEL_WINDOW) return false;
 		this.through = math.max(this.through, generation);
+		return true;
 	}
 	public Cancelled(generation: number | undefined): boolean {
 		return generation !== undefined && generation <= this.through;
