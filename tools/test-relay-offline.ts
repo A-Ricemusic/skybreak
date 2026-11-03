@@ -271,6 +271,7 @@ const MODULES: string[] = [
 	"shared/EnvironmentPresets",
 	"shared/TerrainSchedule",
 	"shared/WorldDistricts",
+	"shared/WorldGeometry",
 	"shared/WorldPlan",
 	"shared/WorldAudit",
 	"tests/WorldPlan.spec",
