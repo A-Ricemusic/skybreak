@@ -827,9 +827,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					setTelemetry(sanitized);
 				}
 			} else if (payload.kind === "Completed" || payload.kind === "Failed") {
-				if (!inMissionRef.current) return;
+				// The controller has already dropped the controls (its ending phase); this hold owns when it stops.
+				if (!inMissionRef.current) {
+					controller.Stop();
+					return;
+				}
 				if (!held) {
-					// Hold the flight view so the last kill callout, the ace hit-stop or the player's own explosion plays out first.
+					// Hold the flight view so the last kill callout, the ace hit-stop or the player's own explosion plays out
+					// first; FlightController keeps camera, jet and explosions alive until the controller.Stop() below.
 					const serial = loadingSerialRef.current;
 					task.delay(MISSION_END_HOLD, () => {
 						if (loadingSerialRef.current === serial) onMissionState(raw, true);

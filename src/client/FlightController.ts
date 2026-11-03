@@ -49,6 +49,7 @@ import {
 import type { HudLayout } from "../shared/UILayout";
 import { viewportOrigin, viewportPosition } from "./ViewportGui";
 import { TargetBoxOverlay } from "./TargetBoxOverlay";
+import { MissionEnding } from "../shared/MissionEnding";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
@@ -288,6 +289,11 @@ function scenerySurfaces(folder: Instance): RaycastParams {
 const PAUSE_RESEND_SECONDS = 1;
 export class FlightController {
 	public active = false;
+	/**
+	 * Completed/Failed arrived: controls and input packets are dead, presentation (camera, local jet, explosions,
+	 * CameraShake) runs until GameUI's MISSION_END_HOLD ends and it calls Stop. See shared/MissionEnding.
+	 */
+	private ending = false;
 	public aircraft?: Model;
 	private readonly remotes: Pick<
 		Remotes,
@@ -489,7 +495,7 @@ export class FlightController {
 					this.notify();
 				} else if (message.kind === "HudState") {
 					if (this.active) this.applyHud(message as Partial<HudState>);
-				} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
+				} else if (message.kind === "Completed" || message.kind === "Failed") this.beginEnding();
 				else if (message.kind === "Loading") this.Stop();
 			}),
 		);
@@ -591,6 +597,7 @@ export class FlightController {
 		position: Vector3,
 	): Enum.ContextActionResult {
 		if (!this.active) return Enum.ContextActionResult.Pass;
+		if (this.ending) return Enum.ContextActionResult.Sink;
 		if (
 			UserInputService.GetFocusedTextBox() &&
 			state !== Enum.UserInputState.End &&
@@ -685,14 +692,22 @@ export class FlightController {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
 	private action(action: string, view?: { cframe: CFrame; fov: number; aspect: number }): void {
-		if (this.active && !this.paused && !this.landing && !this.rearm && !this.cutIn && !this.launchIntro)
+		if (
+			this.active &&
+			!this.ending &&
+			!this.paused &&
+			!this.landing &&
+			!this.rearm &&
+			!this.cutIn &&
+			!this.launchIntro
+		)
 			this.remotes.CombatAction.FireServer({ action, view });
 	}
 	public FireMissile(): void {
 		this.action("FireMissile");
 	}
 	public Evade(): void {
-		if (!this.active) return;
+		if (!this.active || this.ending) return;
 		if (this.paused || this.landing || this.rearm || this.cutIn || this.launchIntro) return;
 		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) {
@@ -713,7 +728,7 @@ export class FlightController {
 	}
 	/** Touch positions are inset-relative; target boxes use WorldToViewportPoint pixels. */
 	public TryTapTarget(position: Vector3): boolean {
-		if (!this.active || this.paused || this.landing || this.rearm || this.launchIntro) return false;
+		if (!this.active || this.ending || this.paused || this.landing || this.rearm || this.launchIntro) return false;
 		const [inset] = GuiService.GetGuiInset();
 		const target = this.boxes.HitTest(position.X + inset.X, position.Y + inset.Y);
 		if (!target) return false;
@@ -728,6 +743,7 @@ export class FlightController {
 	public SetGunTrigger(source: string, held: boolean): void {
 		const usable =
 			this.active &&
+			!this.ending &&
 			!this.paused &&
 			!this.landing &&
 			!this.rearm &&
@@ -764,7 +780,8 @@ export class FlightController {
 	 * clock) and freezes the local prediction so the jet does not fly on and snap back.
 	 */
 	public SetPaused(paused: boolean): void {
-		if (!this.active || paused === this.paused) return;
+		// Mid-ending a new pause is pointless (the sortie is over); a resume is still honoured.
+		if (!this.active || paused === this.paused || (paused && this.ending)) return;
 		this.pauseSerial += 1;
 		this.pauseAction = paused ? "Pause" : "Resume";
 		this.sendPauseRequest();
@@ -804,6 +821,7 @@ export class FlightController {
 		const menuAction = `${this.actionName}_RearmMenu`;
 		ContextActionService.UnbindAction(this.actionName);
 		ContextActionService.UnbindAction(menuAction);
+		if (this.ending) return;
 		if (this.rearm?.menu === true) {
 			// TAKEOFF / CHANGE WEAPON menu: leave navigation (D-pad, thumbsticks, A) to GuiService selection. SPACE / RT
 			// takes off as loaded; B steps back out of the weapon list.
@@ -849,7 +867,7 @@ export class FlightController {
 		};
 	}
 	public SkipLanding(): void {
-		if (this.paused) return;
+		if (this.paused || this.ending) return;
 		if (
 			(this.landing && canSkipLanding(this.landing.elapsed)) ||
 			(this.rearm && canSkipLanding(this.rearm.elapsed)) ||
@@ -859,6 +877,7 @@ export class FlightController {
 	}
 	public FlightWarningsEnabled(): boolean {
 		return (
+			!this.ending &&
 			this.launchIntro === undefined &&
 			this.landing === undefined &&
 			this.rearm === undefined &&
@@ -883,7 +902,7 @@ export class FlightController {
 	}
 	/** TAKEOFF (keep the loadout) or CHANGE WEAPON (a special kind); the server validates and answers. */
 	public RearmTakeoff(special?: SpecialKind): void {
-		if (!this.paused && this.rearm?.menu === true)
+		if (!this.paused && !this.ending && this.rearm?.menu === true)
 			this.remotes.CombatAction.FireServer({ action: "RearmTakeoff", special });
 	}
 	/** The surprise cut-in while it plays: the HUD hides and shows its caption. */
@@ -1010,7 +1029,7 @@ export class FlightController {
 	/** Same limits the server clamps against, warned a little early so the pilot can turn or level off in time. */
 	public GetBoundaryWarning(): boolean {
 		const state = this.predictor?.state;
-		if (!this.active || !state) return false;
+		if (!this.active || this.ending || !state) return false;
 		return (
 			airspaceWarning(state.x, state.z, this.predictor!.airspace, 100) || state.y > FlightMath.MaxAltitude - 70
 		);
@@ -1342,7 +1361,8 @@ export class FlightController {
 		}
 		const now = os.clock();
 		const intro = this.launchIntro !== undefined;
-		if (!intro && !this.landing && !this.rearm) this.input(dt);
+		// Mid-ending the jet coasts on the neutral input beginEnding left (held throttle, no stick): no player control.
+		if (!intro && !this.landing && !this.rearm && !this.ending) this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
@@ -1370,7 +1390,7 @@ export class FlightController {
 		this.updateEffects(dt, state.speed);
 		const position = frame.Position;
 		this.probeClock += dt;
-		if (this.probeClock >= PROBE_INTERVAL) {
+		if (this.probeClock >= PROBE_INTERVAL && !this.ending) {
 			this.probeClock = 0;
 			this.probe(state, position, now);
 		}
@@ -1433,7 +1453,7 @@ export class FlightController {
 		);
 		this.updateTargetCue(camera);
 		this.updateMarkers(camera);
-		if (intro) return;
+		if (intro || this.ending) return;
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
@@ -1609,8 +1629,32 @@ export class FlightController {
 		});
 		return true;
 	}
+	/**
+	 * Completed/Failed: the controls die now (no stick, weapons, pause or FlightInput packets) but the camera, the
+	 * local jet, explosion handling and CameraShake keep running. GameUI owns how long (MISSION_END_HOLD) and calls
+	 * Stop when its hold expires; Loading, unmount, return-to-menu and Start call Stop at once and cancel the ending.
+	 */
+	private beginEnding(): void {
+		if (this.ending) return;
+		if (MissionEnding.Next(MissionEnding.PhaseOf(this.active, this.ending), "finish") !== "ending") return;
+		this.ReleaseGun();
+		this.ending = true;
+		ContextActionService.UnbindAction(this.actionName);
+		ContextActionService.UnbindAction(`${this.actionName}_RearmMenu`);
+		this.pauseAction = undefined;
+		this.keys.clear();
+		this.mouseSteer = false;
+		this.touchInput = Vector2.zero;
+		this.gamepadInput = Vector2.zero;
+		this.throttleStick = 0;
+		this.touchThrottleAxis = 0;
+		this.frameInput.x = 0;
+		this.frameInput.y = 0;
+		this.trend.terrainSeconds = undefined;
+	}
 	public Stop(): void {
 		this.ReleaseGun();
+		this.ending = false;
 		this.tracers.Stop();
 		this.audio.Stop();
 		this.active = false;
