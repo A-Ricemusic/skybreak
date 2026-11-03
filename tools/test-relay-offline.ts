@@ -124,6 +124,8 @@ const MODULES: string[] = [
 	"shared/CampaignProgress",
 	"server/CampaignRepository",
 	"server/CampaignSettlement",
+	"server/CampaignShutdown",
+	"tests/CampaignShutdown.spec",
 	"tests/DeletionStatus.spec",
 	"tests/RelayCampaign.spec",
 	"tests/BlueprintProgress.spec",

@@ -1,3 +1,4 @@
+import { CampaignShutdown } from "./CampaignShutdown";
 import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } from "./CampaignSettlement";
 import { awaitResultSettlement } from "../shared/ResultContinuation";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
@@ -55,6 +56,7 @@ let remotes: Remotes | undefined;
 let combatService: CombatApi | undefined;
 let initialized = false;
 const states = new Map<Player, PlayerState>();
+const shutdown = new CampaignShutdown();
 
 function getProfileStore(): DataStore {
 	if (!profileStore) profileStore = DataStoreService.GetDataStore(GameConfig.Campaign.DataStoreName);
@@ -356,16 +358,28 @@ const onFinished: FinishedCallback = (player, won, stats, sessionIdentity) => {
 		});
 };
 
-function shutdownPlayer(player: Player): void {
+/** Register before any yielding world cleanup, and stop accepting requests immediately. */
+function closePlayer(player: Player): PlayerState | undefined {
 	const state = states.get(player);
-	if (!state || state.closing) return;
+	if (!state || state.closing) return undefined;
 	state.closing = true;
+	shutdown.track(state.coordinator, () => state.loaded);
 	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
-	if (combatService) pcall(() => combatService!.EndMission(player));
-	if (state.loaded) state.coordinator.flush();
 	states.delete(player);
+	return state;
+}
+
+function finishShutdown(state: PlayerState): void {
+	if (combatService) pcall(() => combatService!.EndMission(state.player));
+	if (!shutdown.flushPlayer(state.coordinator))
+		warn("SKYBREAK campaign close still has unresolved persistence; retained for server shutdown");
+}
+
+function shutdownPlayer(player: Player): void {
+	const state = closePlayer(player);
+	if (state) finishShutdown(state);
 }
 
 export const CampaignService = {
@@ -382,16 +396,14 @@ export const CampaignService = {
 		for (const player of Players.GetPlayers()) startLoading(getState(player));
 
 		game.BindToClose(() => {
-			let remaining = 0;
-			for (const player of Players.GetPlayers()) {
-				remaining++;
-				task.spawn(() => {
-					shutdownPlayer(player);
-					remaining--;
-				});
+			// Roblox allows 30 seconds. Share 28 seconds across ALL active and already-closing profiles.
+			const deadline = os.clock() + 28;
+			for (const [player] of states) {
+				const state = closePlayer(player);
+				if (state) task.spawn(() => finishShutdown(state));
 			}
-			const deadline = os.clock() + 25;
-			while (remaining > 0 && os.clock() < deadline) task.wait(0.1);
+			if (!shutdown.awaitDeadline(deadline))
+				warn(`SKYBREAK shutdown deadline reached with ${shutdown.pending()} unresolved campaign profiles`);
 		});
 	},
 };
