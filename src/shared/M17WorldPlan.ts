@@ -1,3 +1,7 @@
+// Mission 17 (capital assault) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build17Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M17World, MissionWorld, missions/m17 and the M17 specs;
+// buildM17ScenePlan() leaves optional aircraft, wingmen and Rusk to the live combat directors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import { surfaceGround, type WorldSurface } from "./CompactWorldSurface";

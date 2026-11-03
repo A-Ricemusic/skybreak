@@ -1,4 +1,4 @@
-// Landing, return-line and terrain-clearance phase rules (pure). Formerly EngineBatchB.
+// Landing, return-line and terrain-clearance phase rules (pure).
 import { FlightMath, FlightState } from "./FlightMath";
 import { isFiniteNumber } from "./Finite";
 

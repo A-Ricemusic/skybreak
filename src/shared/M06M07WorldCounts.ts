@@ -1,3 +1,6 @@
+// Compact-world load estimate: wraps WorldCompositionCounts with the chunk-touch yield model of the compact
+// terrain surface. Pure functions, no instances. Used by the M06-M13 world plans directly and by M14-M18
+// through LateWorldDressing. Estimates only, never measurements or a runtime budget enforcer.
 import { terrainJobs } from "./TerrainSchedule";
 import type { TerrainOp, PartSpec, PropSpec } from "./WorldPlan";
 import { WORLD_FILL_CHUNK } from "./CompactWorldSurface";

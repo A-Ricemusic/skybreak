@@ -1,3 +1,6 @@
+// HUD countdown limits and value clamping, derived from each mission's authored phases rather than a global cap.
+// Owns only a per-mission limit cache; pure otherwise, no instances.
+// Consumed by client/screens/MissionHud.tsx and UIFormat.ts and by the countdown/landing specs.
 import { MissionBlueprint, MissionCatalog } from "./MissionCatalog";
 import { FlightMath } from "./FlightMath";
 

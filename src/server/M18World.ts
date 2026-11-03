@@ -1,3 +1,5 @@
+// Mission 18 world: builds M18WorldPlan through CompositionWorld, removes dormant air-slot proxies and adopts
+// the authored ground targets. Owns no state; Build/Clear are called by the world lifecycle in CombatService.
 import { buildM18Plan, m18TargetLayout, M18_ENVIRONMENT, M18_WORLD_KEY } from "../shared/M18WorldPlan";
 import { M18_BUILD_LIMITS } from "../shared/M18Limits";
 import { buildComposition, compositionClear } from "./CompositionWorld";

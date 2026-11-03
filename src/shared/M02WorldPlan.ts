@@ -1,3 +1,7 @@
+// Mission 2 (farm airbase) world plan: terrain height/material fields, target layout, runway, the buildM02Plan
+// composition of terrain ops, parts and props, and the mission's environment preset.
+// Pure plan construction, no instances; server/M02World.ts realises it. Planner output is fingerprint-frozen
+// in tools/test-plan-performance.ts, so any geometry change there must be deliberate.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { fillVoxels, terrainJobs } from "./TerrainSchedule";
 import { polyDist } from "./Polyline";

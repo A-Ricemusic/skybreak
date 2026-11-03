@@ -1,3 +1,6 @@
+// Mission 1 sea/island geometry constants: extents, island, city/airbase rectangles, start, carrier, launch
+// zone, encounter route and the instance/voxel budget. Pure data.
+// Shared by M01WorldPlan, M01CarrierPlan, missions/m01 and the M01 world specs; the route also shapes the encounter.
 export const M01_WORLD_KEY = "m01_sea_island";
 export const M01 = {
 	half: 16384,

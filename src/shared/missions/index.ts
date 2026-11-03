@@ -1,3 +1,6 @@
+// Ordered list of the 18 numbered mission blueprints (Practice is imported separately by MissionCatalog).
+// Pure data. Compiled as shared/missions/init for the offline runner; the serialised catalog is frozen by
+// tools/test-mission-catalog.ts, so any mission text change requires regenerating the voice/catalog fixtures.
 import { mission as m1 } from "./m01";
 import { mission as m2 } from "./m02";
 import { mission as m3 } from "./m03";

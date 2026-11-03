@@ -1,3 +1,5 @@
+// Mission 5 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M05World.ts, shared/missions/m05.ts and the world-plan specs; keep in step with M05WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M05_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 14000,

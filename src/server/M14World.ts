@@ -1,3 +1,5 @@
+// Mission 14 world: feeds M14WorldPlan through CompositionWorld, dropping airborne geometry for mobile
+// targets so only live actors draw them. Owns no state; Build/Clear run under the world lifecycle.
 import { buildM14Plan, M14_ENVIRONMENT, M14_WORLD_KEY } from "../shared/M14WorldPlan";
 import { M14_BUILD_LIMITS } from "../shared/M14Limits";
 import { buildComposition, compositionClear } from "./CompositionWorld";

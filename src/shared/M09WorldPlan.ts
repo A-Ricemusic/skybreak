@@ -1,3 +1,7 @@
+// Mission 09 (frigate landing beaches) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build09Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M09World, MissionWorld, missions/m09 and the M09 specs; the
+// target layout is the credited-contact reconstruction (D-171), not the full ground roster.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

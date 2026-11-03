@@ -1,3 +1,6 @@
+// Builds the MENU (lobby) world under Workspace.World: lighting, ocean tiles, airbase, islands, lighthouse
+// and the display jet. Not used for mission worlds, which go through CompositionWorld or M01World.
+// Replaces any previous World folder; called once at boot from index.server.ts.
 import { JetFactory } from "../shared/JetFactory";
 import { Lighting, Workspace } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";

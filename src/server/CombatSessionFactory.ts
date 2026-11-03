@@ -1,3 +1,6 @@
+// Builds a complete CombatSession record with sortie defaults (score, armament, guards, blueprint state).
+// Pure constructor: creates no world geometry, remotes or connections; the caller owns the folder and aircraft.
+// Called by CombatService for production launches and by combat-step specs for synthetic blueprints.
 import type { CombatSession } from "./CombatSession";
 import { TargetScore } from "../shared/TargetScore";
 import { MissionCatalog, type MissionBlueprint } from "../shared/MissionCatalog";

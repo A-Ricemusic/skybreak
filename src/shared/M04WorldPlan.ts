@@ -1,3 +1,6 @@
+// Mission 4 (inland hills) world plan: route, river, sealed-surface terrain, target layout, buildM04Plan, the
+// environment preset and load counts. Pure plan construction, no instances; server/M04World.ts realises it.
+// Planner output is fingerprint-frozen in tools/test-plan-performance.ts.
 export const M04_TERRAIN_BUDGET = 0.25;
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";

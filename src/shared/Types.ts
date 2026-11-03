@@ -1,3 +1,6 @@
+// Shared wire types: save slots and campaign responses, the Remotes contract, flight input packets, HUD state,
+// telemetry and every MissionMessage the server sends the client. Types only, no runtime code.
+// Imported across server and client; changes here are protocol changes, keep old-server payloads readable.
 import type { MissionReason } from "./OutcomeReason";
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 import type { FireNotice } from "./WeaponRules";

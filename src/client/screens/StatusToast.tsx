@@ -1,3 +1,5 @@
+// Small status/error toast drawn over the menus at a layout-provided rectangle.
+// Stateless React component; GameUI.tsx owns the ToastState and when it appears.
 import React from "@rbxts/react";
 import type { Rectangle } from "../../shared/UILayout";
 import { C } from "../Theme";

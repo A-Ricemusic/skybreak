@@ -1,4 +1,4 @@
-// Server adapters for ContactInventoryRules: cheap contacts, detail swaps, parked handoff, repeated artillery. Formerly EngineBatchD6Runtime.
+// Server adapters for ContactInventoryRules: cheap contacts, detail swaps, parked handoff, repeated artillery.
 import { cheapArmourAllowed, cheapArmourEligible } from "../shared/RepairReserveRules";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";

@@ -1,3 +1,7 @@
+// Mission 10 (river line) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build10Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M10World, MissionWorld, missions/m10 and the M10 specs; the
+// river centreline and ingress pocket (D-381) are shared by scenery and collision.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

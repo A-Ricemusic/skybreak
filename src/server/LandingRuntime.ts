@@ -1,4 +1,4 @@
-// Server adapters for LandingRules: terrain clearance sampling, landing steps and skips. Formerly EngineBatchBRuntime.
+// Server adapters for LandingRules: terrain clearance sampling, landing steps and skips.
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { landingPose, landingRadioDue, terrainClearance } from "../shared/LandingRules";

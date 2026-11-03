@@ -1,3 +1,5 @@
+// Campaign file picker: four save-slot rows with continue/new/delete-confirm states.
+// Stateless React screen; slot data and all actions arrive through props from GameUI.tsx.
 import React from "@rbxts/react";
 import type { Persistence, SaveSlot } from "../../shared/Types";
 import { MISSION_COUNT, MissionCatalog } from "../../shared/MissionCatalog";

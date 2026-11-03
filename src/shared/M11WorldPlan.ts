@@ -1,3 +1,7 @@
+// Mission 11 (high crossing) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build11Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M11World, MissionWorld, missions/m11 and the M11 specs; the
+// civilian layout is review scenery only, airborne actors come from runtime directors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

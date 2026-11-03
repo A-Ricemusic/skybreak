@@ -1,4 +1,4 @@
-// Moving surface targets: naval hull classes, surface routes, SAM and anti-ship rules (pure). Formerly EngineBatchD2.
+// Moving surface targets: naval hull classes, surface routes, SAM and anti-ship rules (pure).
 import { isFiniteNumber } from "./Finite";
 import { SpecialWeapons, SpecialState, SpecialDecision } from "./SpecialWeapons";
 // Dormant naval/shore defence rules. No mission roster is activated here.

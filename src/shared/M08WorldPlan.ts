@@ -1,3 +1,7 @@
+// Mission 08 (island broadcast) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build08Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M08World, MissionWorld, missions/m08 and the M08 specs; the
+// three broadcast anchors are scenery, never combat actors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, surfaceSide, type WorldSurface } from "./CompactWorldSurface";

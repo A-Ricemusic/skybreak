@@ -1,3 +1,6 @@
+// Ground anti-air gun tuning and eligibility rules: range, concurrency cap, windup/reload, damage and hit chance
+// by difficulty. Pure data and functions, no instances.
+// Consumed by server/CombatService.ts and the encounter/target-destruction specs.
 import type { DifficultyKind } from "./Difficulty";
 export const GroundAirDefence = {
 	Range: 1500,

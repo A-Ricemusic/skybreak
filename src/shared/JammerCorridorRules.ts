@@ -1,4 +1,4 @@
-// Airship jammers and spatial jamming corridors with navigation handoff (pure). Formerly EngineBatchD9.
+// Airship jammers and spatial jamming corridors with navigation handoff (pure).
 import { finiteNumber } from "./LandingRules";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 

@@ -1,3 +1,6 @@
+// Mission 1 world builder: writes the M01WorldPlan terrain and parts, places uploaded props and the carrier
+// (or its labelled stand-in) under the given parent. Standalone build path; does not use CompositionWorld.
+// Caller owns Terrain clearing and mission-clock handoff. Never uploads; clones only the approved asset library.
 import { trackTerrainFootprint } from "./TerrainState";
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { traceWorldPhase } from "./WorldBuildTrace";

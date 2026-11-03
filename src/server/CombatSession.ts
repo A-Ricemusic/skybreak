@@ -1,3 +1,6 @@
+// Per-sortie combat state types: CombatSession, Enemy, Projectile and the air-role/mode unions.
+// Type-only module: owns no instances or runtime state. CombatSessionFactory builds the session record;
+// CombatService and the per-phase runtimes mutate it. Keep behaviour out of here.
 import type { CruiseRuntime } from "./CruiseMissileRuntime";
 import type { GroundDirectorRuntime } from "./GroundSectorRuntime";
 import type { ArtilleryState } from "../shared/ArtilleryRules";

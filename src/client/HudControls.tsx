@@ -1,3 +1,6 @@
+// Touch and overlay HUD controls: GunButton, EvadeButton, Radar, PauseOverlay and SettingsSheet.
+// Stateless React components; each reads live values from the FlightController passed in via props.
+// Mounted by MissionHud.tsx and GameUI.tsx; sends nothing to the server directly.
 import { VOICE_DISCLOSURE, VOICE_DISCLOSURE_DETAIL } from "../shared/VoiceDisclosure";
 import React, { useEffect, useRef } from "@rbxts/react";
 import { RunService, TweenService } from "@rbxts/services";

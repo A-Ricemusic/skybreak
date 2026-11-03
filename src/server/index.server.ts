@@ -1,3 +1,6 @@
+// Server entry point: applies the character policy, ensures the Remotes folder, inits CombatService then
+// CampaignService, and in a background task builds the menu world, warms the enemy mesh and stages the
+// cinematic story models. Skipped entirely when Workspace.SkybreakTestMode is set so specs can import modules.
 import { Players, ReplicatedStorage } from "@rbxts/services";
 import { MissionAssets } from "../shared/MissionAssets";
 import { JetFactory } from "../shared/JetFactory";

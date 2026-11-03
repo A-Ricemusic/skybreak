@@ -1,3 +1,6 @@
+// Shared dressing helpers for the compact-surface missions 14-18: builds the terrain plan from a WorldSurface
+// and returns part/foundation/contact/runway emitters that append to the returned parts list.
+// Pure plan construction, creates no instances. Re-exports compactWorldCounts for those plans' load estimates.
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import type { WorldSurface } from "./CompactWorldSurface";
 import { compactSurface, surfaceGround } from "./CompactWorldSurface";

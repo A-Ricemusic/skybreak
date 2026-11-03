@@ -1,4 +1,4 @@
-// Canyon-escape artillery salvos and authored area attacks (pure). Formerly EngineBatchD3.
+// Canyon-escape artillery salvos and authored area attacks (pure).
 import { finiteNumber } from "./LandingRules";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 

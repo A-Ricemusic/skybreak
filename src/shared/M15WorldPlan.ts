@@ -1,3 +1,7 @@
+// Mission 15 (city answers) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build15Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M15World, MissionWorld, missions/m15 and the M15 specs;
+// buildM15ScenePlan() is the runtime composition where airborne inventory ids belong to live aircraft only.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import { surfaceGround, type WorldSurface } from "./CompactWorldSurface";

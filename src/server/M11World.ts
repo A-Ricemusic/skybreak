@@ -1,3 +1,5 @@
+// Mission 11 world: thin wrapper that feeds M11WorldPlan through CompositionWorld and registers its terrain clear.
+// Owns no state; Build/Clear are called by the world lifecycle in CombatService.
 import { buildM11Plan, M11_ENVIRONMENT, M11_WORLD_KEY } from "../shared/M11WorldPlan";
 import { M11_BUILD_LIMITS } from "../shared/M11Limits";
 import { buildComposition } from "./CompositionWorld";

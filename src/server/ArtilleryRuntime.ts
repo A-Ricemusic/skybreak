@@ -1,4 +1,4 @@
-// Server adapters for ArtilleryRules: canyon audits and artillery steps. Formerly EngineBatchD3Runtime.
+// Server adapters for ArtilleryRules: canyon audits and artillery steps.
 import { sphereSweep } from "../shared/SphereSweep";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";

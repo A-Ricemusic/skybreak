@@ -1,4 +1,4 @@
-// Ring sweeps, guided bombs and elite-formation retreat flags (pure). Formerly EngineBatchD8.
+// Ring sweeps, guided bombs and elite-formation retreat flags (pure).
 import { finiteNumber } from "./LandingRules";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 import type { AreaAttack } from "./ArtilleryRules";

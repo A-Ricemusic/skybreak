@@ -1,3 +1,6 @@
+// Mission loading screen (React): progress fill, stage text, briefing excerpt, tips and the LoadingRig jet,
+// fading into flight once launched. Renders two ScreenGuis at LOADING_DISPLAY_ORDER above every other UI.
+// Owns only its tweens, bindings and the jet rig it creates; client-only, mounted by client/GameUI.tsx.
 import React, { useBinding, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { TweenService } from "@rbxts/services";
 import type { LaunchPhase } from "./LaunchLoading";

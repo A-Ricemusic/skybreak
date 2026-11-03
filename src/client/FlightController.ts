@@ -1,3 +1,7 @@
+// Client flight controller: reads keyboard/gamepad/touch input, predicts the player jet locally, drives the
+// chase camera, target cue and markers, and sends FlightInput/CombatAction packets to the server.
+// Owns one GameAudio, the ContextActionService binds, RenderStepped step and the hidden-part/cue instances.
+// Constructed once by index.client.tsx; GameUI reads it through props and FlightController.GetActive().
 import { RearmPlan, rearmPose } from "../shared/RearmRules";
 import type { CutInPlan } from "../shared/SortieCutaways";
 import type { SpecialKind } from "../shared/SpecialWeapons";
@@ -48,6 +52,7 @@ import { TargetBoxOverlay } from "./TargetBoxOverlay";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
+
 const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W,
 	Enum.KeyCode.S,
@@ -77,20 +82,25 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.G,
 	Enum.KeyCode.ButtonL2,
 ];
+
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
 const MARKER_LIMIT = 16;
+
 /** Edge arrows and drone glyphs stay this far in from the screen edge (pixel cap, viewport share). */
 const SAFE_EDGE_X = 90;
 const SAFE_EDGE_X_SHARE = 0.16;
 const SAFE_EDGE_Y = 150;
 const SAFE_EDGE_Y_SHARE = 0.24;
+
 /** Off-screen drone markers sit slightly inside the selected target's arrow ring so the two never stack. */
 const TARGET_ARROW_INSET = 1;
 const MARKER_ARROW_INSET = 0.9;
+
 function safeInsets(size: Vector2): [number, number] {
 	return [math.min(SAFE_EDGE_X, size.X * SAFE_EDGE_X_SHARE), math.min(SAFE_EDGE_Y, size.Y * SAFE_EDGE_Y_SHARE)];
 }
+
 /** Viewport point and rotation (degrees) of an edge arrow pointing at `worldPosition`, on the safe ellipse scaled by `inset`. */
 function edgePoint(
 	camera: Camera,
@@ -113,18 +123,23 @@ function edgePoint(
 	const extent = inset / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
 	return [size.X / 2 + dx * extent, size.Y / 2 + dy * extent, math.deg(math.atan2(dy, dx)) + 90];
 }
+
 /** Filled glyphs mark required contacts, hollow ones optional; diamonds are ground, triangles air. */
 function contactGlyph(ground: boolean, required: boolean): string {
 	return ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
 }
+
 // Per-frame constants (no Vector3/Color3 construction inside the render loop).
 /** Chase camera height above the jet and aim point above the nose, along the smoothed camera up. */
 const CAMERA_LIFT_STUDS = 20;
 const AIM_LIFT_STUDS = 4;
+
 /** How fast (1/s) the chase camera's up vector follows the canopy: about 0.2 s of lag in a loop. */
 const CAMERA_ROLL_RATE = 5;
+
 /** Ease from the aft-facing launch view into chase instead of rotating both views in one frame. */
 const CAMERA_HANDOFF_SECONDS = 0.8;
+
 // Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked,
 // grey for a selection the server will not let you damage right now (never red, never LOCKED).
 // The selected box blinks unless it holds a damageable lock.
@@ -138,28 +153,36 @@ const CUE_COLOR: Record<SelectedStyle["tone"], Color3> = {
 	optional: COLOR_OPTIONAL,
 	protected: COLOR_PROTECTED,
 };
+
 /** Stroke transparency during the dark half of the selected box's blink. */
 const BLINK_OFF = 0.85;
+
 /** Seconds between client-only terrain probes and airspeed-trend samples (warnings only; no gameplay effect). */
 const PROBE_INTERVAL = 0.1;
+
 /** Fuselage-ish radius of the warning sweep, a little wider than the server's 4-stud crash sweep. */
 const PROBE_RADIUS = 6;
+
 /** Input goes out at most this often while the stick moves, and as a keepalive otherwise. */
 const INPUT_INTERVAL = 1 / 20;
 const INPUT_KEEPALIVE = 0.1;
+
 function remote<K extends keyof Remotes>(remotes: Remotes | Instance, name: K): Remotes[K] {
 	if (typeIs(remotes, "Instance")) return remotes.WaitForChild(name) as Remotes[K];
 	assert(remotes[name], `Missing flight remote: ${name}`);
 	return remotes[name];
 }
+
 function isModel(value: unknown): value is Model {
 	return typeIs(value, "Instance") && value.IsA("Model") && value.Parent !== undefined;
 }
+
 /** Same transform the server applies: the attitude quaternion plus the cosmetic turn lean. */
 function frameFor(state: FlightState): CFrame {
 	const [qx, qy, qz, qw] = FlightMath.Visual(state);
 	return new CFrame(state.x, state.y, state.z, qx, qy, qz, qw);
 }
+
 function launchCameraFor(state: FlightState): CFrame {
 	const pose = LaunchStage.Camera(state);
 	return CFrame.lookAt(
@@ -168,6 +191,7 @@ function launchCameraFor(state: FlightState): CFrame {
 		new Vector3(pose.up.x, pose.up.y, pose.up.z),
 	);
 }
+
 function stateFrom(frame: CFrame): FlightState {
 	const state = FlightMath.NewState();
 	state.x = frame.X;
@@ -176,6 +200,7 @@ function stateFrom(frame: CFrame): FlightState {
 	const [right, up, back] = [frame.RightVector, frame.UpVector, frame.LookVector.mul(-1)];
 	return FlightMath.SetBasis(state, right.X, right.Y, right.Z, up.X, up.Y, up.Z, back.X, back.Y, back.Z);
 }
+
 function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
 	const gui = new Instance("ScreenGui");
 	gui.Name = "SkybreakFlightTargeting";
@@ -227,18 +252,22 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	arrow.Parent = gui;
 	return [gui, bracket, stroke, caption, arrow];
 }
+
 interface PreviousCamera {
 	type: Enum.CameraType;
 	subject?: BasePart | Humanoid;
 	frame: CFrame;
 	fov: number;
 }
+
 export type TelemetryListener = (telemetry: Telemetry) => void;
+
 /** Client-side flight trend for the HUD warnings: airspeed change and time to terrain along the flight path. */
 export interface FlightTrend {
 	acceleration: number;
 	terrainSeconds?: number;
 }
+
 /** Same include list as the server's AircraftCollision.Parameters (Terrain + FlightSolid scenery), built locally. */
 function scenerySurfaces(folder: Instance): RaycastParams {
 	const params = new RaycastParams();
@@ -251,6 +280,7 @@ function scenerySurfaces(folder: Instance): RaycastParams {
 	params.RespectCanCollide = false;
 	return params;
 }
+
 // QA and phone UI use this same controller; all combat decisions stay on server.
 // The player's own jet is predicted locally (FlightPrediction) and reconciled
 // against the server's 20 Hz FlightState stream; everything else is server state.

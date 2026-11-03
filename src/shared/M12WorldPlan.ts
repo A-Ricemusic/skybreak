@@ -1,3 +1,7 @@
+// Mission 12 (command ring) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build12Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M12World, MissionWorld, missions/m12 and the M12 specs; the
+// wreck and paving are non-targetable scenery and never own score actors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

@@ -1,3 +1,7 @@
+// Mission 14 (aurora shield) blueprint: cruise-missile salvos, carriers and site derived from M14WorldPlan's
+// kill-slot layout, plus the MissionBlueprint. Pure data, no instances.
+// Consumed by missions/index and the M14 specs. Text changes require `bun tools/voice-lines.ts &&
+// bun tools/story-voice-script.ts && bun tools/test-mission-catalog.ts --update`.
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
 import type { CruisePlan, CruiseTarget } from "../CruiseMissileRules";

@@ -1,3 +1,5 @@
+// Shared menu building blocks: Corner, Stroke, ActionButton, Label, HintRow, ScreenHeader, FooterButtons.
+// Stateless React primitives themed from Theme.ts; used by every screen under src/client/screens.
 import React from "@rbxts/react";
 import { C } from "../Theme";
 import { SELECTION_NONE, useHighlight } from "../Highlight";

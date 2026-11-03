@@ -1,3 +1,7 @@
+// Night lighting plan types (light fields and sweeping searchlights), their budget validation and the adapter
+// that turns M05 light anchors into a plan. Pure functions, no instances.
+// validateNightLighting runs from MissionCatalog; server/NightLighting.ts renders the plan and reads
+// searchlightHeading(); missions/m05 builds its plan with nightLightingFromAnchors().
 import type { M05LightAnchor } from "./M05WorldPlan";
 import { finiteNumber } from "./LandingRules";
 import type { FlightPoint } from "./MissionCatalog";

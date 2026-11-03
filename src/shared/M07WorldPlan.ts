@@ -1,3 +1,7 @@
+// Mission 07 (two ridges / solar plant) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build07Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M07World, MissionWorld, missions/m07 and the M07 specs; the
+// canyon centreline here also drives ArtilleryRules' safe ceiling.
 import { M07_SAFE_CEILING } from "./ArtilleryRules";
 import type { PartSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";
