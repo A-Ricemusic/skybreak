@@ -1,4 +1,4 @@
-// Server adapters for GroundSectorRules: ground director actors and beach attackers. Formerly EngineBatchD5Runtime.
+// Server adapters for GroundSectorRules: ground director actors and beach attackers.
 import { closedBridgeRoute } from "./LeaderWithdrawalRuntime";
 import { releaseZoneReserves } from "./RepairReserveRuntime";
 import { surfacePose } from "../shared/SurfaceTargetRules";
@@ -23,76 +23,81 @@ export interface GroundDirectorRuntime {
 	folder: Folder;
 	actors: BasePart[];
 }
-export function clearGroundDirector(s: CombatSession): void {
-	s.groundDirector?.folder.Destroy();
-	s.groundDirector = undefined;
+export function clearGroundDirector(session: CombatSession): void {
+	session.groundDirector?.folder.Destroy();
+	session.groundDirector = undefined;
 }
-function running(s: CombatSession): boolean {
+function running(session: CombatSession): boolean {
 	return (
-		s.active &&
-		!s.cleaned &&
-		!s.loading &&
-		!s.launch &&
-		s.rearmElapsed === undefined &&
-		s.cutInElapsed === undefined &&
-		!PauseRules.Paused(s.pause) &&
-		s.blueprintState?.outcome === undefined &&
-		s.blueprintState?.landingElapsed === undefined
+		session.active &&
+		!session.cleaned &&
+		!session.loading &&
+		!session.launch &&
+		session.rearmElapsed === undefined &&
+		session.cutInElapsed === undefined &&
+		!PauseRules.Paused(session.pause) &&
+		session.blueprintState?.outcome === undefined &&
+		session.blueprintState?.landingElapsed === undefined
 	);
 }
 /** Owned below the session folder; creation only from the live simulation after the world/launch gate. */
-export function stepGroundDirector(s: CombatSession, dt: number, say: (line: string) => void): void {
-	const bs = s.blueprintState,
-		plan = bs && BlueprintRunner.ActivePhase(bs)?.groundProgress;
-	if (!plan || !bs || (s.groundDirector && s.groundDirector.phase !== bs.phaseIndex)) clearGroundDirector(s);
-	if (!plan || !bs || !running(s) || !finiteNumber(dt) || dt <= 0) return;
-	if (!s.groundDirector) {
+export function stepGroundDirector(session: CombatSession, dt: number, say: (line: string) => void): void {
+	const blueprintState = session.blueprintState;
+	const plan = blueprintState && BlueprintRunner.ActivePhase(blueprintState)?.groundProgress;
+	if (
+		!plan ||
+		!blueprintState ||
+		(session.groundDirector && session.groundDirector.phase !== blueprintState.phaseIndex)
+	)
+		clearGroundDirector(session);
+	if (!plan || !blueprintState || !running(session) || !finiteNumber(dt) || dt <= 0) return;
+	if (!session.groundDirector) {
 		const folder = new Instance("Folder");
 		folder.Name = "Friendly ground force";
-		folder.Parent = s.folder;
+		folder.Parent = session.folder;
 		const actors = plan.sectors.map((sector) => {
-			const p = new Instance("Part");
-			p.Name = sector.id;
-			p.Size =
+			const part = new Instance("Part");
+			part.Name = sector.id;
+			part.Size =
 				sector.kind === "landing_craft"
 					? new Vector3(24, 8, 55)
 					: sector.kind === "column"
 						? new Vector3(12, 8, 25)
 						: new Vector3(10, 5, 12);
-			p.Color = Color3.fromRGB(75, 160, 130);
-			p.Anchored = true;
-			p.CanCollide = false;
-			p.CanTouch = false;
-			p.CanQuery = false;
-			p.SetAttribute("Friendly", true);
-			p.SetAttribute("SectorId", sector.id);
-			p.Parent = folder;
-			return p;
+			part.Color = Color3.fromRGB(75, 160, 130);
+			part.Anchored = true;
+			part.CanCollide = false;
+			part.CanTouch = false;
+			part.CanQuery = false;
+			part.SetAttribute("Friendly", true);
+			part.SetAttribute("SectorId", sector.id);
+			part.Parent = folder;
+			return part;
 		});
-		s.groundDirector = { phase: bs.phaseIndex, states: newGroundProgress(plan), folder, actors };
+		session.groundDirector = { phase: blueprintState.phaseIndex, states: newGroundProgress(plan), folder, actors };
 	}
-	const runtime = s.groundDirector;
+	const runtime = session.groundDirector;
 	const cleared = new Set<string>();
-	for (const id of bs.killedIds) cleared.add(id);
-	if (s.retiredGroundIds) for (const id of s.retiredGroundIds) cleared.add(id);
+	for (const id of blueprintState.killedIds) cleared.add(id);
+	if (session.retiredGroundIds) for (const id of session.retiredGroundIds) cleared.add(id);
 	const closed = new Set<string>();
-	for (const sector of plan.sectors) if (closedBridgeRoute(s, sector.id, "sector")) closed.add(sector.id);
+	for (const sector of plan.sectors) if (closedBridgeRoute(session, sector.id, "sector")) closed.add(sector.id);
 	for (const line of stepGroundProgress(plan, runtime.states, cleared, dt, closed)) say(line);
-	releaseZoneReserves(s);
+	releaseZoneReserves(session);
 	for (let i = 0; i < plan.sectors.size(); i++) {
-		const sector = plan.sectors[i],
-			state = runtime.states[i],
-			p = groundProgressPose(sector, state),
-			actor = runtime.actors[i];
-		actor.CFrame = new CFrame(p.x, p.y, p.z).mul(
+		const sector = plan.sectors[i];
+		const state = runtime.states[i];
+		const pose = groundProgressPose(sector, state);
+		const actor = runtime.actors[i];
+		actor.CFrame = new CFrame(pose.x, pose.y, pose.z).mul(
 			CFrame.Angles(0, math.rad(surfacePose(sector.route, state.elapsed).yaw), 0),
 		);
 		actor.SetAttribute("Health", state.health);
 		actor.SetAttribute("Secured", state.secured);
 		actor.SetAttribute("Progress", state.elapsed / sector.seconds);
 		if (state.health <= 0) {
-			bs.outcome = "failed";
-			bs.reason = "protected_lost";
+			blueprintState.outcome = "failed";
+			blueprintState.reason = "protected_lost";
 		}
 	}
 }
@@ -100,67 +105,73 @@ export function stepGroundDirector(s: CombatSession, dt: number, say: (line: str
  * A visible two-second attack warning precedes one server LOS strike, then an eight-second reload.
  * Aircraft continue using the normal player weapon/once-only kill ledger; friendlies never award score.
  */
-export function stepBeachAttacker(s: CombatSession, e: Enemy, dt: number, say: (line: string) => void): boolean {
-	if (e.attackSector === undefined) return false;
-	if (!running(s) || !finiteNumber(dt) || dt <= 0) return true;
-	const plan = s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.groundProgress,
-		runtime = s.groundDirector;
+export function stepBeachAttacker(
+	session: CombatSession,
+	enemy: Enemy,
+	dt: number,
+	say: (line: string) => void,
+): boolean {
+	if (enemy.attackSector === undefined) return false;
+	if (!running(session) || !finiteNumber(dt) || dt <= 0) return true;
+	const plan = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.groundProgress;
+	const runtime = session.groundDirector;
 	const index =
-		plan && runtime && e.phaseOwner === runtime.phase
-			? attackSectorIndex(plan, runtime.states, e.attackSector)
+		plan && runtime && enemy.phaseOwner === runtime.phase
+			? attackSectorIndex(plan, runtime.states, enemy.attackSector)
 			: undefined;
 	if (index === undefined || !plan || !runtime) {
-		e.windup = 0;
-		e.model.SetAttribute("AttackWarning", false);
-		if (e.warning) e.warning.Enabled = false;
+		enemy.windup = 0;
+		enemy.model.SetAttribute("AttackWarning", false);
+		if (enemy.warning) enemy.warning.Enabled = false;
 		return true;
 	}
-	const sector = plan.sectors[index],
-		state = runtime.states[index],
-		p = groundProgressPose(sector, state);
-	const target = new Vector3(p.x, p.y, p.z),
-		station = target.add(new Vector3(0, 240, 0)),
-		delta = station.sub(e.position);
-	const distance = target.sub(e.position).Magnitude;
+	const sector = plan.sectors[index];
+	const state = runtime.states[index];
+	const pose = groundProgressPose(sector, state);
+	const target = new Vector3(pose.x, pose.y, pose.z);
+	const station = target.add(new Vector3(0, 240, 0));
+	const delta = station.sub(enemy.position);
+	const distance = target.sub(enemy.position).Magnitude;
 	// Fly repeated passes over the force at a safe band; existing terrain probes keep scenery ahead clear.
-	let desired = delta.Magnitude > 1 ? delta.Unit : e.direction;
-	if (distance < 400) desired = e.direction.add(new Vector3(0, 0.3, 0)).Unit;
-	if (s.collisionParams && Workspace.Raycast(e.position, e.direction.mul(250), s.collisionParams))
+	let desired = delta.Magnitude > 1 ? delta.Unit : enemy.direction;
+	if (distance < 400) desired = enemy.direction.add(new Vector3(0, 0.3, 0)).Unit;
+	if (session.collisionParams && Workspace.Raycast(enemy.position, enemy.direction.mul(250), session.collisionParams))
 		desired = new Vector3(desired.X, 1, desired.Z).Unit;
-	e.direction = e.direction.Lerp(desired, math.clamp(dt * 1.5, 0, 1)).Unit;
-	e.velocity = e.direction.mul(SquadAttackRules.speed);
-	e.position = e.position.add(e.velocity.mul(dt));
-	e.position = new Vector3(
-		math.clamp(e.position.X, -s.airspace.spawnLimit, s.airspace.spawnLimit),
-		math.clamp(e.position.Y, 170, 2000),
-		math.clamp(e.position.Z, -s.airspace.spawnLimit, s.airspace.spawnLimit),
+	enemy.direction = enemy.direction.Lerp(desired, math.clamp(dt * 1.5, 0, 1)).Unit;
+	enemy.velocity = enemy.direction.mul(SquadAttackRules.speed);
+	enemy.position = enemy.position.add(enemy.velocity.mul(dt));
+	enemy.position = new Vector3(
+		math.clamp(enemy.position.X, -session.airspace.spawnLimit, session.airspace.spawnLimit),
+		math.clamp(enemy.position.Y, 170, 2000),
+		math.clamp(enemy.position.Z, -session.airspace.spawnLimit, session.airspace.spawnLimit),
 	);
-	e.frame = CFrame.lookAt(e.position, e.position.add(e.direction));
-	e.fireTimer = math.max(0, e.fireTimer - dt);
-	if (e.windup > 0) {
-		e.windup = math.max(0, e.windup - dt);
-		if (e.windup <= 0) {
-			e.model.SetAttribute("AttackWarning", false);
-			if (e.warning) e.warning.Enabled = false;
-			e.fireTimer = SquadAttackRules.reload;
+	enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
+	enemy.fireTimer = math.max(0, enemy.fireTimer - dt);
+	if (enemy.windup > 0) {
+		enemy.windup = math.max(0, enemy.windup - dt);
+		if (enemy.windup <= 0) {
+			enemy.model.SetAttribute("AttackWarning", false);
+			if (enemy.warning) enemy.warning.Enabled = false;
+			enemy.fireTimer = SquadAttackRules.reload;
 			if (
-				s.collisionParams &&
+				session.collisionParams &&
 				squadStrikeReachable(
 					distance,
-					Workspace.Raycast(e.position, target.sub(e.position), s.collisionParams) !== undefined,
+					Workspace.Raycast(enemy.position, target.sub(enemy.position), session.collisionParams) !==
+						undefined,
 				)
 			) {
 				if (damageSector(state, SquadAttackRules.damage)) say(sector.hitCall);
-				if (state.health <= 0 && s.blueprintState) {
-					s.blueprintState.outcome = "failed";
-					s.blueprintState.reason = "protected_lost";
+				if (state.health <= 0 && session.blueprintState) {
+					session.blueprintState.outcome = "failed";
+					session.blueprintState.reason = "protected_lost";
 				}
 			}
 		}
-	} else if (e.fireTimer <= 0 && distance <= SquadAttackRules.range) {
-		e.windup = SquadAttackRules.warning;
-		e.model.SetAttribute("AttackWarning", true);
-		if (e.warning) e.warning.Enabled = true;
+	} else if (enemy.fireTimer <= 0 && distance <= SquadAttackRules.range) {
+		enemy.windup = SquadAttackRules.warning;
+		enemy.model.SetAttribute("AttackWarning", true);
+		if (enemy.warning) enemy.warning.Enabled = true;
 	}
 	return true;
 }

@@ -32,7 +32,7 @@ export interface Enemy {
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
 	typedGround?: TypedGroundTarget;
-	/** D11 gate passed during its owning phase; persists after the director is cleared. */
+	/** Hidden reserve released by its sector gate during the owning phase; persists after the director is cleared. */
 	reserveReleased?: boolean;
 	phaseOwner?: number;
 	scoreRole?: string;
@@ -137,9 +137,8 @@ export interface Projectile {
 }
 export interface CombatSession {
 	m18Ascending?: { elapsed: number; actors: Enemy[] };
-	d13Phase?: number;
-	d13Gate?: Part;
-	d13Beacon?: Part;
+	/** Mission 18 finale props owned by the active phase: the timed vent shutter and the route beacon. */
+	finaleDuel?: { phase: number; gate?: Part; beacon?: Part };
 	cruise?: CruiseRuntime;
 	airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
@@ -202,7 +201,7 @@ export interface CombatSession {
 	lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
 	special: SpecialState;
-	/** Batch D1: the fitted gun (rounds, trigger, shot cooldown); absent unless the mission's armament fits one. */
+	/** The fitted gun (rounds, trigger, shot cooldown); absent unless the mission's armament fits one. */
 	gun?: GunState;
 	/** Gun line-of-fire filter (ground surfaces, water ignored), built on first use. */
 	gunParams?: RaycastParams;

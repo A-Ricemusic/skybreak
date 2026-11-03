@@ -1,68 +1,78 @@
-// Server adapters for RingSweepRules: ring sweep steps and elite retreat. Formerly EngineBatchD8Runtime.
+// Server adapters for RingSweepRules: ring sweep steps and elite retreat.
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { artilleryMasked, newArtillery, stepArtillery } from "../shared/ArtilleryRules";
 import { inRingSweep } from "../shared/RingSweepRules";
 import type { CombatSession } from "./CombatSession";
+/** Studs per foot for the CLIMB ABOVE call-out, which reports the ring-battery ceiling in feet rather than studs. */
+const STUDS_PER_FOOT = 0.292608;
 /** Called in the active combat step only, after pause/cut-in/rearm gates. No world-owned instances. */
-export function stepRingSweep(s: CombatSession, dt: number, say: (line: string) => void): void {
-	const bs = s.blueprintState,
-		p = bs && BlueprintRunner.ActivePhase(bs)?.ringSweep;
-	if (!bs || !p) {
-		s.ringArtillery = undefined;
+export function stepRingSweep(session: CombatSession, dt: number, say: (line: string) => void): void {
+	const blueprintState = session.blueprintState;
+	const sweep = blueprintState && BlueprintRunner.ActivePhase(blueprintState)?.ringSweep;
+	if (!blueprintState || !sweep) {
+		session.ringArtillery = undefined;
 		return;
 	}
-	if (s.ringArtillery?.phase !== bs.phaseIndex) s.ringArtillery = { phase: bs.phaseIndex, state: newArtillery() };
-	const state = s.ringArtillery!.state;
-	// Reuse D3 timing and segmented masking (<=1,000 studs, never a >15,000-stud ray).
-	const clock = { ...p, ceiling: p.ceiling ?? 2000, source: p.guns[0].source, channel: [], clearance: 1 };
+	if (session.ringArtillery?.phase !== blueprintState.phaseIndex)
+		session.ringArtillery = { phase: blueprintState.phaseIndex, state: newArtillery() };
+	const state = session.ringArtillery!.state;
+	// Reuse the canyon artillery timing and segmented masking (<=1,000 studs, never a >15,000-stud ray).
+	const clock = { ...sweep, ceiling: sweep.ceiling ?? 2000, source: sweep.guns[0].source, channel: [], clearance: 1 };
 	const event = stepArtillery(state, clock, dt);
 	if (event.warning)
 		say(
-			p.ceiling !== undefined
-				? `RING BATTERY · CLIMB ABOVE ${math.ceil(p.ceiling / 0.292608)} FT`
+			sweep.ceiling !== undefined
+				? `RING BATTERY · CLIMB ABOVE ${math.ceil(sweep.ceiling / STUDS_PER_FOOT)} FT`
 				: "RING BATTERY · CLEAR THE FIRING LINE",
 		);
-	if (event.countdown) say(`RING SWEEP IN ${p.countdownSeconds} SECONDS`);
+	if (event.countdown) say(`RING SWEEP IN ${sweep.countdownSeconds} SECONDS`);
 	if (!event.impact) return;
-	for (const g of p.guns) {
-		const live = s.enemies.some(
-			(e) => e.id === g.targetId && e.enabled && e.health > 0 && e.phaseOwner === bs.phaseIndex,
+	for (const gun of sweep.guns) {
+		const live = session.enemies.some(
+			(enemy) =>
+				enemy.id === gun.targetId &&
+				enemy.enabled &&
+				enemy.health > 0 &&
+				enemy.phaseOwner === blueprintState.phaseIndex,
 		);
-		if (!live || !inRingSweep(p, g, s.state)) continue;
+		if (!live || !inRingSweep(sweep, gun, session.state)) continue;
 		const masked =
-			s.collisionParams !== undefined &&
+			session.collisionParams !== undefined &&
 			artilleryMasked(
-				{ ...clock, source: g.source },
-				s.state,
-				(o, d) =>
-					Workspace.Raycast(new Vector3(o.x, o.y, o.z), new Vector3(d.x, d.y, d.z), s.collisionParams)
-						?.Distance,
+				{ ...clock, source: gun.source },
+				session.state,
+				(origin, direction) =>
+					Workspace.Raycast(
+						new Vector3(origin.x, origin.y, origin.z),
+						new Vector3(direction.x, direction.y, direction.z),
+						session.collisionParams,
+					)?.Distance,
 			);
 		if (masked) continue;
-		const lost = math.min(s.health, p.damage);
-		s.health -= lost;
-		s.damageTaken += lost;
-		s.lowestHealth = math.min(s.lowestHealth, s.health);
+		const lost = math.min(session.health, sweep.damage);
+		session.health -= lost;
+		session.damageTaken += lost;
+		session.lowestHealth = math.min(session.lowestHealth, session.health);
 		break; // Overlapping gun lines never multiply one salvo's damage.
 	}
 }
 
 /** Accepted elite defeat only. Surviving fighters depart without kill/score credit. */
-export function completeEliteRetreat(s: CombatSession, withdraw: () => void, say: (line: string) => void): void {
-	if (s.folder.GetAttribute("EliteRecoveryAnnounced") === true) return;
-	s.folder.SetAttribute("EliteRecoveryAnnounced", true);
-	s.folder.SetAttribute("VultureTwoRecovered", true);
-	s.airQueue.clear();
+export function completeEliteRetreat(session: CombatSession, withdraw: () => void, say: (line: string) => void): void {
+	if (session.folder.GetAttribute("EliteRecoveryAnnounced") === true) return;
+	session.folder.SetAttribute("EliteRecoveryAnnounced", true);
+	session.folder.SetAttribute("VultureTwoRecovered", true);
+	session.airQueue.clear();
 	withdraw();
-	for (let i = s.projectiles.size() - 1; i >= 0; i--)
-		if (s.projectiles[i].hostile) {
-			s.projectiles[i].part.Destroy();
-			s.projectiles.remove(i);
+	for (let i = session.projectiles.size() - 1; i >= 0; i--)
+		if (session.projectiles[i].hostile) {
+			session.projectiles[i].part.Destroy();
+			session.projectiles.remove(i);
 		}
 	say(
-		s.missionId === 12
+		session.missionId === 12
 			? MISSION_STORY_TEXT[12].radio[2]
 			: "VULTURE TWO EJECTED · RECOVERY DISPATCHED. ELITE FLIGHT WITHDRAWING.",
 	);
