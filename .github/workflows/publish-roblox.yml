@@ -3,6 +3,8 @@ name: Publish to Roblox
 on:
   push:
     branches: [main]
+    # Docs-only merges never change the place, so they do not publish. validate.yml re-includes
+    # docs/broken-relay.md and docs/world-realism.md because the gate freshness-checks them.
     paths-ignore:
       - "**.md"
       - "docs/**"

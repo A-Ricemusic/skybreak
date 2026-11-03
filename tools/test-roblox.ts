@@ -9,6 +9,27 @@ const timeoutMs = Number(process.env.ROBLOX_TEST_TIMEOUT_MS ?? (perf ? 3_600_000
 if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
 	throw new Error("ROBLOX_TEST_TIMEOUT_MS must be a positive integer in milliseconds");
 }
+// A second Studio makes the RunScript launch hang until the deadline, so refuse early unless overridden.
+if (!process.env.ROBLOX_TEST_ALLOW_RUNNING_STUDIO) {
+	const running = runningStudioPids();
+	if (running.length > 0) {
+		throw new Error(
+			`Roblox Studio is already running (pid ${running.join(", ")}); a second Studio would hang this run until its deadline. ` +
+				"Quit Studio first, or set ROBLOX_TEST_ALLOW_RUNNING_STUDIO=1 to bypass this check deliberately.",
+		);
+	}
+}
+function runningStudioPids(): string[] {
+	let probe: ReturnType<typeof Bun.spawnSync>;
+	try {
+		probe = Bun.spawnSync(["pgrep", "-x", "RobloxStudio"], { stdout: "pipe", stderr: "ignore" });
+	} catch {
+		return []; // no pgrep on this platform: the guard cannot help, so stay out of the way
+	}
+	// pgrep exits 0 only when at least one process matched; 1 means none, anything else is an error.
+	if (probe.exitCode !== 0) return [];
+	return probe.stdout.toString().split(/\s+/).filter(Boolean);
+}
 const run = async (command: string[]) => {
 	const process = Bun.spawn(command, { cwd: root, stdout: "inherit", stderr: "inherit" });
 	if ((await process.exited) !== 0) throw new Error(`Command failed: ${command.join(" ")}`);

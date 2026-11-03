@@ -213,7 +213,7 @@ Completed for this pass:
 
 - `bun install --frozen-lockfile`.
 - `bun run build` — all TypeScript/React Lua and Roblox Jest specs compile.
-- `LUAU_BIN="/Users/pelicannurse/.t3/worktrees/test app/t3-b4a927bc/build/offline-luau/luau" bun run test:offline` — **321 / 321** pure compiled-domain contracts pass. These cover every authored mission sequence and flight volume with legal controls, the 4–7 beat and trimmed design-duration contracts, difficulty pressure, aircraft budgets, reinforcement exceptions, phase transitions, scoring/par, progression, deadline, protected loss, story and input rules. These are unit simulations, not gameplay evidence.
+- `LUAU_BIN=/absolute/path/to/luau bun run test:offline` — every pure compiled-domain contract passes; the run prints the current count on its `OFFLINE_LUAU_RESULT passed=… failed=0` line (the floor is pinned in `tools/validate-offline.ts`). These cover every authored mission sequence and flight volume with legal controls, the 4–7 beat and trimmed design-duration contracts, difficulty pressure, aircraft budgets, reinforcement exceptions, phase transitions, scoring/par, progression, deadline, protected loss, story and input rules. These are unit simulations, not gameplay evidence.
 - `bun run docs:relay-tables`, then `bun run docs:relay-tables --check` with the same `LUAU_BIN` — generated manifest, par and estimates match the catalog.
 - `bun run docs:world-counts --check` with the same `LUAU_BIN` — the per-mission world counts in [world-realism.md](world-realism.md) match the world plans.
 - `git diff --check`.

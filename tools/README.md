@@ -10,12 +10,16 @@ See `docs/architecture/README.md` for how the pieces connect.
 | Script | What it checks |
 |---|---|
 | `check-no-react-agent-testing.ts` | **gate** The removed React/Playwright agent-testing harness has not come back (also `.github/workflows/no-react-agent-testing.yml`). |
+| `bun run format:check`, `bun run lint` | **gate** Prettier and ESLint (`.prettierrc`, `eslint.config.*`); run `bun run format && bun run lint` before committing. |
+| `bun run build:place` | **gate** Compiles roblox-ts, builds `build/skybreak.rbxlx` with Rojo and runs `check-place-voice.py` on it; later Python tests read this place. |
 | `package-aircraft.ts` | Part of `bun run build`: packs the exact Blender mesh JSON into server-only `StringValue`s for Rojo. |
 | `check-place-voice.py` | Part of `bun run build:place`: rejects a built `.rbxlx` whose voice scripts are missing or stale. Not an audio test. |
 | `check-place-assets.py --inventory` | **gate** Lists every embedded blob and `rbxassetid://` reference in the built place. Inventory never authorizes publication; `--publish` does (see below). |
 | `check-luau-modules.ts` | **gate** Compiles every emitted Luau module in the standalone Luau CLI and checks the require graph; fails on Luau's 200-local limit. |
 | `test-voice-disclosure-ui.ts`, `test-results-wiring.ts`, `test-m03-builder-contract.ts`, `test-world-environments.ts` | **gate** Static source contracts (regexes over TypeScript), no runtime. |
+| `test-world-budget-fixtures.ts` | **gate** Source contract over `src/tests/WorldInstanceBudget.spec.ts`: the budget fixture keeps expensive world generation and detached work out of its timing window. No Studio timing is measured. |
 | `test-relay-offline.ts` | **gate** Runs the pure `src/tests/*.spec.ts` contracts listed in its `MODULES` table inside the Luau CLI. Minimum pass count is pinned in `validate-offline.ts`. |
+| `test-plan-performance.ts` | **gate** Runs after `test-relay-offline.ts` has staged the compiled planners: all 18 deterministic world-plan fingerprints are frozen at merge revision 37028404 (`PLAN_PERFORMANCE passed=36`). Never recapture them from changed planner output. |
 | `voice-lines.ts --check`, `story-voice-script.ts --check` | **gate** Generated voice line ids and the story script match the compiled catalog; run without `--check` to regenerate. |
 | `test-mission-catalog.ts` | **gate** Frozen catalog snapshot (`fixtures/mission-catalog.campaign18.json`); `--update` regenerates it deliberately. |
 | `test-playtest-relay.ts` | **gate** Runs `playtest-relay.client.luau` against `tests/playtest-relay-harness.luau` with inert Roblox surfaces. |

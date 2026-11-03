@@ -1,13 +1,18 @@
 # PR gate. Runs the same composite action as the main publish workflow, without secrets.
-# Markdown-only and docs/** changes skip it (and the publish), so docs PRs show no check.
+# Markdown-only and docs/** changes skip it, so most docs PRs show no check. The two docs that
+# the gate freshness-checks (relay-tables.ts --check, world-report.ts --check) are re-included
+# so a PR editing them still runs the gate. Later patterns win, so the re-includes come last.
 name: Validate PR
 
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
+    paths:
+      - "**"
+      - "!**.md"
+      - "!docs/**"
+      - "docs/broken-relay.md"
+      - "docs/world-realism.md"
 
 permissions:
   contents: read
