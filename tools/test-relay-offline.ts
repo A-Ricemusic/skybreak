@@ -356,6 +356,8 @@ MODULES.push("tests/SpecialWeapons.spec", "shared/LoadingGate", "tests/LoadingGa
 // Results-screen model extracted from GameUI; depends on MissionScore, Difficulty, TargetScore, OutcomeReason and
 // InitialTelemetry, all staged above.
 MODULES.push("shared/OutcomeModel", "tests/OutcomeModel.spec");
+// Client sortie lifecycle around the mission-end presentation hold (FlightController ending phase).
+MODULES.push("shared/MissionEnding", "tests/MissionEnding.spec");
 
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);

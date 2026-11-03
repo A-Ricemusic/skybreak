@@ -16,6 +16,8 @@ type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome"
 const NO_MENU_CAMERA: ReadonlySet<Screen> = new Set<Screen>(["mission", "cinematic", "loading"]);
 // If "Started" never follows "Loading" (server holds for at most ~8 s), fall back to the briefing.
 const LOADING_CLIENT_TIMEOUT = 20;
+// Seconds GameUI holds the flight view after Completed/Failed before it stops the controller (the only owner of
+// that timing; FlightController's ending phase just waits for the Stop).
 const MISSION_END_HOLD = 1.2;
 
 interface ToastState {
