@@ -1,12 +1,12 @@
-**Current state, 2026-11-03** (main `8a02de97`). The cleanup sweep merged #248–#270 (23 PRs): mostly behaviour-preserving refactors, plus the small Player-visible and save-behaviour changes listed in [shipped.md](shipped.md) (mission-end hold #267, enemy smoothing #264, malformed-packet guards #258/#266, input/launch bounds #248, save retry/spacing #253, fail-closed mission records #270, runner-sourced kill settlement #269). They are live under the pipeline convention. Every completed main publish run succeeded, including the final one for `8a02de97`. Cancelled runs were queued runs superseded by a later merge. **No Roblox Player or phone verification was performed.** Practice and missions 1–18 keep their existing statuses, and the table below is unchanged.
+**Current state, 2026-11-03** (main `6fe63112`). The cleanup sweep merged #248–#271 (24 PRs): mostly behaviour-preserving refactors, plus the small Player-visible and save-behaviour changes listed in [shipped.md](shipped.md) (mission-end hold #267, enemy smoothing #264, malformed-packet guards #258/#266, input/launch bounds #248, save retry/spacing #253, fail-closed mission records #270, runner-sourced kill settlement #269; deletion-epoch bookkeeping #271, nothing visible to the player). They are live under the pipeline convention. Every completed main publish run succeeded, through `8a02de97`. Cancelled runs were queued runs superseded by a later merge. The run for `6fe63112` was in progress at writing. **No Roblox Player or phone verification was performed.** Practice and missions 1–18 keep their existing statuses, and the table below is unchanged.
 
 Latest evidence:
-- Offline: `bun run validate:offline` exited 0 on every merged PR (136 offline specs; 1,371 Luau checks passed, 0 failed).
-- Studio Jest (orchestrator, Studio 0.745.0.7451137, heavily loaded machine): best combined run 1,639/1,640 on main plus #264–#267, #269 and #270 v1. The only failure was CampaignSmoke world-build time (M10 30.0 s, M12 30.6 s, M16 25.3 s); an earlier run failed on M7 at 30.2 s.
+- Offline: `bun run validate:offline` exited 0 on every merged PR (latest on main+#271: 1,396 Luau checks passed, 0 failed).
+- Studio Jest (orchestrator, Studio 0.745.0.7451137, heavily loaded machine): best combined run 1,639/1,640 on main plus #264–#267, #269 and #270 v1. The only failure was CampaignSmoke world-build time (M10 30.0 s, M12 30.6 s, M16 25.3 s); an earlier run failed on M7 at 30.2 s. Persistence specs on main+#271: 146/147; the one failure was CampaignSmoke M12 at 30.7 s.
 
 Open:
 - CampaignSmoke reliability: needs a quiet-machine run.
-- #271: deletion-epoch phase 1, flag off. The F1 deletion race stays live until phase 2 (D-676).
+- Deletion-epoch phase 2 enablement: phase 1 shipped in #271. The F1 deletion race stays live until phase 2 (D-676).
 - #241: M07 terrain cleanup.
 - Dependabot #245 and #246.
 - Owner phone playthrough, which comes first in [next.md](next.md).

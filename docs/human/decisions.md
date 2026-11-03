@@ -833,7 +833,7 @@ Only an absent DataStore key creates a fresh writable profile. Same-namespace v1
 
 ## D-676 — Two-phase rollout for deletion epochs (audit F1)
 
-Date: 2026-11-03. Decision maker: orchestrator, on independent (GPT-6 Astra) review; owner may revisit. Status: accepted; phase 1 is open in #271, not merged.
+Date: 2026-11-03. Decision maker: orchestrator, on independent (GPT-6 Astra) review; owner may revisit. Status: accepted; phase 1 shipped (#271, `6fe63112`); phase 2 pending a drain plan.
 
 Phase 1 only records the data. Each deletion gets a unique epoch id stored with the slot, merge behaviour is unchanged, and the conflict rules sit behind `DELETION_EPOCH_CONFLICTS = false`. Phase 2 turns on the conflict rules that fix competing equal-generation deletions. It needs the flag plus a rollout/drain plan, so that no server from before the epoch change and no flag-off writer with pending writes remains. Alternatives considered: (a) ship single-step conflict rules; rejected because independent review reproduced mixed-version data loss, where a flag-off server's pending generation-2 write emptied a slot; (b) a per-user session lease; deferred because it is a broader persistence change, now listed as a follow-up. Rationale: mixed server versions coexist during publishes, so new conflict semantics are only safe once every writer can read epochs. The F1 race stays live until phase 2.
 
