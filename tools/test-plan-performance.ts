@@ -54,6 +54,7 @@ for _,changed in {{label="other",solid=true},{label="route",solid=false},{label=
 end
 assert(fingerprint({1,2})~=fingerprint({2,1}),"Array order stays exact")
 
+local terrainSchedule=require("./TerrainSchedule")
 local baseline={2595689487,3022175266,4091653953,3359413120,3709475856,1339997142,3660052952,304861289,995958326,2471117253,2029317218,487262690,2097524581,4080310693,2758503905,2234297660,956128081,3272172711}
 local builders={}
 `;
@@ -76,6 +77,20 @@ for pass=1,2 do for index=1,18 do
  local decorated={} for _,op in p.ops do table.insert(decorated,{op=op,h=fingerprint(op)}) end
  table.sort(decorated,function(a,b) return a.h<b.h end)
  p.ops={} for _,entry in decorated do table.insert(p.ops,entry.op) end
+ end
+ if pass==1 and (id==10 or id>=13) then
+  local before=terrainSchedule.terrainJobs(p.ops)
+  local after=terrainSchedule.terrainExecutionJobs(p.ops)
+  for _,op in p.ops do assert(terrainSchedule.alignedBlockRegion(op),"Sparse cleanup needs full voxel boxes: M"..id) end
+  assert(#after<=#before,"Terrain coalescing increased work")
+  local cellsBefore=0;local cellsAfter=0
+  for _,job in before do cellsBefore+=job.cells end
+  for _,job in after do cellsAfter+=job.cells end
+  assert(cellsAfter==cellsBefore,"Terrain coalescing changed volume")
+  local air={}
+  for _,op in p.ops do local erase=table.clone(op);erase.material="Air";table.insert(air,erase) end
+  local cleanup=terrainSchedule.terrainExecutionJobs(air)
+  print("MISSION_TERRAIN_EXECUTION mission="..id.." jobsBefore="..#before.." jobsAfter="..#after.." cleanupJobs="..#cleanup.." sparseCleanup=true")
  end
  local actual=fingerprint(p)
  if pass==1 then

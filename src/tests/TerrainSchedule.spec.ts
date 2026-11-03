@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { terrainCleanupOp, terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -109,4 +109,97 @@ describe("Terrain write scheduler", () => {
 			expect(WorldPlanner.Counts(plan).bumpCells).toBe(jobs.filter((j) => j.region !== undefined).reduce((sum, j) => sum + j.cells, 0));
 		}
 	});
+});
+
+// Small exhaustive voxel oracle: prove overwrite order and geometry, not just job counts.
+describe("Full-voxel terrain execution", () => {
+ const box=(x:number,y:number,z:number,sx:number,sy:number,sz:number,material="Rock"):TerrainOp=>({shape:"block",x,y,z,sx,sy,sz,yaw:0,material:material as TerrainOp["material"]});
+ it("uses region fills only when every face is on the voxel lattice",()=>{
+  expect(alignedBlockRegion(box(4,4,4,8,8,8))).toEqual({min:[0,0,0],max:[8,8,8]});
+  expect(alignedBlockRegion(box(5,4,4,8,8,8))).toBeUndefined();
+  expect(alignedBlockRegion({...box(4,4,4,8,8,8),yaw:0.1})).toBeUndefined();
+ });
+ it("joins boxes across disjoint materials but preserves every intersecting overwrite",()=>{
+  const ops = [box(2,2,2,4,4,4), box(2,10,2,4,4,4,"Grass"), box(6,2,2,4,4,4),
+   box(6,2,2,4,4,4,"Grass"), box(6,2,2,4,4,4), box(2,2,2,4,4,4,"Water")];
+  const jobs = terrainExecutionJobs(ops, 8);
+  expect(jobs.size()).toBeLessThan(ops.size());
+  // Full material/occupancy overwrite oracle, including FillBlock water preserving solids.
+  const sample=(items:TerrainOp[],x:number,y:number,z:number)=>{
+   let mat="Air";
+   for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)
+    if(o.material!=="Water" || mat==="Air" || mat==="Water") mat=o.material;
+   return mat;
+  };
+  for(let x=-4;x<=12;x+=4)for(let y=-4;y<=16;y+=4)for(let z=-4;z<=12;z+=4)
+   expect(sample(jobs.map(j=>j.op),x,y,z)).toBe(sample(ops,x,y,z));
+  for(const j of jobs) expect(j.cells).toBeLessThanOrEqual(8);
+ });
+ it("preserves an exhaustive mixed-material voxel field through both optimization passes",()=>{
+  let seed=731;
+  const randomCell=()=>{seed=(seed*16807)%2147483647;return seed;};
+  const ops:TerrainOp[]=[];
+  for(let i=0;i<80;i++) ops.push(box((randomCell()%8)*4,(randomCell()%4)*4,(randomCell()%8)*4,
+   (randomCell()%3+1)*8,(randomCell()%2+1)*8,(randomCell()%3+1)*8,["Rock","Grass","Air","Water"][randomCell()%4]));
+  const saved=ops.map(o=>({...o})), jobs=terrainExecutionJobs(ops,32);
+  const sample=(items:TerrainOp[],x:number,y:number,z:number)=>{
+   let mat="Air";
+   for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)
+    if(o.material!=="Water" || mat==="Air" || mat==="Water") mat=o.material;
+   return mat;
+  };
+  const executed=jobs.map(j=>j.op);
+  for(let x=-12;x<=40;x+=4)for(let y=-8;y<=24;y+=4)for(let z=-12;z<=40;z+=4)
+   expect(sample(executed,x,y,z)).toBe(sample(ops,x,y,z));
+  expect(ops).toEqual(saved);
+  for(const j of jobs) expect(j.cells).toBeLessThanOrEqual(32);
+ });
+ it("coalesces all three axes without crossing material barriers or mutating plans",()=>{
+  const ops:TerrainOp[]=[];
+  for(const x of [2,6]) for(const y of [2,6]) for(const z of [2,6]) ops.push(box(x,y,z,4,4,4));
+  ops.push(box(2,2,2,4,4,4,"Grass"),box(2,2,2,4,4,4));
+  const snapshot=ops.map(o=>({...o}));
+  const jobs=coalesceTerrainJobs(terrainJobs(ops),8);
+  expect(jobs.size()).toBe(3); expect(ops).toEqual(snapshot);
+  for(let x=0;x<8;x+=4)for(let y=0;y<8;y+=4)for(let z=0;z<8;z+=4){
+   const sample=(items:TerrainOp[])=>{let mat="Air";for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)mat=o.material;return mat;};
+   expect(sample(jobs.map(j=>j.op))).toBe(sample(ops));
+  }
+  expect(coalesceTerrainJobs(terrainJobs(snapshot),1).size()).toBe(10);
+ });
+});
+
+describe("Legacy curved terrain cleanup bounds", () => {
+ it("covers negative and partial boundary cells with an aligned, bounded Air footprint", () => {
+  const op = terrainBoundsOp([-17.1,-379,-4], [15.5,127,18.1]);
+  expect(alignedBlockRegion(op)).toEqual({min: [-20,-380,-4], max: [16,128,20]});
+  expect(op.material).toBe("Air");
+  const jobs = terrainExecutionJobs([op], 128);
+  expect(jobs.reduce((n,j) => n+j.cells,0)).toBe(9*127*6);
+  for (const job of jobs) { expect(job.cells).toBeLessThanOrEqual(128); expect(alignedBlockRegion(job.op)).toBeDefined(); }
+ });
+});
+
+ describe("Planned curved terrain cleanup", () => {
+ it("covers each curved write separately without joining distant worlds", () => {
+  const ops: TerrainOp[] = [
+   {shape:"block",material:"Rock",x:-30000,y:17,z:6000,sx:31,sy:19,sz:53,yaw:0.7},
+   {shape:"ball",material:"Grass",x:30000,y:100,z:0,sx:29,sy:0,sz:0,yaw:0},
+   {shape:"cylinder",material:"Rock",x:100,y:200,z:300,sx:31,sy:59,sz:0,yaw:0},
+   {shape:"bump",material:"Grass",x:-100,y:20,z:200,sx:30,sy:43,sz:50,yaw:0.4},
+  ];
+  for (const op of ops) {
+   const erase=terrainCleanupOp(op), r=alignedBlockRegion(erase)!;
+   expect(erase.material).toBe("Air"); expect(r).toBeDefined();
+   expect(erase.sx).toBeLessThan(200); expect(erase.sz).toBeLessThan(200);
+   if (op.shape === "bump") expect(r).toEqual(bumpRegion(op));
+   else for (const dx of [-1,1]) for (const dz of [-1,1]) {
+    const hx=op.shape === "block" ? op.sx/2 : op.sx;
+    const hz=op.shape === "block" ? op.sz/2 : op.sx;
+    const x=op.shape === "block" ? op.x+math.cos(op.yaw)*dx*hx+math.sin(op.yaw)*dz*hz : op.x+dx*hx;
+    const z=op.shape === "block" ? op.z-math.sin(op.yaw)*dx*hx+math.cos(op.yaw)*dz*hz : op.z+dz*hz;
+    expect(x>=r.min[0] && x<=r.max[0] && z>=r.min[2] && z<=r.max[2]).toBe(true);
+   }
+  }
+ });
 });

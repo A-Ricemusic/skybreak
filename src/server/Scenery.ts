@@ -1,3 +1,4 @@
+import { trackTerrainBounds, trackTerrainFootprint } from "./TerrainState";
 import { CONTROL_TOWER_PARTS, HANGAR_PARTS } from "../shared/MenuWorldGeometry";
 import { JetFactory } from "../shared/JetFactory";
 import { Workspace } from "@rbxts/services";
@@ -159,6 +160,10 @@ export function TerrainIsland(x: number, z: number, width: number, depth: number
 	const base = new CFrame(x, 0, z).mul(CFrame.Angles(0, yaw, 0));
 	const rockHeight = top - 4 - HIDDEN_FLOOR; // bottom at HIDDEN_FLOOR, not 20 studs further down
 	for (const [lx, lz, r] of lobes(width, depth)) {
+		const center = base.PointToWorldSpace(new Vector3(lx, 0, lz));
+		// Include both cylinders, their partial boundary voxels, and the grass cap.
+		trackTerrainBounds(new Vector3(center.X-r-4, HIDDEN_FLOOR-4, center.Z-r-4),
+			new Vector3(center.X+r+4, top+4, center.Z+r+4));
 		terrain.FillCylinder(base.mul(new CFrame(lx, (top - 4) - rockHeight / 2, lz)), rockHeight, r, Enum.Material.Rock);
 		terrain.FillCylinder(base.mul(new CFrame(lx, top - 5, lz)), 10, r - 45, Enum.Material.Grass);
 	}
@@ -167,6 +172,9 @@ export function TerrainIsland(x: number, z: number, width: number, depth: number
 /** A rounded hill: rock dome with a grass crown, carved flat below the sea. Three voxel operations. */
 export function TerrainHill(x: number, z: number, radius: number, base: number, peak: number): void {
 	const terrain = Workspace.Terrain;
+	// Both balls and the below-sea carving box fit inside this conservative box.
+	trackTerrainBounds(new Vector3(x-radius-4, math.min(base-4, peak-2*radius-4), z-radius-4),
+		new Vector3(x+radius+4, peak+6, z+radius+4));
 	terrain.FillBall(new Vector3(x, peak - radius, z), radius, Enum.Material.Rock);
 	terrain.FillBall(new Vector3(x, peak - radius * 0.82 + 2, z), radius * 0.82, Enum.Material.Grass);
 	if (base < peak - radius) terrain.FillBlock(new CFrame(x, (base + peak - radius) / 2, z), new Vector3(radius * 1.5, peak - radius - base + 8, radius * 1.5), Enum.Material.Rock);
@@ -284,7 +292,9 @@ export function Trees(parent: Instance, seed: number, x: number, z: number, widt
  */
 export function TerrainSea(parent: Instance, color: Color3, extent = 4000, far = 6000): void {
 	// Bounded, budgeted jobs (TerrainWriter): the two slabs are 16M voxels together.
-	TerrainWriter.Write(legacySeaOps(extent));
+	const ops = legacySeaOps(extent);
+	trackTerrainFootprint(ops);
+	TerrainWriter.Write(ops);
 	for (let x = -far; x < far; x += 2000) for (let z = -far; z < far; z += 2000) {
 		if (x >= -extent && x + 2000 <= extent && z >= -extent && z + 2000 <= extent) continue;
 		Part(parent, "Sea", new Vector3(2000, 4, 2000), new Vector3(x + 1000, WATERLINE - 2, z + 1000), color, Enum.Material.SmoothPlastic, { reflectance: 0.12, castShadow: false });

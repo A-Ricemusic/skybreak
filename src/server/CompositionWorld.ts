@@ -9,7 +9,7 @@ import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { WORLD_FILL_CHUNK, WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
-import { clearTerrainIfDirty } from "./TerrainState";
+import { clearTerrainIfDirty, trackTerrainFootprint } from "./TerrainState";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldAssets, type WorldAssetName } from "./WorldAssets";
@@ -48,6 +48,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const m = new Instance("Model"); m.Name = t.id; m.SetAttribute("TargetType", t.type); m.SetAttribute("LayoutGroup", t.group); m.Parent = scene; models.set(t.id, m);
  }
  parent.SetAttribute("WorldBuildPhase", "terrain");
+ trackTerrainFootprint(plan.ops);
  const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
  parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest);
 	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
