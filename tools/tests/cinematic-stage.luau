@@ -85,6 +85,7 @@ local CFrame = {
 	end,
 }
 local Color3 = {fromRGB=function(r, g, b) return {R=r/255, G=g/255, B=b/255} end}
+local Font = {new=function(family, weight) return {Family=family, Weight=weight} end}
 local function values(...) return {...} end
 local UDim2 = {new=values, fromOffset=values, fromScale=values}
 local UDim = {new=values}

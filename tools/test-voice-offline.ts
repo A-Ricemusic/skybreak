@@ -111,8 +111,10 @@ const files = [
 	"shared/UploadedAssetSpecs",
 	"shared/Teardown",
 	"shared/StoryDocuments",
+	"shared/Theme",
 	"client/MotionPreference",
 	"client/VoicePlayer",
+	"client/CinematicStage",
 	"client/RelayCinematic",
 ];
 let modules = "";
@@ -129,18 +131,21 @@ for (const file of files) {
 		})
 		.join("\n");
 	if (source.includes("TS.")) throw Error(`Unhandled runtime dependency: ${file}`);
-	if (file === "client/RelayCinematic") {
-		// Exclude only scenery construction/lighting/post-processing; the doubles register their undo steps
-		// with the real teardown and can inject setup and cleanup faults (harnessFaults). Keep the actual component, hooks,
-		// input handlers, effect body, beat clock, Voice.Story and VoicePlayer.Play calls.
-		const marker = "local function RelayCinematic(_param)";
-		if (!source.includes(marker)) throw Error("Cinematic test seam changed");
-		source = source.replace(
-			marker,
-			`sceneFor = function(chapter,track) local folder=Instance.new("Folder");harnessStage.folder=folder;track(function() folder:Destroy() end);if harnessFaults.scene then error("injected scene fault") end;return {scene=folder,reels={},recorderLight={},tealStrip={}} end\nstageLighting = function(mood,track) harnessStage.lightingApplied+=1;track(function() harnessStage.lightingRestored+=1;if harnessFaults.lightingRestore then error("injected lighting restore fault") end end) end\nstageEffects = function(mood,track) track(function() harnessStage.effectsRestored+=1 end);if harnessFaults.effects then error("injected effects fault") end;return {depth=function() end} end\n${marker}`,
-		);
-	}
 	modules += `modules["${file.split("/").at(-1)}"] = (function()\n${source}\nend)()\n`;
+	if (file === "client/CinematicStage") {
+		// Replace only scenery construction/lighting/post-processing on the compiled stage module's export table, before
+		// RelayCinematic binds them at load. The doubles register their undo steps with the real teardown and can inject
+		// setup and cleanup faults (harnessFaults). The actual component, hooks, input handlers, effect body, beat clock,
+		// Voice.Story and VoicePlayer.Play calls run unchanged.
+		for (const name of ["sceneFor", "stageLighting", "stageEffects"])
+			if (!source.includes(`${name} = ${name},`)) throw Error(`Cinematic test seam changed: ${name}`);
+		modules += `do local stage = modules["CinematicStage"]
+stage.sceneFor = function(chapter,track) local folder=Instance.new("Folder");harnessStage.folder=folder;track(function() folder:Destroy() end);if harnessFaults.scene then error("injected scene fault") end;return {scene=folder,reels={},recorderLight={},tealStrip={}} end
+stage.stageLighting = function(mood,track) harnessStage.lightingApplied+=1;track(function() harnessStage.lightingRestored+=1;if harnessFaults.lightingRestore then error("injected lighting restore fault") end end) end
+stage.stageEffects = function(mood,track) track(function() harnessStage.effectsRestored+=1 end);if harnessFaults.effects then error("injected effects fault") end;return {depth=function() end} end
+end
+`;
+	}
 }
 harness = harness.replace("-- INSERT MODULES", modules);
 await Bun.write(resolve(dest, "run.luau"), harness);

@@ -22,8 +22,10 @@ const files = [
 	"shared/CinematicSet",
 	"shared/Teardown",
 	"shared/StoryDocuments",
+	"shared/Theme",
 	"client/MotionPreference",
 	"client/VoicePlayer",
+	"client/CinematicStage",
 	"client/RelayCinematic",
 ];
 let modules = "";
