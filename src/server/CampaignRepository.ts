@@ -863,6 +863,8 @@ export class CampaignCoordinator {
 			if (success) return $tuple(true, result);
 			lastError = result;
 			this.logWarning(`SKYBREAK ${name} attempt ${attempt} failed: ${tostring(result)}`);
+			// Structural/schema refusals require a fresh explicit load, never an automatic write retry.
+			if (this.loadError !== undefined) break;
 			if (attempt < this.maxAttempts) this.retryWait(attempt);
 		}
 		return $tuple(false, lastError);
