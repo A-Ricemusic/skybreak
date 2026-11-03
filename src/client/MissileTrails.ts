@@ -18,6 +18,8 @@ interface Plume {
 	b: Attachment;
 	c: Attachment;
 	puffs: ParticleEmitter;
+	/** The MotorFx attachment (flame + light) this client parented to the replicated missile. */
+	nozzle: Attachment;
 }
 export class MissileTrails {
 	private readonly plumes = new Map<BasePart, Plume>();
@@ -34,6 +36,7 @@ export class MissileTrails {
 			plume.a.Destroy();
 			plume.b.Destroy();
 			plume.c.Destroy();
+			plume.nozzle.Destroy();
 		}
 		this.plumes.clear();
 	}
@@ -58,6 +61,8 @@ export class MissileTrails {
 	private retire(plume: Plume): void {
 		this.plumes.delete(plume.part);
 		plume.puffs.Enabled = false;
+		// The flame goes at once; only the smoke carriers fade out via Debris.
+		plume.nozzle.Destroy();
 		for (const item of [plume.a, plume.b, plume.c]) Debris.AddItem(item, SMOKE_LIFETIME + 0.2);
 	}
 	private track(child: Instance): void {
@@ -67,7 +72,9 @@ export class MissileTrails {
 		const terrain = Workspace.Terrain;
 		const [a, b, c] = [new Instance("Attachment"), new Instance("Attachment"), new Instance("Attachment")];
 		const puffs = new Instance("ParticleEmitter");
-		const plume: Plume = { part: child, a, b, c, puffs };
+		// The motor flame rides the missile Part itself; Stop and retire remove it.
+		const nozzle = new Instance("Attachment");
+		const plume: Plume = { part: child, a, b, c, puffs, nozzle };
 		this.place(plume);
 		for (const item of [a, b, c]) {
 			item.Name = "MissileSmoke";
@@ -113,8 +120,6 @@ export class MissileTrails {
 		puffs.Rotation = new NumberRange(0, 360);
 		puffs.RotSpeed = new NumberRange(-30, 30);
 		puffs.Parent = c;
-		// The motor flame rides the missile Part itself and dies with it.
-		const nozzle = new Instance("Attachment");
 		nozzle.Name = "MotorFx";
 		nozzle.Position = new Vector3(0, 0, TAIL);
 		const flame = new Instance("ParticleEmitter");
