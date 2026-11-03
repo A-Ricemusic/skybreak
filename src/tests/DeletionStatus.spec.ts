@@ -8,16 +8,19 @@ import {
 } from "../server/CampaignRepository";
 
 // All data is synthetic and all writes stay inside this fake; no DataStore access.
-function fixture(fail = false) {
+function fixture(fail = false, writeSpacing = 0) {
 	let stored: unknown = serializeProfile(blankProfile());
 	let queued: (() => void) | undefined;
+	let delayed: { at: number; callback: () => void } | undefined;
 	let duringWrite: (() => void) | undefined;
 	let clock = 0;
+	let updates = 0;
 	const store: CampaignStore = {
 		load() {
 			return stored;
 		},
 		update(_key, transform) {
+			updates++;
 			duringWrite?.();
 			if (fail) error("synthetic write failure");
 			stored = transform(stored);
@@ -28,6 +31,10 @@ function fixture(fail = false) {
 		defer: (callback) => {
 			queued = callback;
 		},
+		delay: (seconds, callback) => {
+			delayed = { at: clock + seconds, callback };
+		},
+		writeSpacing,
 		maxAttempts: 1,
 		warn: () => undefined,
 		now: () => 100,
@@ -44,6 +51,16 @@ function fixture(fail = false) {
 			queued = undefined;
 			callback?.();
 		},
+		/** Advance the fake clock to the spaced write and run it. */
+		runDelayed: () => {
+			const entry = delayed;
+			delayed = undefined;
+			if (!entry) return;
+			clock = math.max(clock, entry.at);
+			entry.callback();
+		},
+		delayedAt: () => delayed?.at,
+		updates: () => updates,
 		setFail: (value: boolean) => {
 			fail = value;
 		},
@@ -185,6 +202,25 @@ describe("deletion durability receipts", () => {
 		expect(f.stored().slots[0].generation).toBe(1);
 		// The blank tombstone was never acknowledged, so do not claim it was.
 		expect(f.coordinator.getDeletions()[0].status).toBe("failed");
+	});
+	it("reports a write-spaced deletion as pending, not failed, until its window opens", () => {
+		const f = fixture(false, 6);
+		f.coordinator.deleteSlot(1);
+		f.run();
+		expect(f.coordinator.getDeletions()[0].status).toBe("confirmed");
+		expect(f.updates()).toBe(1);
+		// The second delete lands inside the spacing window: deferred, not written, not failed.
+		f.coordinator.deleteSlot(2);
+		expect(f.updates()).toBe(1);
+		expect(f.delayedAt()).toBe(6);
+		expect(f.coordinator.hasPendingSave()).toBe(true);
+		expect(f.coordinator.getPersistence()).toBe("cloud");
+		for (const receipt of f.coordinator.getDeletions())
+			expect(receipt.status).toBe(receipt.slot === 1 ? "confirmed" : "pending");
+		f.runDelayed();
+		expect(f.updates()).toBe(2);
+		expect(f.coordinator.getDeletions().every((receipt) => receipt.status === "confirmed")).toBe(true);
+		expect(f.stored().slots[1].generation).toBe(1);
 	});
 	it("a queued write is still pending when its flush deadline expires", () => {
 		const f = fixture();

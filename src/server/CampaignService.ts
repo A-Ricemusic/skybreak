@@ -2,7 +2,7 @@ import { CampaignShutdown } from "./CampaignShutdown";
 import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } from "./CampaignSettlement";
 import { awaitResultSettlement } from "../shared/ResultContinuation";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
-import { CampaignRequestBudget } from "./CampaignRequestBudget";
+import { CampaignRequestBudget, CampaignRequestKind } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { MISSION_COUNT } from "../shared/MissionCatalog";
@@ -50,6 +50,8 @@ interface PlayerState {
 
 const LOAD_TIMEOUT = 20;
 const RECOVERY_INTERVAL = 3;
+/** How often the background pass checks departed players' unsaved profiles (their own backoff gates writes). */
+const SHUTDOWN_RETRY_TICK = 5;
 
 let profileStore: DataStore | undefined;
 let remotes: Remotes | undefined;
@@ -273,8 +275,9 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	const state = states.get(player);
 	if (!state || state.closing) return refuse("Campaign session is closing.");
 	// Rate-limit before validating, so malformed requests spend budget too.
-	if (!state.budget.accept(os.clock(), typeIs(action, "string") && action === "DeletionStatus"))
-		return refuse("Please wait a moment before trying again.");
+	const kind: CampaignRequestKind =
+		action === "DeletionStatus" ? "status" : action === "DeleteSlot" ? "delete" : "command";
+	if (!state.budget.accept(os.clock(), kind)) return refuse("Please wait a moment before trying again.");
 	// A timeout must be able to cancel a yielding StartMission without releasing its world/build lock (rate-limited like every request).
 	if (action === "CancelLaunch") {
 		const launchId = typeIs(payload, "table") ? (payload as { launchId?: unknown }).launchId : undefined;
@@ -377,7 +380,9 @@ function closePlayer(player: Player): PlayerState | undefined {
 function finishShutdown(state: PlayerState): void {
 	if (combatService) pcall(() => combatService!.EndMission(state.player));
 	if (!shutdown.flushPlayer(state.coordinator))
-		warn("SKYBREAK campaign close still has unresolved persistence; retained for server shutdown");
+		warn(
+			"SKYBREAK campaign close still has unresolved persistence; retrying in the background and at server shutdown",
+		);
 }
 
 function shutdownPlayer(player: Player): void {
@@ -397,6 +402,14 @@ export const CampaignService = {
 		Players.PlayerAdded.Connect((player) => startLoading(getState(player)));
 		Players.PlayerRemoving.Connect(shutdownPlayer);
 		for (const player of Players.GetPlayers()) startLoading(getState(player));
+
+		// Departed players' failed saves retry with backoff instead of waiting for BindToClose.
+		task.spawn(() => {
+			while (true) {
+				task.wait(SHUTDOWN_RETRY_TICK);
+				shutdown.retry();
+			}
+		});
 
 		game.BindToClose(() => {
 			// Roblox allows 30 seconds. Share 28 seconds across ALL active and already-closing profiles.

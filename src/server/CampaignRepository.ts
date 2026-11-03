@@ -63,7 +63,14 @@ export interface CoordinatorOptions {
 	maxAttempts?: number;
 	retryWait?: (attempt: number) => void;
 	warn?: (message: string) => void;
+	/** Minimum seconds between deferred (non-flush) writes, measured from the last successful write. */
+	writeSpacing?: number;
+	/** Schedules a spaced write; flush/recover promote it to an immediate one. */
+	delay?: (seconds: number, callback: () => void) => void;
 }
+
+/** Roblox throttles per-key writes at roughly one per six seconds; deferred saves coalesce up to that cadence. */
+export const CAMPAIGN_WRITE_SPACING = 6;
 
 export interface MissionResult {
 	completed: boolean;
@@ -588,7 +595,14 @@ export class CampaignCoordinator {
 	private dirty = false;
 	private writeRunning = false;
 	private writeScheduled = false;
+	/** True when the scheduled write runs on the next defer rather than after the spacing window. */
+	private scheduledUrgent = false;
+	/** A promoted write supersedes its delayed predecessor, which then no-ops when it fires. */
+	private scheduleId = 0;
+	private lastWriteAt = -math.huge;
 	private readonly defer: (callback: () => void) => void;
+	private readonly delay: (seconds: number, callback: () => void) => void;
+	private readonly writeSpacing: number;
 	private readonly now: () => number;
 	private readonly maxAttempts: number;
 	private readonly retryWait: (attempt: number) => void;
@@ -607,6 +621,12 @@ export class CampaignCoordinator {
 			});
 		this.persistence = store ? "unavailable" : "session";
 		this.defer = options.defer ?? task.defer;
+		this.delay =
+			options.delay ??
+			((seconds, callback) => {
+				task.delay(seconds, callback);
+			});
+		this.writeSpacing = math.max(0, options.writeSpacing ?? CAMPAIGN_WRITE_SPACING);
 		this.now = options.now ?? os.time;
 		this.maxAttempts = options.maxAttempts ?? 3;
 		this.retryWait = options.retryWait ?? ((attempt) => task.wait(attempt));
@@ -799,10 +819,11 @@ export class CampaignCoordinator {
 		if (!this.store) return true;
 		if (!this.cloudLoaded) return false;
 		const deadline = this.clock() + math.max(0, timeoutSeconds);
-		if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
+		// A flush owns its own deadline, so it bypasses write spacing and promotes any delayed write.
+		this.queueSave(true);
 		while (this.hasPendingSave() && this.clock() < deadline) {
 			this.wait();
-			if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
+			this.queueSave(true);
 		}
 		return !this.hasPendingSave();
 	}
@@ -813,19 +834,32 @@ export class CampaignCoordinator {
 		if (this.cloudLoaded) this.queueSave();
 	}
 
-	private queueSave(): void {
-		if (this.writeRunning || this.writeScheduled || !this.dirty) return;
+	private queueSave(urgent = false): void {
+		if (this.writeRunning || !this.dirty) return;
+		if (this.writeScheduled && (!urgent || this.scheduledUrgent)) return;
+		const spacing = urgent ? 0 : this.lastWriteAt + this.writeSpacing - this.clock();
 		this.writeScheduled = true;
-		this.defer(() => {
+		this.scheduledUrgent = spacing <= 0;
+		const id = ++this.scheduleId;
+		const run = () => {
+			if (id !== this.scheduleId) return;
 			this.writeScheduled = false;
-			this.drain();
-		});
+			this.drain(urgent);
+		};
+		if (spacing <= 0) this.defer(run);
+		else this.delay(spacing, run);
 	}
 
-	private drain(): void {
+	private drain(urgent = true): void {
 		if (this.writeRunning || !this.store || !this.cloudLoaded) return;
 		this.writeRunning = true;
+		// This pass owns all current dirt; a timer still queued for it (e.g. under recover) must not count as pending.
+		this.scheduleId++;
+		this.writeScheduled = false;
+		let failed = false;
 		while (this.dirty) {
+			// A deferred save writes once per spacing window; later dirt waits for the next window.
+			if (!urgent && this.clock() < this.lastWriteAt + this.writeSpacing) break;
 			this.dirty = false;
 			const desired = normalizeProfile(this.profile);
 			const [success, stored] = this.tryOperation("profile save", (scope) => {
@@ -840,8 +874,10 @@ export class CampaignCoordinator {
 			if (!success) {
 				this.dirty = true;
 				this.persistence = "unavailable";
+				failed = true;
 				break;
 			}
+			this.lastWriteAt = this.clock();
 			// Only a successful write carrying this tombstone confirms the deletion.
 			// Later progress can reuse its generation; never replay deleteSlot on retry.
 			const persisted = normalizeProfile(stored);
@@ -860,6 +896,8 @@ export class CampaignCoordinator {
 			this.persistence = "cloud";
 		}
 		this.writeRunning = false;
+		// A failed write is retried only by flush/recover, exactly as before; spaced-out dirt is rescheduled.
+		if (!failed && this.dirty) this.queueSave();
 	}
 
 	private tryOperation(name: string, callback: (scope: OperationScope) => unknown): LuaTuple<[boolean, unknown]> {

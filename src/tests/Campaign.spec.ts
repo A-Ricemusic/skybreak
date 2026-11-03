@@ -78,6 +78,8 @@ function harness(store: FakeStore, now = 100) {
 	const coordinator = new CampaignCoordinator("player_42", store, {
 		defer: (callback) => deferred.push(callback),
 		now: () => now,
+		// These cases drain consecutive deferred writes by hand; cadence is covered by CampaignWriteSpacing.spec.
+		writeSpacing: 0,
 		maxAttempts: 1,
 		retryWait: () => undefined,
 		warn: () => undefined,
