@@ -186,6 +186,8 @@ const MODULES: string[] = [
 	"tests/WavePlan.spec",
 	"shared/SessionGuard",
 	"tests/SessionGuard.spec",
+	"shared/InputStamp",
+	"tests/InputStamp.spec",
 	"shared/ActorPlacement",
 	"tests/ActorPlacement.spec",
 	"shared/CampaignEncounters",

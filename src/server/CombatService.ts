@@ -64,6 +64,7 @@ import * as SurfaceTargetRuntime from "./SurfaceTargetRuntime";
 import { TargetPriority } from "../shared/TargetPriority";
 import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
+import { InputStamp } from "../shared/InputStamp";
 import { canSkipLanding } from "../shared/LandingRules";
 import { buildNightLighting } from "./NightLighting";
 import * as RearmRuntime from "./RearmRuntime";
@@ -2569,6 +2570,15 @@ export const CombatService = {
 		if (buildingMission)
 			return $tuple(false, "The previous launch is still preparing. Please wait before retrying.");
 		if (sessions.size() > 0) return $tuple(false, "This mission world is single-player");
+		// Every stamped launch the server sees bounds how far ahead a later cancel may reach.
+		if (launchId !== undefined) {
+			let cancellation = launchCancellations.get(player);
+			if (!cancellation) {
+				cancellation = new LaunchCancellation();
+				launchCancellations.set(player, cancellation);
+			}
+			cancellation.Observe(launchId);
+		}
 		const cancelled = () => launchCancellations.get(player)?.Cancelled(launchId) === true;
 		if (cancelled()) return $tuple(false, "This launch request expired. Request another launch.");
 		buildingMission = true;
@@ -2823,16 +2833,13 @@ export const CombatService = {
 				const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown; assist?: unknown };
 				if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle))
 					return;
-				// Unreliable packets can arrive out of order or bunched together. Staleness is
-				// decided by the client's stamp first, so the newest of two packets that land in
-				// the same few milliseconds always wins. A repeated stamp is legitimate: stamps are
-				// fixed-step boundaries, so the first send after a resume reuses the frozen one.
-				// The per-session token bucket, not this check, limits floods.
-				// Unstamped packets keep the old 1/40 s floor.
-				const clientTime = FlightMath.IsFinite(data.t) && data.t > 0 ? data.t : 0;
-				if (clientTime > 0) {
-					if (clientTime < session.inputClientTime) return;
-				} else if (now - session.lastInputEvent < 1 / 40) return;
+				// Staleness is decided by the client's stamp first (see InputStamp: newest wins, equal
+				// stamps resume, implausible jumps re-base instead of freezing the controls). The
+				// per-session token bucket, not this check, limits floods. Unstamped packets keep the
+				// old 1/40 s floor.
+				const stamp = InputStamp.Decide(session.inputClientTime, data.t);
+				if (stamp.kind === "stale") return;
+				if (stamp.kind === "unstamped" && now - session.lastInputEvent < 1 / 40) return;
 				session.lastInputEvent = now;
 				session.input.x = math.clamp(data.x, -1, 1);
 				session.input.y = math.clamp(data.y, -1, 1);
@@ -2840,8 +2847,8 @@ export const CombatService = {
 				session.input.assist = data.assist === true;
 				session.lastInput = now;
 				// The echo counts fixed steps from the first one that uses this input (see sendFlightState).
-				if (clientTime > 0) {
-					session.inputClientTime = clientTime;
+				if (stamp.kind === "accept") {
+					session.inputClientTime = stamp.floor;
 					session.inputFresh = true;
 				}
 			}),

@@ -33,6 +33,12 @@ function initialize(): void {
 	const [characterPolicyApplied, characterPolicyError] = pcall(() => CharacterPolicy.Apply(Players));
 	if (!characterPolicyApplied)
 		warn(`SKYBREAK character policy failed; avatars may spawn: ${tostring(characterPolicyError)}`);
+	// The sortie server is single-player by design (CombatService refuses a second session with
+	// "This mission world is single-player"); the place must set MaxPlayers = 1 for that to hold.
+	if (Players.MaxPlayers !== 1)
+		warn(
+			`SKYBREAK place MaxPlayers is ${Players.MaxPlayers}; the sortie server is single-player by design and extra players will be refused missions. Set the place's MaxPlayers to 1.`,
+		);
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {
