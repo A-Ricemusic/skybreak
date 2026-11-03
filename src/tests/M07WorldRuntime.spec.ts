@@ -7,13 +7,18 @@ import { artilleryMasked, artilleryExposed } from "../shared/ArtilleryRules";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import type { CombatSession } from "../server/CombatSession";
+import { WORLD_HOOK_TIMEOUT_MS, worldHookCleanup } from "./helpers/IntegrationTimeouts";
 
 describe("M07 built-world D-242 first-step audit", () => {
 	let folder: Folder | undefined;
 	afterEach(() => {
-		folder?.Destroy();
-		M07World.Clear(() => false);
-	});
+		const target = folder;
+		folder = undefined;
+		worldHookCleanup("M07WorldRuntime", () => {
+			target?.Destroy();
+			M07World.Clear(() => false);
+		});
+	}, WORLD_HOOK_TIMEOUT_MS);
 	it("accepts the real composition and initializes artillery on the first escape step", () => {
 		M07World.Clear(() => false);
 		folder = new Instance("Folder");
