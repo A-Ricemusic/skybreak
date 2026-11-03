@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { alignedBlockRegion, coalesceTerrainJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -118,6 +118,41 @@ describe("Full-voxel terrain execution", () => {
   expect(alignedBlockRegion(box(4,4,4,8,8,8))).toEqual({min:[0,0,0],max:[8,8,8]});
   expect(alignedBlockRegion(box(5,4,4,8,8,8))).toBeUndefined();
   expect(alignedBlockRegion({...box(4,4,4,8,8,8),yaw:0.1})).toBeUndefined();
+ });
+ it("joins boxes across disjoint materials but preserves every intersecting overwrite",()=>{
+  const ops = [box(2,2,2,4,4,4), box(2,10,2,4,4,4,"Grass"), box(6,2,2,4,4,4),
+   box(6,2,2,4,4,4,"Grass"), box(6,2,2,4,4,4), box(2,2,2,4,4,4,"Water")];
+  const jobs = terrainExecutionJobs(ops, 8);
+  expect(jobs.size()).toBeLessThan(ops.size());
+  // Full material/occupancy overwrite oracle, including FillBlock water preserving solids.
+  const sample=(items:TerrainOp[],x:number,y:number,z:number)=>{
+   let mat="Air";
+   for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)
+    if(o.material!=="Water" || mat==="Air" || mat==="Water") mat=o.material;
+   return mat;
+  };
+  for(let x=-4;x<=12;x+=4)for(let y=-4;y<=16;y+=4)for(let z=-4;z<=12;z+=4)
+   expect(sample(jobs.map(j=>j.op),x,y,z)).toBe(sample(ops,x,y,z));
+  for(const j of jobs) expect(j.cells).toBeLessThanOrEqual(8);
+ });
+ it("preserves an exhaustive mixed-material voxel field through both optimization passes",()=>{
+  let seed=731;
+  const randomCell=()=>{seed=(seed*16807)%2147483647;return seed;};
+  const ops:TerrainOp[]=[];
+  for(let i=0;i<80;i++) ops.push(box((randomCell()%8)*4,(randomCell()%4)*4,(randomCell()%8)*4,
+   (randomCell()%3+1)*8,(randomCell()%2+1)*8,(randomCell()%3+1)*8,["Rock","Grass","Air","Water"][randomCell()%4]));
+  const saved=ops.map(o=>({...o})), jobs=terrainExecutionJobs(ops,32);
+  const sample=(items:TerrainOp[],x:number,y:number,z:number)=>{
+   let mat="Air";
+   for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)
+    if(o.material!=="Water" || mat==="Air" || mat==="Water") mat=o.material;
+   return mat;
+  };
+  const executed=jobs.map(j=>j.op);
+  for(let x=-12;x<=40;x+=4)for(let y=-8;y<=24;y+=4)for(let z=-12;z<=40;z+=4)
+   expect(sample(executed,x,y,z)).toBe(sample(ops,x,y,z));
+  expect(ops).toEqual(saved);
+  for(const j of jobs) expect(j.cells).toBeLessThanOrEqual(32);
  });
  it("coalesces all three axes without crossing material barriers or mutating plans",()=>{
   const ops:TerrainOp[]=[];

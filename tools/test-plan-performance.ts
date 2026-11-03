@@ -80,7 +80,7 @@ for pass=1,2 do for index=1,18 do
  end
  if pass==1 and (id==10 or id>=13) then
   local before=terrainSchedule.terrainJobs(p.ops)
-  local after=terrainSchedule.coalesceTerrainJobs(before)
+  local after=terrainSchedule.terrainExecutionJobs(p.ops)
   for _,op in p.ops do assert(terrainSchedule.alignedBlockRegion(op),"Sparse cleanup needs full voxel boxes: M"..id) end
   assert(#after<=#before,"Terrain coalescing increased work")
   local cellsBefore=0;local cellsAfter=0
@@ -89,7 +89,7 @@ for pass=1,2 do for index=1,18 do
   assert(cellsAfter==cellsBefore,"Terrain coalescing changed volume")
   local air={}
   for _,op in p.ops do local erase=table.clone(op);erase.material="Air";table.insert(air,erase) end
-  local cleanup=terrainSchedule.coalesceTerrainJobs(terrainSchedule.terrainJobs(air))
+  local cleanup=terrainSchedule.terrainExecutionJobs(air)
   print("MISSION_TERRAIN_EXECUTION mission="..id.." jobsBefore="..#before.." jobsAfter="..#after.." cleanupJobs="..#cleanup.." sparseCleanup=true")
  end
  local actual=fingerprint(p)

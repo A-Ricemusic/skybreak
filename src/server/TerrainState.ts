@@ -11,26 +11,35 @@ import { TerrainWriter } from "./TerrainWriter";
 let footprint: TerrainOp[] | undefined;
 let canTrack = false;
 const state = new TerrainWriteState(() => {
- if (footprint === undefined) Workspace.Terrain.Clear();
+ if (footprint === undefined) {
+  // Jest isolates module state between suites, but Terrain and its empty bounds
+  // survive. A completed clear is shared evidence; never repeat native Clear
+  // over a tall empty extent just because this module was required again.
+  if (Workspace.Terrain.GetAttribute("SKYBREAKTerrainClean") !== true) Workspace.Terrain.Clear();
+ }
  else {
   const started = os.clock();
   const timing = TerrainWriter.Write(footprint, 0.25);
   print(`MISSION_TERRAIN_CLEANUP mode=sparse seconds=${os.clock()-started} jobs=${timing.jobs} work=${timing.total} yields=${timing.yields}`);
  }
  footprint = undefined; canTrack = false;
+ Workspace.Terrain.SetAttribute("SKYBREAKTerrainClean", true);
 });
 /** Called before the first write, so partial builds have the same cleanup owner. */
 export function trackTerrainFootprint(ops: TerrainOp[]): void {
  // Full voxel boxes erase exactly. Legacy curved/non-grid plans use native Clear.
- if (!canTrack) return;
+ if (!canTrack) beginTerrainWrite();
  canTrack = false;
  if (ops.some(o => alignedBlockRegion(o) === undefined)) return;
  footprint = ops.map(o => ({...o, material: "Air"}));
 }
 /** Clear the owned sparse footprint, or native terrain when writes were untracked. */
-export function clearTerrainIfDirty(): void { state.ClearIfDirty(); }
+export function clearTerrainIfDirty(): void {
+ if (!state.Dirty() && Workspace.Terrain.GetAttribute("SKYBREAKTerrainClean") === false) state.BeginWrite();
+ state.ClearIfDirty();
+}
 /** A world is about to write terrain: start from empty terrain, then mark it written. */
-export function beginTerrainWrite(): void { state.BeginWrite(); canTrack = true; }
+export function beginTerrainWrite(): void { state.BeginWrite(); Workspace.Terrain.SetAttribute("SKYBREAKTerrainClean", false); canTrack = true; }
 /** A registered world clear removed everything that world wrote; no native clear is needed. */
-export function markTerrainClean(): void { footprint = undefined; canTrack = false; state.MarkClean(); }
+export function markTerrainClean(): void { footprint = undefined; canTrack = false; state.MarkClean(); Workspace.Terrain.SetAttribute("SKYBREAKTerrainClean", true); }
 export function terrainDirty(): boolean { return state.Dirty(); }

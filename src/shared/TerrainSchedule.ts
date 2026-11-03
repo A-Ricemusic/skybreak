@@ -122,42 +122,91 @@ export function terrainJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJo
 	return out;
 }
 
+/** Move a full-voxel write across disjoint writes only, with bounded lookback.
+ * This exposes same-material unions hidden by interleaved caps and curtains.
+ * Intersecting different materials, water, and shape jobs remain barriers.
+ */
+function commutingTerrainRuns(jobs: TerrainJob[]): TerrainJob[] {
+ const groups: TerrainJob[][] = [];
+ const eligible = new Set<TerrainJob>();
+ for (const job of jobs) if (job.region === undefined && job.op.material !== "Water" && alignedBlockRegion(job.op) !== undefined) eligible.add(job);
+ const overlaps = (a: TerrainOp, b: TerrainOp) => math.abs(a.x-b.x)*2 < a.sx+b.sx
+  && math.abs(a.y-b.y)*2 < a.sy+b.sy && math.abs(a.z-b.z)*2 < a.sz+b.sz;
+ for (const job of jobs) {
+  const o = job.op;
+  let placed = false, checked = 0;
+  if (eligible.has(job)) {
+   for (let i = groups.size()-1; i >= 0 && checked < 64; i--) {
+    const group = groups[i];
+    if (group[0].op.material === o.material && eligible.has(group[0])) {
+     group.push(job); placed = true; break;
+    }
+    let blocked = false;
+    for (const prior of group) {
+     checked++;
+     if (checked >= 64) { blocked = true; break; }
+     if (!eligible.has(prior) || overlaps(o, prior.op)) { blocked = true; break; }
+    }
+    if (blocked) break;
+   }
+  }
+  if (!placed) groups.push([job]);
+ }
+ const out: TerrainJob[] = [];
+ for (const group of groups) for (const job of group) out.push(job);
+ return out;
+}
+
 /** Coalesce full-voxel boxes within a same-material run only. Such writes commute;
- * different materials and curved/partial voxels are ordering barriers. Operates
+ * intersecting different materials and curved/partial voxels are ordering barriers. Operates
  * on execution jobs, never the retained plan or its fingerprint. */
 export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): TerrainJob[] {
  const out: TerrainJob[] = [];
  let run: TerrainJob[] = [];
  const flush = () => {
-  for (const axis of ["x", "z", "y"] as const) {
-   const size = axis === "x" ? "sx" : axis === "z" ? "sz" : "sy";
-   const a = axis === "x" ? "y" : "x", b = axis === "z" ? "y" : "z";
-   const sa = a === "x" ? "sx" : "sy", sb = b === "y" ? "sy" : "sz";
-   run.sort((l,r) => {
-    const x=l.op,y=r.op;
-    for (const key of [a,b,sa,sb,axis] as const) if(x[key]!==y[key]) return x[key]<y[key];
-    return false;
-   });
-   const merged: TerrainJob[] = [];
-   for (const job of run) {
-    const prev=merged[merged.size()-1], o=job.op, p=prev?.op;
-    if(p!==undefined && p[a]===o[a] && p[b]===o[b] && p[sa]===o[sa] && p[sb]===o[sb]
-     && p[axis]+p[size]/2===o[axis]-o[size]/2 && prev.cells+job.cells<=limit) {
-     p[axis]=(p[axis]-p[size]/2+o[axis]+o[size]/2)/2;
-     p[size]+=o[size]; prev.cells+=job.cells;
-    } else merged.push({op:{...o},cells:job.cells});
+  // A merge on Y can unlock X/Z unions; stop at the fixed point.
+  let previousSize = -1;
+  while (previousSize !== run.size()) {
+   previousSize = run.size();
+   for (const axis of ["x", "z", "y"] as const) {
+    const size = axis === "x" ? "sx" : axis === "z" ? "sz" : "sy";
+    const a = axis === "x" ? "y" : "x", b = axis === "z" ? "y" : "z";
+    const sa = a === "x" ? "sx" : "sy", sb = b === "y" ? "sy" : "sz";
+    run.sort((l,r) => {
+     const x=l.op,y=r.op;
+     if (x[a] !== y[a]) return x[a] < y[a];
+     if (x[b] !== y[b]) return x[b] < y[b];
+     if (x[sa] !== y[sa]) return x[sa] < y[sa];
+     if (x[sb] !== y[sb]) return x[sb] < y[sb];
+     return x[axis] < y[axis];
+    });
+    const merged: TerrainJob[] = [];
+    for (const job of run) {
+     const prev=merged[merged.size()-1], o=job.op, p=prev?.op;
+     if(p!==undefined && p[a]===o[a] && p[b]===o[b] && p[sa]===o[sa] && p[sb]===o[sb]
+      && p[axis]+p[size]/2===o[axis]-o[size]/2 && prev.cells+job.cells<=limit) {
+      p[axis]=(p[axis]-p[size]/2+o[axis]+o[size]/2)/2;
+      p[size]+=o[size]; prev.cells+=job.cells;
+     } else merged.push({op:{...o},cells:job.cells});
+    }
+    run=merged;
    }
-   run=merged;
   }
   for(const job of run) out.push(job);
   run=[];
  };
- for(const job of jobs) {
+ for(const job of commutingTerrainRuns(jobs)) {
   if(job.region!==undefined || alignedBlockRegion(job.op)===undefined) { flush(); out.push(job); continue; }
   if(run.size()>0 && run[0].op.material!==job.op.material) flush();
   run.push(job);
  }
  flush(); return out;
+}
+
+/** Optimize execution boxes before artificial chunk cuts, then enforce the same cap. */
+export function terrainExecutionJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJob[] {
+ const boxes = coalesceTerrainJobs(ops.map(op => ({ op, cells: fillVoxels(op) })), fillChunk);
+ return coalesceTerrainJobs(terrainJobs(boxes.map(job => job.op), fillChunk), fillChunk);
 }
 
 export interface BudgetRun { yields: number; longest: number; longestBatch: number; total: number }

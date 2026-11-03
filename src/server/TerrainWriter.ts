@@ -1,6 +1,6 @@
 import { worldTraceScope } from "./WorldBuildTrace";
 import { Workspace } from "@rbxts/services";
-import { coalesceTerrainJobs, alignedBlockRegion, runBudgeted, terrainJobs, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
+import { terrainExecutionJobs, alignedBlockRegion, runBudgeted, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
 import { bumpProfile, type TerrainOp } from "../shared/WorldPlan";
 
 // Executes planned terrain ops (shared/WorldPlan) as bounded jobs
@@ -52,7 +52,8 @@ function run(terrain: Terrain, job: TerrainJob): void {
 	const o = job.op;
 	const mat = o.material === "Air" ? Enum.Material.Air : o.material === "Water" ? Enum.Material.Water : material(o.material);
 	if (job.region !== undefined) writeBump(terrain, job, mat);
-	else if (alignedBlockRegion(o) !== undefined) {
+	else if (o.material !== "Water" && alignedBlockRegion(o) !== undefined) {
+  // FillRegion replaces solids with water; FillBlock water preserves them.
   const r = alignedBlockRegion(o)!;
   terrain.FillRegion(new Region3(new Vector3(...r.min), new Vector3(...r.max)), 4, mat);
  }
@@ -69,7 +70,9 @@ export const TerrainWriter = {
 	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK, cancelled?: () => boolean): BudgetRun & { jobs: number } {
 		const endTrace = worldTraceScope("terrain-batches");
 		try {
-			const terrain = Workspace.Terrain, jobs = coalesceTerrainJobs(terrainJobs(ops, fillChunk), fillChunk);
+			const terrain = Workspace.Terrain;
+			terrain.SetAttribute("SKYBREAKTerrainClean", false);
+			const jobs = terrainExecutionJobs(ops, fillChunk);
 			const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait(), cancelled });
 			return { ...timing, jobs: jobs.size() };
 		} finally { endTrace(); }
