@@ -2,6 +2,7 @@
 // checked by campaign/tutorial contracts rather than excluded metadata snapshots.
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 import { deepStrictEqual } from "node:assert";
 const dir = resolve(import.meta.dir, "../build/offline-relay");
 const script = String.raw`
@@ -27,12 +28,7 @@ print(serialize({C.PRACTICE, unpack(C.MISSIONS)}))
 `;
 const path = resolve(dir, "catalog-snapshot.luau");
 await Bun.write(path, script);
-const proc = Bun.spawn([requireLuauBin(), path], { stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([requireLuauBin(), path], { stdout: "pipe", stderr: "pipe" });
 if (code !== 0) throw new Error(stderr);
 // Canonicalize both fixture writes and comparison operands: Luau trig can differ
 // in its last float digits across platforms. Preserve integer and nonnumeric data.

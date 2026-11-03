@@ -5,6 +5,7 @@
 //   bun tools/render-hud-mock.ts target-boxes  (only shots whose file name contains the filter)
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { spawnWithTimeout } from "./spawn";
 
 const luauMath = Object.assign(Object.create(Math), {
 	clamp: (value: number, low: number, high: number) => Math.min(Math.max(value, low), high),
@@ -551,7 +552,7 @@ for (const shot of SHOTS) {
 	const page = resolve(work, shot.file.replace(".png", ".html"));
 	await Bun.write(page, render(shot));
 	const out = resolve(root, "docs/design", shot.file);
-	const chrome = Bun.spawn(
+	const chrome = await spawnWithTimeout(
 		[
 			CHROME,
 			"--headless=new",
@@ -564,7 +565,6 @@ for (const shot of SHOTS) {
 		],
 		{ stdout: "ignore", stderr: "ignore" },
 	);
-	if ((await chrome.exited) !== 0)
-		throw new Error(`Chrome exited with code ${chrome.exitCode} rendering ${shot.file}`);
+	if (chrome.code !== 0) throw new Error(`Chrome exited with code ${chrome.code} rendering ${shot.file}`);
 	console.log(`${shot.file}: ${(await Bun.file(out).exists()) ? "written" : "FAILED"}`);
 }

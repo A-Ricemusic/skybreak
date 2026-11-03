@@ -4,6 +4,7 @@
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, ".."),
 	dest = resolve(root, "build/cinematic-offline");
 await mkdir(dest, { recursive: true });
@@ -46,12 +47,10 @@ const harness = (await Bun.file(resolve(root, "tools/tests/cinematic-stage.luau"
 	modules,
 );
 await Bun.write(resolve(dest, "run.luau"), harness);
-const proc = Bun.spawn([requireLuauBin(), resolve(dest, "run.luau")], { stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([requireLuauBin(), resolve(dest, "run.luau")], {
+	stdout: "pipe",
+	stderr: "pipe",
+});
 console.log(stdout);
 if (stderr) console.error(stderr);
 await Bun.write(resolve(dest, "results.log"), stdout + stderr);

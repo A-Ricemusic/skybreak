@@ -8,6 +8,7 @@ import { VOICE_CUES } from "../src/shared/VoiceCues";
 import { VOICE_BANK_ASSETS } from "../src/shared/VoiceBanks";
 import { writeAudioUseAllowlist } from "./audio-use-allowlist";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, ".."),
 	dest = resolve(root, "build/voice-offline");
 await mkdir(dest, { recursive: true });
@@ -35,7 +36,7 @@ for (const bank of plan.banks) {
 		VOICE_BANK_ASSETS[bank.id] !== `rbxassetid://${record.assetId}`
 	)
 		throw Error(`Bank manifest mismatch: ${bank.id}`);
-	const probe = Bun.spawn(
+	const probe = await spawnWithTimeout(
 		[
 			"ffprobe",
 			"-v",
@@ -48,8 +49,8 @@ for (const bank of plan.banks) {
 		],
 		{ stdout: "pipe", stderr: "pipe" },
 	);
-	const duration = Number(await new Response(probe.stdout).text());
-	if ((await probe.exited) !== 0 || !Number.isFinite(duration) || Math.abs(duration - bank.seconds) > 0.002)
+	const duration = Number(probe.stdout);
+	if (probe.code !== 0 || !Number.isFinite(duration) || Math.abs(duration - bank.seconds) > 0.002)
 		throw Error(`Encoded bank duration mismatch: ${bank.id}`);
 	let end = 0;
 	for (const member of bank.members) {
@@ -144,12 +145,10 @@ for (const file of files) {
 harness = harness.replace("-- INSERT MODULES", modules);
 await Bun.write(resolve(dest, "run.luau"), harness);
 const executable = requireLuauBin();
-const proc = Bun.spawn([executable, resolve(dest, "run.luau")], { stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([executable, resolve(dest, "run.luau")], {
+	stdout: "pipe",
+	stderr: "pipe",
+});
 console.log(stdout);
 if (stderr) console.error(stderr);
 await Bun.write(resolve(dest, "results.log"), stdout + stderr);

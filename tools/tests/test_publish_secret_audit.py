@@ -27,10 +27,13 @@ class PublishSecretAuditTests(unittest.TestCase):
                 path = root / name
                 path.write_text("#!/bin/sh\n" + body)
                 path.chmod(0o755)
-            executable("python3", '''case "$1" in
+            # publish-place.sh invokes every python3 as `python3 -I ...`; drop the flag, dispatch on
+            # the script, and run the inline `-c` version parser under the real isolated interpreter.
+            executable("python3", '''if [ "$1" = -I ]; then shift; fi
+              case "$1" in
               *check-place-voice.py) echo "$2" > "$FIXTURE/voice-path";;
               *check-place-assets.py) echo "$2" > "$FIXTURE/asset-path"; exit "$GATE_EXIT";;
-              -I) exec "$REAL_PYTHON" "$@";;
+              -c) exec "$REAL_PYTHON" -I "$@";;
               esac
             ''')
             executable("git", "exit 0\n")

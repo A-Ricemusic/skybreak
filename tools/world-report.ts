@@ -5,6 +5,7 @@
 //   bun tools/world-report.ts --problems  print every audit problem (debugging)
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, ".."),
 	dir = resolve(root, "build/offline-relay"),
 	doc = resolve(root, "docs/world-realism.md");
@@ -35,12 +36,11 @@ print("@@END")
 `;
 const script = resolve(dir, "world-report.luau");
 await Bun.write(script, generator);
-const proc = Bun.spawn([executable, script], { cwd: root, stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([executable, script], {
+	cwd: root,
+	stdout: "pipe",
+	stderr: "pipe",
+});
 if (code !== 0) {
 	console.error(stdout + stderr);
 	process.exit(code);

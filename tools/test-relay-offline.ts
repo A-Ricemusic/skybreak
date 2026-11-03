@@ -11,6 +11,7 @@
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 
 const root = resolve(import.meta.dir, "..");
 const dest = resolve(root, "build/offline-relay");
@@ -331,6 +332,8 @@ const MODULES: string[] = [
 ];
 
 MODULES.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
+// Pure specs that previously ran only in Studio; SpecialWeapons/WeaponRules are already staged above.
+MODULES.push("tests/SpecialWeapons.spec", "shared/LoadingGate", "tests/LoadingGate.spec");
 
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);
@@ -409,6 +412,7 @@ local function matchers(value,negate)
   toBeLessThan=function(n) check(value<n, "Expected < "..tostring(n)..", received "..tostring(value)) end,
   toBeLessThanOrEqual=function(n) check(value<=n, "Expected <= "..tostring(n)..", received "..tostring(value)) end,
   toBeCloseTo=function(n,digits) check(math.abs(value-n)<(10^-(digits or 2))/2, "Expected ~"..tostring(n)..", received "..tostring(value)) end,
+  toThrow=function() assert(type(value)=="function","toThrow expects a function"); local ok,err=pcall(value); check(not ok, "Expected the function to throw, received "..(ok and "no error" or tostring(err))) end,
  }
 end
 local function expect(value)
@@ -441,28 +445,26 @@ for (const [kind, source] of Object.entries({
 })) {
 	await Bun.write(resolve(dest, `guard-${kind}.luau`), source);
 	await Bun.write(resolve(dest, "guard-run.luau"), checkedRequire + `require("./guard-${kind}")\n`);
-	const probe = Bun.spawn([executable, resolve(dest, "guard-run.luau")], {
+	const {
+		stdout: out,
+		stderr: err,
+		code: status,
+	} = await spawnWithTimeout([executable, resolve(dest, "guard-run.luau")], {
 		cwd: root,
 		stdout: "pipe",
 		stderr: "pipe",
 	});
-	const [out, err, status] = await Promise.all([
-		new Response(probe.stdout).text(),
-		new Response(probe.stderr).text(),
-		probe.exited,
-	]);
 	if (status === 0 || (!(out + err).includes("synthetic") && !(out + err).includes("guard-parse")))
 		throw new Error(`Module error guard failed: ${kind}: ${out}${err}`);
 }
 console.log("OFFLINE_MODULE_GUARD passed=4 failed=0");
 console.log(`OFFLINE_SPECS registered=${SPECS.length}`);
 
-const proc = Bun.spawn([executable, resolve(dest, "run.luau")], { cwd: root, stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([executable, resolve(dest, "run.luau")], {
+	cwd: root,
+	stdout: "pipe",
+	stderr: "pipe",
+});
 console.log(stdout);
 if (stderr) console.error(stderr);
 await Bun.write(resolve(root, "build/relay-offline-results.log"), stdout + stderr);

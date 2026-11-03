@@ -3,6 +3,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 
 const root = resolve(import.meta.dir, "..");
 const files = [
@@ -52,14 +53,11 @@ const directory = resolve(root, "build/offline-module-compile");
 await mkdir(directory, { recursive: true });
 const harness = resolve(directory, "check.luau");
 await writeFile(harness, chunks.join("\n"));
-const proc = Bun.spawn([requireLuauBin(), harness], { cwd: root, stdout: "pipe", stderr: "inherit" });
-const output = await new Response(proc.stdout).text();
+const proc = await spawnWithTimeout([requireLuauBin(), harness], { cwd: root, stdout: "pipe", stderr: "inherit" });
+const output = proc.stdout;
 console.log(output);
 // Some standalone Luau builds return zero even after a runtime assertion.
-if (
-	(await proc.exited) !== 0 ||
-	!output.split(/\r?\n/).includes(`LUAU_MODULE_COMPILE passed=${files.length} failed=0`)
-) {
+if (proc.code !== 0 || !output.split(/\r?\n/).includes(`LUAU_MODULE_COMPILE passed=${files.length} failed=0`)) {
 	throw new Error("Compiled Luau module check failed or did not finish");
 }
 console.log(`LUAU_REQUIRE_GRAPH passed=${done.size} failed=0`);

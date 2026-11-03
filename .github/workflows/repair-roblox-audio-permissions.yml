@@ -18,14 +18,14 @@ concurrency:
 
 jobs:
   repair:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Test permission safeguards offline
-        run: python3 -m unittest discover -s tools/tests -p 'test_roblox*.py'
+        run: python3 -I -m unittest discover -s tools/tests -p 'test_roblox*.py'
       - name: Validate official target and plan or apply 14 grants
         env:
           ROBLOX_API_KEY: ${{ inputs.execute && secrets.ROBLOX_API_KEY || '' }}
@@ -34,7 +34,7 @@ jobs:
           EXECUTE: ${{ inputs.execute }}
         run: |
           if [ "$EXECUTE" = "true" ]; then
-            python3 tools/repair-roblox-audio-permissions.py --execute
+            python3 -I tools/repair-roblox-audio-permissions.py --execute
           else
-            python3 tools/repair-roblox-audio-permissions.py
+            python3 -I tools/repair-roblox-audio-permissions.py
           fi

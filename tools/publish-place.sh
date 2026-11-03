@@ -5,7 +5,7 @@ set +x
 set -euo pipefail
 
 # Fail closed before any POST, including direct invocations outside CI.
-python3 "$(dirname "$0")/verify-roblox-target.py"
+python3 -I "$(dirname "$0")/verify-roblox-target.py"
 
 : "${ROBLOX_API_KEY:?Set ROBLOX_API_KEY to an Open Cloud key with universe-places write access}"
 : "${ROBLOX_UNIVERSE_ID:?Set ROBLOX_UNIVERSE_ID to the experience's universe ID}"
@@ -38,7 +38,11 @@ RESPONSE_FILE="$PUBLISH_TEMP/response.json"
 cp "$PLACE_FILE" "$PLACE_SNAPSHOT"
 chmod 400 "$PLACE_SNAPSHOT"
 # Check the pinned bytes, including voice freshness, before transport.
-python3 tools/check-place-voice.py "$PLACE_SNAPSHOT"
+python3 -I tools/check-place-voice.py "$PLACE_SNAPSHOT"
+# The HALT baseline compares against origin/main. In CI the checkout runs with
+# persist-credentials: false, so this fetch is unauthenticated and works only
+# because the repository is public. If the repository ever becomes private,
+# give the publish checkout `fetch-depth: 2` (or a read token) instead.
 git fetch origin main
 # CI checkouts are shallow; the HALT baseline needs the previous main tip.
 if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
@@ -49,7 +53,7 @@ URL="https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_
 
 # Roblox answers 409 "Server is busy" while the place is locked, e.g. by an open Team Create session.
 for ATTEMPT in 1 2 3; do
-	python3 tools/check-place-assets.py "$PLACE_SNAPSHOT" --publish
+	python3 -I tools/check-place-assets.py "$PLACE_SNAPSHOT" --publish
 	# Header via stdin keeps the key out of curl's argv (visible in ps); fresh stdin per attempt.
 	STATUS="$(printf 'x-api-key: %s\n' "$ROBLOX_API_KEY" | curl --disable --silent --show-error --proto "=https" --connect-timeout 10 --max-time 90 -X POST "$URL" \
 		-H @- \

@@ -18,16 +18,19 @@ See `docs/architecture/README.md` for how the pieces connect.
 | `check-luau-modules.ts` | **gate** Compiles every emitted Luau module in the standalone Luau CLI and checks the require graph; fails on Luau's 200-local limit. |
 | `test-voice-disclosure-ui.ts`, `test-results-wiring.ts`, `test-m03-builder-contract.ts`, `test-world-environments.ts` | **gate** Static source contracts (regexes over TypeScript), no runtime. |
 | `test-world-budget-fixtures.ts` | **gate** Source contract over `src/tests/WorldInstanceBudget.spec.ts`: the budget fixture keeps expensive world generation and detached work out of its timing window. No Studio timing is measured. |
-| `test-relay-offline.ts` | **gate** Runs the pure `src/tests/*.spec.ts` contracts listed in its `MODULES` table inside the Luau CLI. Minimum pass count is pinned in `validate-offline.ts`. |
+| `test-relay-offline.ts` | **gate** Runs the pure `src/tests/*.spec.ts` contracts listed in its `MODULES` table inside the Luau CLI. Prints `OFFLINE_SPECS registered=N` and `OFFLINE_LUAU_RESULT passed=N`; both floors are pinned in `validate-offline.ts` and must be raised when specs are added. |
 | `test-plan-performance.ts` | **gate** Runs after `test-relay-offline.ts` has staged the compiled planners: all 18 deterministic world-plan fingerprints are frozen at merge revision 37028404 (`PLAN_PERFORMANCE passed=36`). Never recapture them from changed planner output. |
 | `voice-lines.ts --check`, `story-voice-script.ts --check` | **gate** Generated voice line ids and the story script match the compiled catalog; run without `--check` to regenerate. |
 | `test-mission-catalog.ts` | **gate** Frozen catalog snapshot (`fixtures/mission-catalog.campaign18.json`); `--update` regenerates it deliberately. |
 | `test-playtest-relay.ts` | **gate** Runs `playtest-relay.client.luau` against `tests/playtest-relay-harness.luau` with inert Roblox surfaces. |
 | `test-audio-offline.ts`, `test-voice-offline.ts`, `test-cinematic-offline.ts`, `test-radio-delivery.ts` | **gate** Deterministic simulations of compiled client modules with engine doubles (`tests/*.luau`). They never claim audible or rendered output. |
-| `tests/test_*.py` | **gate** Python unit tests for the upload, publish and asset tooling; isolated state and mocked HTTP only. |
+| `test-client-gun-input.ts` | **gate** Executes the compiled FlightController gun trigger, HUD sanitizer and touch-button callbacks in the Luau CLI (`CLIENT_GUN_INPUT`, `CLIENT_GUN_HUD`, `CLIENT_GUN_TOUCH` summaries). Engine input routing and GUI mounting are NOT tested. |
+| `tests/test_*.py` | **gate** Python unit tests for the upload, publish and asset tooling; isolated state and mocked HTTP only. The gate runs them under `python3 -I` with `SKYBREAK_REQUIRE_PLACE=1`; standalone runs skip the prebuilt-place test when `build/skybreak.rbxlx` is absent. |
 | `relay-tables.ts --check`, `world-report.ts --check` | **gate** `docs/broken-relay.md` tables and the world counts in `docs/world-realism.md` are up to date; run without `--check` to regenerate. |
 
 Every offline Luau tool finds the CLI through `luau-bin.ts`: `LUAU_BIN` if set, otherwise `build/offline-luau/luau`.
+Every child process goes through `spawn.ts`, which kills and reports a hung command after `OFFLINE_SPAWN_TIMEOUT_MS`
+(default 10 minutes); the gate wraps each step in `VALIDATE_STEP_TIMEOUT_MS` (default 15 minutes).
 
 ## Studio runners and Studio-side scripts
 

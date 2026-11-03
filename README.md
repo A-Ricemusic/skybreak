@@ -151,7 +151,10 @@ The gate builds the production place once (including its eight-script voice
 artifact check), runs the existing compiled domain, audio lifecycle, voice
 consumer and radio delivery suites, all `tools/tests/test_*.py` tests, and both generated-document
 consistency checks. Failed commands, missing summaries, or counts below the
-538/10/8 contract baselines or a missing exact four-test radio summary fail validation. It never launches Studio.
+contract floors pinned in `tools/validate-offline.ts` (currently 1318 offline passes from at
+least 130 registered specs, 10 audio, 8 voice) or a missing exact four-test radio summary fail
+validation. Raise both offline floors whenever specs are added. Every gate step has a deadline
+(`VALIDATE_STEP_TIMEOUT_MS`, default 15 minutes). It never launches Studio.
 
 PRs targeting `main` run this gate without secrets. Main pushes and manual
 publishes run the same action before publishing, in the same job and checkout;

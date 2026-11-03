@@ -44,10 +44,21 @@ class PlaceAssetsTests(unittest.TestCase):
 
     def test_current_build_inventory_and_vertex_tamper(self):
         path = TOOLS.parent / "build/skybreak.rbxlx"
-        self.assertTrue(path.is_file(), "run bun run build:place first")
+        if not path.is_file():
+            # The gate sets SKYBREAK_REQUIRE_PLACE=1 right after building the place, so a
+            # missing artifact there is a real failure; standalone runs skip honestly.
+            if os.environ.get("SKYBREAK_REQUIRE_PLACE") == "1":
+                self.fail("run bun run build:place first")
+            self.skipTest("no prebuilt place at build/skybreak.rbxlx; run bun run build:place first")
         root = ET.fromstring(path.read_bytes())
         blobs, refs = gate.inventory(path.read_bytes())
-        self.assertEqual(len(blobs), 13)
+        # Every embedded blob is one packed `*Geometry` StringValue from default.project.json;
+        # derive the expected set from the project tree instead of a magic count.
+        project = json.loads((TOOLS.parent / "default.project.json").read_text())
+        geometry = sorted(name for name, node in project["tree"]["ServerStorage"].items()
+                          if isinstance(node, dict) and str(node.get("$path", "")).endswith("Geometry.txt"))
+        self.assertGreater(len(geometry), 0)
+        self.assertEqual(sorted(blob.name for blob in blobs), [f"{name}.json" for name in geometry])
         # Derive catalog IDs from the source inventory, independently of the
         # compiled-place extractor, so new approved uploads need no magic count.
         manifest = json.loads((TOOLS.parent / "assets/roblox-upload/manifest.json").read_text())
@@ -173,7 +184,8 @@ class PlaceAssetsTests(unittest.TestCase):
                 path = temp / name
                 path.write_text("#!/bin/sh\n" + body)
                 path.chmod(0o755)
-            command("python3", 'case "$1" in *check-place-assets.py) if [ -e "$FIXTURE/gated" ]; then exit 1; fi; touch "$FIXTURE/gated";; esac\n')
+            # publish-place.sh invokes `python3 -I <script>`; skip the flag before matching the script.
+            command("python3", 'if [ "$1" = -I ]; then shift; fi\ncase "$1" in *check-place-assets.py) if [ -e "$FIXTURE/gated" ]; then exit 1; fi; touch "$FIXTURE/gated";; esac\n')
             command("git", "exit 0\n")
             command("sleep", "exit 0\n")
             command("curl", 'cat >/dev/null; echo POST >> "$FIXTURE/posts"; printf 409\n')
