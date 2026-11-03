@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { terrainCleanupOp, terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { terrainCleanupFootprint, terrainCleanupOp, terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -201,5 +201,26 @@ describe("Legacy curved terrain cleanup bounds", () => {
     expect(x>=r.min[0] && x<=r.max[0] && z>=r.min[2] && z<=r.max[2]).toBe(true);
    }
   }
+ });
+});
+
+
+describe("Chunk-owned terrain cleanup", () => {
+ it("erases each touched native chunk once, including negative partial cells, without bridging a tall hollow", () => {
+  const box=(x:number,y:number,z:number,sx:number,sy:number,sz:number):TerrainOp=>({shape:"block",material:"Rock",yaw:0,x,y,z,sx,sy,sz});
+  const ops=[box(-64,124,64,128,8,128),box(-2,64,64,4,128,128),box(-64,124,64,128,8,128),box(64,100000,64,128,8,128)];
+  const cap=ops[0];
+  for(let i=0;i<2100;i++)ops.push({...cap});
+  const snapshot=ops.map(o=>({...o}));
+  const erase=terrainCleanupFootprint(ops);
+  const owns=(items:TerrainOp[],x:number,y:number,z:number)=>items.filter(o=>x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2).size();
+  expect(owns(erase,-64,64,64)).toBe(1);
+  expect(owns(erase,64,100032,64)).toBe(1);
+  expect(owns(erase,64,50048,64)).toBe(0);
+  expect(owns(erase,-192,64,64)).toBe(0);
+  expect(ops).toEqual(snapshot);
+  for(const op of erase) { expect(op.material).toBe("Air");expect(alignedBlockRegion(op)).toBeDefined(); }
+  const partial=terrainCleanupFootprint(ops.map(()=>box(-0.5,-0.5,-0.5,1,1,1)));
+  for(const x of [-64,64])for(const y of [-64,64])for(const z of [-64,64])expect(owns(partial,x,y,z)).toBe(1);
  });
 });

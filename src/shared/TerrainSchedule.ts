@@ -75,6 +75,34 @@ export function terrainCleanupOp(o: TerrainOp): TerrainOp {
  return terrainBoundsOp([o.x-hx-4,o.y-hy-4,o.z-hz-4], [o.x+hx+4,o.y+hy+4,o.z+hz+4]);
 }
 
+/** Cleanup owns the whole world, including air around the writes. Group erases
+ * by native 128-stud terrain chunks rather than revisiting a chunk for each cap
+ * and curtain. Never bridge unowned chunks (especially a tall world's hollow
+ * interior). This is only an erase schedule; visible write plans stay exact. */
+export function terrainCleanupFootprint(ops: TerrainOp[], checkpoint: () => void = () => {}): TerrainOp[] {
+ const exact = ops.map(terrainCleanupOp);
+ // Already coalesced worlds (e.g. M13/M16) have few overlapping writes. Keep
+ // their small exact erases instead of expanding them into chunk-sized boxes.
+ const oldJobs = terrainExecutionJobs(exact);
+ if (oldJobs.size() < 2000) return exact;
+ const chunks = new Map<string, TerrainOp>();
+ for (const op of exact) {
+  const r = alignedBlockRegion(op)!;
+  for (let x=math.floor(r.min[0]/128)*128;x<r.max[0];x+=128)
+   for (let y=math.floor(r.min[1]/128)*128;y<r.max[1];y+=128)
+    for (let z=math.floor(r.min[2]/128)*128;z<r.max[2];z+=128) {
+     const key=`${x},${y},${z}`;
+     if (!chunks.has(key)) chunks.set(key,{shape:"block",material:"Air",yaw:0,
+      x:x+64,y:y+64,z:z+64,sx:128,sy:128,sz:128});
+    }
+  checkpoint();
+ }
+ // Erases may use the engine's 4M-cell cap: unlike world writes, they have no
+ // material boundaries or partial occupancies to preserve inside a chunk.
+ const compact = coalesceTerrainJobs([...chunks].map(([,op])=>({op,cells:32768})), UNSPLIT_MAX).map(j=>j.op);
+ return compact.size()*2 < oldJobs.size() ? compact : exact;
+}
+
 /** Voxels a Fill op touches (the same estimate the plan's voxel-write count uses). */
 export function fillVoxels(o: TerrainOp): number {
 	if (o.shape === "block") return o.sx * o.sy * o.sz / 64;

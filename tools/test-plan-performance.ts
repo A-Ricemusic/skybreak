@@ -78,6 +78,35 @@ for pass=1,2 do for index=1,18 do
  table.sort(decorated,function(a,b) return a.h<b.h end)
  p.ops={} for _,entry in decorated do table.insert(p.ops,entry.op) end
  end
+ if pass==1 and id==7 then
+  local air={} for _,op in p.ops do table.insert(air,terrainSchedule.terrainCleanupOp(op)) end
+  local before=terrainSchedule.terrainExecutionJobs(air)
+  local footprint=terrainSchedule.terrainCleanupFootprint(p.ops)
+  local after=terrainSchedule.terrainExecutionJobs(footprint,terrainSchedule.UNSPLIT_MAX)
+  assert(#after*2<#before,"M07 cleanup must remove repeated chunk work")
+  for _,job in after do
+   assert(job.op.material=="Air" and terrainSchedule.alignedBlockRegion(job.op),"Cleanup must erase full voxels only")
+   assert(job.cells<=terrainSchedule.UNSPLIT_MAX,"Cleanup exceeded engine region cap")
+  end
+  -- Independent chunk-set oracle: cover all owned chunks once and no others.
+  local expected={}
+  local function chunks(op,visit)
+   for x=math.floor((op.x-op.sx/2)/128),math.ceil((op.x+op.sx/2)/128)-1 do
+    for y=math.floor((op.y-op.sy/2)/128),math.ceil((op.y+op.sy/2)/128)-1 do
+     for z=math.floor((op.z-op.sz/2)/128),math.ceil((op.z+op.sz/2)/128)-1 do
+      visit(x..","..y..","..z)
+     end
+    end
+   end
+  end
+  for _,op in air do chunks(op,function(key) expected[key]=true end) end
+  for _,job in after do chunks(job.op,function(key)
+   assert(expected[key],"Cleanup repeated or added an unowned chunk")
+   expected[key]=nil
+  end) end
+  assert(next(expected)==nil,"Cleanup missed an owned chunk")
+  print("MISSION_CLEANUP_OFFLINE mission=7 jobsBefore="..#before.." jobsAfter="..#after.." engineTimingVerified=false")
+ end
  if pass==1 and (id==10 or id>=13) then
   local before=terrainSchedule.terrainJobs(p.ops)
   local after=terrainSchedule.terrainExecutionJobs(p.ops)
