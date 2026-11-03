@@ -10,10 +10,13 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import sys
 import urllib.error
 import urllib.request
 
-from _http import NoRedirect
+# Run under `python3 -I`, which does not put the script directory on sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _http import NoRedirect  # noqa: E402
 
 spec = importlib.util.spec_from_file_location("target", Path(__file__).with_name("verify-roblox-target.py"))
 target = importlib.util.module_from_spec(spec)

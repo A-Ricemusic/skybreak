@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, "..");
 const source = await Bun.file(resolve(root, "out/client/FlightController.luau")).text();
 function between(start: string, end: string) {
@@ -64,8 +65,8 @@ const dir = resolve(root, "build/client-gun-input");
 await mkdir(dir, { recursive: true });
 const path = resolve(dir, "run.luau");
 await Bun.write(path, script);
-const proc = Bun.spawn([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
-if ((await proc.exited) !== 0) process.exitCode = 1;
+const proc = await spawnWithTimeout([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
+if (proc.code !== 0) process.exitCode = 1;
 
 // The HUD must retain an equipped gun even at zero rounds, and drop it for an unequipped sortie.
 const format = await Bun.file(resolve(root, "out/client/screens/UIFormat.luau")).text();
@@ -93,8 +94,8 @@ print('CLIENT_GUN_HUD passed=6 failed=0; compiled sanitizer only, GUI rendering 
 `;
 const hudPath = resolve(dir, "hud.luau");
 await Bun.write(hudPath, hudScript);
-const hudProc = Bun.spawn([requireLuauBin(), hudPath], { stdout: "inherit", stderr: "inherit" });
-if ((await hudProc.exited) !== 0) process.exitCode = 1;
+const hudProc = await spawnWithTimeout([requireLuauBin(), hudPath], { stdout: "inherit", stderr: "inherit" });
+if (hudProc.code !== 0) process.exitCode = 1;
 
 // Run only the emitted input and teardown callbacks, without mounting React or a GUI.
 const controls = await Bun.file(resolve(root, "out/client/HudControls.luau")).text();
@@ -143,5 +144,5 @@ print('CLIENT_GUN_TOUCH passed=3 failed=0; compiled callbacks only, GUI mounting
 `;
 const touchPath = resolve(dir, "touch.luau");
 await Bun.write(touchPath, touchScript);
-const touchProc = Bun.spawn([requireLuauBin(), touchPath], { stdout: "inherit", stderr: "inherit" });
-if ((await touchProc.exited) !== 0) process.exitCode = 1;
+const touchProc = await spawnWithTimeout([requireLuauBin(), touchPath], { stdout: "inherit", stderr: "inherit" });
+if (touchProc.code !== 0) process.exitCode = 1;

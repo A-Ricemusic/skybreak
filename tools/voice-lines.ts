@@ -7,6 +7,7 @@
 // System text (objective labels, flare/drone notices, mission results) is never
 // in the catalog's radio fields, so it is never voiced.
 import { resolve } from "node:path";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, ".."),
 	dir = resolve(root, "build/offline-relay"),
 	out = resolve(root, "assets/voice/lines.json");
@@ -70,12 +71,11 @@ for _,bp in C.MISSIONS do
 end
 `;
 await Bun.write(resolve(dir, "voice-lines.luau"), generator);
-const proc = Bun.spawn([executable, resolve(dir, "voice-lines.luau")], { cwd: dir, stdout: "pipe", stderr: "pipe" });
-const [stdout, stderr, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const { stdout, stderr, code } = await spawnWithTimeout([executable, resolve(dir, "voice-lines.luau")], {
+	cwd: dir,
+	stdout: "pipe",
+	stderr: "pipe",
+});
 if (code !== 0) throw new Error(`Luau line dump failed: ${stderr}`);
 interface Line {
 	id: string;

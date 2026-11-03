@@ -10,6 +10,7 @@
 // Production plans are never modified by fingerprinting. M01 independent ops are sorted.
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, "..");
 let source = `local function fingerprint(value)
  local h=5381
@@ -123,12 +124,15 @@ print("PLAN_PERFORMANCE passed=36 failed=0")
 `;
 const path = resolve(root, "build/offline-relay/performance.luau");
 await Bun.write(path, source);
-const proc = Bun.spawn([requireLuauBin(), path], { cwd: root, stdout: "pipe", stderr: "pipe" });
-const [out, err, code] = await Promise.all([
-	new Response(proc.stdout).text(),
-	new Response(proc.stderr).text(),
-	proc.exited,
-]);
+const {
+	stdout: out,
+	stderr: err,
+	code,
+} = await spawnWithTimeout([requireLuauBin(), path], {
+	cwd: root,
+	stdout: "pipe",
+	stderr: "pipe",
+});
 console.log(out);
 if (err) console.error(err);
 await Bun.write(resolve(root, "build/plan-performance.log"), out + err);

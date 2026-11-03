@@ -13,9 +13,13 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 
-import roblox_upload as upload
+# Callers run this script under `python3 -I`, which does not put the script
+# directory on sys.path; make the sibling import explicit.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import roblox_upload as upload  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 VISUAL_PROPERTIES = {"MeshId", "MeshID", "TextureID", "TextureId", "Texture", "ColorMap",

@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { requireLuauBin } from "./luau-bin";
+import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, "..");
 const read = (path: string) => Bun.file(resolve(root, path)).text();
 const controller = await read("out/client/FlightController.luau");
@@ -65,5 +66,5 @@ const dest = resolve(root, "build/radio-delivery");
 await mkdir(dest, { recursive: true });
 const path = resolve(dest, "run.luau");
 await Bun.write(path, harness);
-const proc = Bun.spawn([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
-if ((await proc.exited) !== 0) process.exitCode = 1;
+const proc = await spawnWithTimeout([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
+if (proc.code !== 0) process.exitCode = 1;
