@@ -1,3 +1,4 @@
+import { trackTerrainFootprint } from "./TerrainState";
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
@@ -70,6 +71,7 @@ export const M03World = {
 		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
 		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
+		trackTerrainFootprint(plan.ops);
 		const timing = TerrainWriter.Write(plan.ops, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);

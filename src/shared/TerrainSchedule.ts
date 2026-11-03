@@ -62,6 +62,19 @@ export function terrainBoundsOp(min: [number, number, number], max: [number, num
   sx: hi[0]-lo[0], sy: hi[1]-lo[1], sz: hi[2]-lo[2]};
 }
 
+/** Sparse cleanup box for one write, including curved and partial boundary voxels.
+ * Terrain has a single world owner, so the surrounding air is safe to erase. */
+export function terrainCleanupOp(o: TerrainOp): TerrainOp {
+ const exact = alignedBlockRegion(o);
+ if (exact !== undefined) return {...o, material: "Air"};
+ if (o.shape === "bump") { const r = bumpRegion(o); return terrainBoundsOp(r.min, r.max); }
+ const c = math.abs(math.cos(o.yaw)), s = math.abs(math.sin(o.yaw));
+ const hx = o.shape === "ball" || o.shape === "cylinder" ? o.sx : (c*o.sx+s*o.sz)/2;
+ const hz = o.shape === "ball" || o.shape === "cylinder" ? o.sx : (s*o.sx+c*o.sz)/2;
+ const hy = o.shape === "ball" ? o.sx : o.sy/2;
+ return terrainBoundsOp([o.x-hx-4,o.y-hy-4,o.z-hz-4], [o.x+hx+4,o.y+hy+4,o.z+hz+4]);
+}
+
 /** Voxels a Fill op touches (the same estimate the plan's voxel-write count uses). */
 export function fillVoxels(o: TerrainOp): number {
 	if (o.shape === "block") return o.sx * o.sy * o.sz / 64;

@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { terrainCleanupOp, terrainBoundsOp, alignedBlockRegion, coalesceTerrainJobs, terrainExecutionJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -177,5 +177,29 @@ describe("Legacy curved terrain cleanup bounds", () => {
   const jobs = terrainExecutionJobs([op], 128);
   expect(jobs.reduce((n,j) => n+j.cells,0)).toBe(9*127*6);
   for (const job of jobs) { expect(job.cells).toBeLessThanOrEqual(128); expect(alignedBlockRegion(job.op)).toBeDefined(); }
+ });
+});
+
+ describe("Planned curved terrain cleanup", () => {
+ it("covers each curved write separately without joining distant worlds", () => {
+  const ops: TerrainOp[] = [
+   {shape:"block",material:"Rock",x:-30000,y:17,z:6000,sx:31,sy:19,sz:53,yaw:0.7},
+   {shape:"ball",material:"Grass",x:30000,y:100,z:0,sx:29,sy:0,sz:0,yaw:0},
+   {shape:"cylinder",material:"Rock",x:100,y:200,z:300,sx:31,sy:59,sz:0,yaw:0},
+   {shape:"bump",material:"Grass",x:-100,y:20,z:200,sx:30,sy:43,sz:50,yaw:0.4},
+  ];
+  for (const op of ops) {
+   const erase=terrainCleanupOp(op), r=alignedBlockRegion(erase)!;
+   expect(erase.material).toBe("Air"); expect(r).toBeDefined();
+   expect(erase.sx).toBeLessThan(200); expect(erase.sz).toBeLessThan(200);
+   if (op.shape === "bump") expect(r).toEqual(bumpRegion(op));
+   else for (const dx of [-1,1]) for (const dz of [-1,1]) {
+    const hx=op.shape === "block" ? op.sx/2 : op.sx;
+    const hz=op.shape === "block" ? op.sz/2 : op.sx;
+    const x=op.shape === "block" ? op.x+math.cos(op.yaw)*dx*hx+math.sin(op.yaw)*dz*hz : op.x+dx*hx;
+    const z=op.shape === "block" ? op.z-math.sin(op.yaw)*dx*hx+math.cos(op.yaw)*dz*hz : op.z+dz*hz;
+    expect(x>=r.min[0] && x<=r.max[0] && z>=r.min[2] && z<=r.max[2]).toBe(true);
+   }
+  }
  });
 });
