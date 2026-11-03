@@ -64,7 +64,7 @@ describe("outcomeMissionId", () => {
 		expect(outcomeMissionId(wellFormed(5), current)).toBe(5);
 		expect(outcomeMissionId({ ...wellFormed(5), missionId: 99 }, current)).toBe(3);
 		expect(outcomeMissionId({ ...wellFormed(5), missionId: undefined }, current)).toBe(3);
-		expect(outcomeMissionId({ ...wellFormed(5), missionId: 0 }, { ...current, missionId: undefined })).toBe(1);
+		expect(outcomeMissionId({ ...wellFormed(5), missionId: 99 }, { ...current, missionId: undefined })).toBe(1);
 	});
 });
 
