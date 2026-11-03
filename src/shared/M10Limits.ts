@@ -1,3 +1,5 @@
+// Mission 10 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M10World.ts, shared/missions/m10.ts and the world-plan specs; keep in step with M10WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M10_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 15600,

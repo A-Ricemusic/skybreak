@@ -1,3 +1,6 @@
+// Waits for the replicated aircraft and mission folder, then preloads their mesh/texture content.
+// Pure yielding helper (no instances kept); reports 0..1 progress and gives up after a timeout.
+// Called by GameUI.tsx while the loading screen is up.
 import { ContentProvider } from "@rbxts/services";
 import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";

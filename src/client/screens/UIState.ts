@@ -1,3 +1,5 @@
+// Shared UI constants and types for GameUI: screen names, menu frame names, toast/notice shapes and
+// the FIRE-denied reason copy. Data only, no instances or React.
 import type { Remotes } from "../../shared/Types";
 import type { FlightController } from "../FlightController";
 

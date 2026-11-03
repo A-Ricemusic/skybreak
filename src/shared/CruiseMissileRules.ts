@@ -1,4 +1,4 @@
-// Cruise-missile intercept budgets, routes, radar and completion (pure). Formerly EngineBatchD10.
+// Cruise-missile intercept budgets, routes, radar and completion (pure).
 import { validateEncounterIdentities } from "./CampaignEncounters";
 import { BomberPoint, BomberRoute, BomberRules } from "./BomberRules";
 import { finiteNumber } from "./LandingRules";

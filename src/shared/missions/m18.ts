@@ -1,3 +1,7 @@
+// Mission 18 (finale) blueprint: generator/core ground roster, the vent run volumes, provisional rank cuts
+// (D-660) and the MissionBlueprint, derived from M18WorldPlan and M18FinaleRules. Pure data.
+// Consumed by missions/index, M18World and the M18 specs. Text changes require `bun tools/voice-lines.ts &&
+// bun tools/story-voice-script.ts && bun tools/test-mission-catalog.ts --update`.
 import { M18_ASCENDING } from "../M18FinaleRules";
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";

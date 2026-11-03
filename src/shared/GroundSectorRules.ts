@@ -1,4 +1,4 @@
-// Ground-support sectors, carrier rearm poses and squad attack rules (pure). Formerly EngineBatchD5.
+// Ground-support sectors, carrier rearm poses and squad attack rules (pure).
 import { finiteNumber, landingDuration, landingPose } from "./LandingRules";
 import { FlightMath, FlightState } from "./FlightMath";
 import { LaunchStage } from "./LaunchStage";

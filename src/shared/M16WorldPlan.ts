@@ -1,3 +1,7 @@
+// Mission 16 (road home) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build16Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M16World, MissionWorld, missions/m16 and the M16 specs;
+// buildM16ScenePlan() leaves airborne contacts and the moving column to the live directors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import { surfaceGround, type WorldSurface } from "./CompactWorldSurface";

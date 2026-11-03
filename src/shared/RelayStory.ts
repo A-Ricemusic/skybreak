@@ -1,3 +1,7 @@
+// Broken Relay story: speaker names, speaker chip styling and the STORY chapters (18 pre-mission chapters
+// plus the finale) with chapter selection helpers. Pure data and functions, no instances.
+// Consumed by RelayCinematic (client), CampaignRepository (server), VoiceLines, StoryDocuments and cinematics.
+// Text changes: `bun tools/voice-lines.ts && bun tools/story-voice-script.ts && bun tools/test-mission-catalog.ts --update`.
 export type StoryScene = "hangar" | "canyon" | "farm" | "relay" | "harbor" | "city" | "sea";
 export type StoryMood = "dawn" | "day" | "dusk" | "night" | "storm";
 export type StoryShot = "radio" | "wide" | "evidence" | "chair" | "recorder" | "sky" | "black";

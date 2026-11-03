@@ -1,3 +1,7 @@
+// Outer-district expansion for the legacy WorldPlan builder (plan ids 3, 5 and 19): kit tile bounds and
+// expandDistrict(), which appends road/cliff/runway tiles, props and terrain ops to a WorldPlan in place.
+// Pure plan mutation, no instances. Called only from WorldPlan.ts (WorldGeometry imports the WorldKit type);
+// it must not touch authored routes, targets or boats, only the east horizon belt.
 import type { PropAsset, WorldPlan } from "./WorldPlan";
 
 export type WorldKit = "RunwayTile" | "RoadTile" | "CliffTile";

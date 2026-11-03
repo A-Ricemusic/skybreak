@@ -1,3 +1,5 @@
+// Mission 14 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M14World.ts, shared/missions/m14.ts and the world-plan specs; keep in step with M14WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M14_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 14000,

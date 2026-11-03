@@ -1,4 +1,4 @@
-// Mission 18 finale: vent run volumes, duel arena bounds and ascending targets (pure). Formerly EngineBatchD13; the blueprint field is `finale`.
+// Mission 18 finale: vent run volumes, duel arena bounds and ascending targets (pure). The blueprint field is `finale`.
 import type { FlightPoint, MissionBlueprint, MissionPhaseBlueprint } from "./MissionCatalog";
 import { finiteNumber } from "./LandingRules";
 import { ENVIRONMENTS } from "./EnvironmentPresets";

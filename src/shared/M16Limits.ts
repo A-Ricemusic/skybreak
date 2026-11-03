@@ -1,3 +1,5 @@
+// Mission 16 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M16World.ts, shared/missions/m16.ts and the world-plan specs; keep in step with M16WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M16_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 14000,

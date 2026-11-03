@@ -1,3 +1,5 @@
+// Mission 15 world: builds M15WorldPlan through CompositionWorld, then adopts the authored target models as
+// ground targets and reports them in targetVisuals. Owns no state; Build/Clear run under the world lifecycle.
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM15ScenePlan, M15_ENVIRONMENT, M15_WORLD_KEY } from "../shared/M15WorldPlan";

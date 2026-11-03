@@ -1,3 +1,7 @@
+// Aircraft geometry provider: fills a jet Model from the uploaded Roblox asset when one is usable, otherwise
+// from Blender mesh JSON in ServerStorage (KestrelGeometry/VantaGeometry) via AssetService EditableMesh generation.
+// Owns a per-kind template Model cache; generation runs only on the server or in Studio edit mode.
+// Called by shared/JetFactory.ts, which builds plain parts when Populate returns false.
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 import { AceLivery, AssetSelection } from "./AssetSelection";
 import { UploadedAssets } from "./UploadedAssets";

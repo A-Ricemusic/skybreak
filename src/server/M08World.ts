@@ -1,3 +1,5 @@
+// Mission 8 world: thin wrapper that feeds M08WorldPlan through CompositionWorld and registers its terrain clear.
+// Owns no state; Build/Clear are called by the world lifecycle in CombatService.
 import { buildM08Plan, M08_ENVIRONMENT, M08_WORLD_KEY } from "../shared/M08WorldPlan";
 import { M08_BUILD_LIMITS } from "../shared/M08Limits";
 import { buildComposition } from "./CompositionWorld";

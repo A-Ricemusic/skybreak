@@ -1,3 +1,6 @@
+// Mission 13 world: feeds M13WorldPlan through CompositionWorld, marking the cosmetic evidence-plane
+// silhouette non-solid so it stays out of the flight allowlist. Planner output itself is untouched.
+// Owns no state; Build/Clear are called by the world lifecycle in CombatService.
 import { buildM13Plan, M13_ENVIRONMENT, M13_WORLD_KEY } from "../shared/M13WorldPlan";
 import { M13_BUILD_LIMITS } from "../shared/M13Limits";
 import { buildComposition } from "./CompositionWorld";

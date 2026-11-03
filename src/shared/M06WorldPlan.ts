@@ -1,3 +1,7 @@
+// Mission 06 (military quays) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build06Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M06World, MissionWorld, missions/m06, the M06 specs; later
+// missions reuse M06_ENVIRONMENT as their lighting base. Hull targets are scenery anchors, not spawn/score actors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

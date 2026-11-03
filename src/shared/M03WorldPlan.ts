@@ -1,3 +1,7 @@
+// Mission 3 (snow radar) world plan: height/material fields, corridor detail, target sites, buildM03Plan's
+// terrain ops and parts, the environment preset and load counts.
+// Pure plan construction, no instances; server/M03World.ts realises it (tools/test-m03-builder-contract.ts pins
+// that contract). Planner output is fingerprint-frozen in tools/test-plan-performance.ts.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { worldCounts } from "./WorldCompositionCounts";
 import { WORLD_FILL_CHUNK } from "./SealedWorldSurface";

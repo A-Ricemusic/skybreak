@@ -1,3 +1,6 @@
+// Mission outcome reasons: the MissionReason union, its runtime guard and the readable debrief failure text.
+// Pure functions, no state. Shared by the server (SessionQueries) and the client (GameUI, OutcomeScreen);
+// unknown or older-server reasons must keep falling through to the generic debrief line.
 import type { BlueprintReason } from "./BlueprintRunner";
 import { GameConfig } from "./GameConfig";
 

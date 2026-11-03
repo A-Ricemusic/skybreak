@@ -1,4 +1,4 @@
-// Intercept-hold phases: bomber hold/escape sites and concurrent fighter budgets (pure). Formerly EngineBatchD4.
+// Intercept-hold phases: bomber hold/escape sites and concurrent fighter budgets (pure).
 import { finiteNumber } from "./LandingRules";
 import { compileBomberEncounter } from "./BomberEncounter";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";

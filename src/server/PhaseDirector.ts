@@ -1,3 +1,6 @@
+// Blueprint phase director: applies each mission phase to a session (air requests, ground activation, actors,
+// return line, radio) and steps it, requesting effects through the PhaseCombat hooks it is bound with.
+// Owns no session registry or clock; CombatService binds it once via createPhaseDirector and owns simulation.
 import { duelTargetId } from "../shared/FinaleDuelRules";
 import { clearLeader } from "./LeaderWithdrawalRuntime";
 import { clearCruise } from "./CruiseMissileRuntime";

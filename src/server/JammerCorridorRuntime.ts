@@ -1,4 +1,4 @@
-// Server adapters for JammerCorridorRules: airship jammers and protected navigation. Formerly EngineBatchD9Runtime.
+// Server adapters for JammerCorridorRules: airship jammers and protected navigation.
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { coveringJammers, navigationStep } from "../shared/JammerCorridorRules";

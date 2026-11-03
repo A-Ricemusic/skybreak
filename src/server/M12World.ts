@@ -1,3 +1,5 @@
+// Mission 12 world: builds M12WorldPlan through CompositionWorld, then adopts the authored target models as
+// ground targets (railgun emplacements leave wrecks). Owns no state; Build/Clear run under the world lifecycle.
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM12Plan, M12_ENVIRONMENT, M12_WORLD_KEY } from "../shared/M12WorldPlan";

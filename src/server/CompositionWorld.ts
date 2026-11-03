@@ -1,3 +1,6 @@
+// Shared mission-world builder: turns a planner Composition (terrain ops, parts, props, targets) into a
+// scene Folder under the given parent, with environment, terrain writes, uploaded-asset props and stand-ins.
+// Owns nothing after Build returns; terrain dirty state lives in TerrainState. Called by the MxxWorld modules.
 import { decorateNavalScenery } from "./NavalDecoration";
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { traceWorldPhase } from "./WorldBuildTrace";

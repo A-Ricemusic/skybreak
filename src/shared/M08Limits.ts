@@ -1,3 +1,5 @@
+// Mission 8 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M08World.ts, shared/missions/m08.ts and the world-plan specs; keep in step with M08WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M08_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 15600,

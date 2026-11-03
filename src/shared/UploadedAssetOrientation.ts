@@ -1,3 +1,6 @@
+// Per-asset import orientation corrections (yaw/pitch/roll degrees) applied when uploaded Blender models are
+// fitted. Pure data; currently all identity. Consumed by UploadedAssets and the asset specs; it must never
+// alter the approved exported files themselves.
 import type { UploadedAssetName } from "./UploadedAssetSpecs";
 
 export interface OrientationOffsets {

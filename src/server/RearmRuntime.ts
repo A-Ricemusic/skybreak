@@ -1,4 +1,4 @@
-// Server adapters for RearmRules: jammer liveness, lock permission, rearm/cut-in steps and menus. Formerly EngineBatchCRuntime.
+// Server adapters for RearmRules: jammer liveness, lock permission, rearm/cut-in steps and menus.
 import { completeRearmRepair } from "./RepairReserveRuntime";
 import { spatialJammersAt } from "./JammerCorridorRuntime";
 import { FlightMath } from "../shared/FlightMath";

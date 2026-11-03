@@ -1,3 +1,5 @@
+// Mission 7 airspace policy and loading-screen build budget (pure data, no instances).
+// Read by server/M07World.ts, shared/missions/m07.ts and the world-plan specs; keep in step with M07WorldPlan.
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 export const M07_AIRSPACE: MissionAirspacePolicy = {
 	softHalfWidth: 15600,

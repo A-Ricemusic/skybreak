@@ -1,4 +1,4 @@
-// Score-threshold expiry, radar-jamming lock rules and the runway/carrier rearm plan (pure). Formerly EngineBatchC.
+// Score-threshold expiry, radar-jamming lock rules and the runway/carrier rearm plan (pure).
 import { repairAllowed } from "./RepairReserveRules";
 import { CarrierRearm, carrierRearmPose } from "./GroundSectorRules";
 import { finiteNumber, LandingPlan, landingDuration, landingPose, validateLandingPhases } from "./LandingRules";

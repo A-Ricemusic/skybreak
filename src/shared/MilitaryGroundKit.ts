@@ -1,3 +1,6 @@
+// Static military ground kit: the uploaded asset names and the GroundTargetType -> asset mapping used to dress
+// ground targets. Pure data, no instances. Consumed by GroundTargetFactory, the mission world builders and
+// tools/assets/ground_kit_packet.py; adding an asset here requires the Blender asset safety review before upload.
 import type { GroundTargetType } from "./CampaignEncounters";
 export type MilitaryGroundAsset =
 	| "MilitaryTank"

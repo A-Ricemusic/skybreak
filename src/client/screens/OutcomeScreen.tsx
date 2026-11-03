@@ -1,3 +1,5 @@
+// Mission debrief screen: result, rank, score lines, objective breakdown and retry/next/return buttons.
+// Stateless apart from a row-reveal timer; OutcomeState is filled by GameUI.tsx from the server result.
 import { nextResultMission } from "../../shared/ResultContinuation";
 import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { Difficulty, type DifficultyKind } from "../../shared/Difficulty";

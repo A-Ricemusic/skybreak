@@ -1,3 +1,6 @@
+// Phase blueprint builders shared by the mission files: fly() volumes, air() and ground() required phases
+// and chase(). Pure helpers that only shape MissionPhaseBlueprint records; they hold no state and must not
+// encode mission-specific numbers. Consumed by src/shared/missions/mNN.ts and the legacy specs.
 import type {
 	MissionPhaseBlueprint,
 	FlightPoint,

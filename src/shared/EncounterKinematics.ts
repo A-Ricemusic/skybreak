@@ -1,3 +1,6 @@
+// Pure steering maths for enemy aircraft and guided weapons: damped steering, pursuit lead points and
+// guided-missile direction. No state, no instances.
+// Consumed by server/CombatService.ts, shared/CombatMotion.ts and the mission fairness/encounter specs.
 import type { Point } from "./ThreatRules";
 const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z });
 const mul = (a: Point, n: number): Point => ({ x: a.x * n, y: a.y * n, z: a.z * n });

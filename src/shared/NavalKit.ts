@@ -1,3 +1,6 @@
+// Naval visual kit: asset names, the hull-type -> asset mapping and navalVisual(), which picks a hull or deck
+// mount silhouette for a ground target by type, layout type and group. Pure data/functions, no instances.
+// Consumed by GroundTargetFactory, NavalDecoration, WorldInstanceBudget and the M06/M09/M17 world builders.
 import type { GroundTargetType } from "./CampaignEncounters";
 export type NavalAsset =
 	| "NavalFrigate"

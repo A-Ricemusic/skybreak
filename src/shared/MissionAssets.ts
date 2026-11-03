@@ -1,3 +1,7 @@
+// Server-side factory for the Blender mesh kit (world tiles, cinematic props, relay/radar/harbour models) built
+// from JSON mesh data in ServerStorage via AssetService, with a primitive fallback when generation fails.
+// Owns a per-kind template cache (Models cloned per call). Uses Roblox services: server only, never import
+// from the client or offline specs. Consumed by index.server.ts, PhaseDirector and MissionWorld.
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
 type MissionAssetKind =

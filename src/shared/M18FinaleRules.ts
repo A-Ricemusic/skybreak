@@ -1,3 +1,6 @@
+// Mission 18 finale extras: ascending-missile targets derived from the M18 world plan and the duel ace's
+// opt-in tuning (D-663). Pure data and functions; no instances. FinaleDuelRules owns the duel itself.
+// Consumed by server/M18AscendingRuntime.ts, CombatService, missions/m18 and the M18 specs.
 import type { DifficultyKind } from "./Difficulty";
 import type { FlightPoint } from "./MissionCatalog";
 import { m18TargetLayout } from "./M18WorldPlan";

@@ -1,3 +1,6 @@
+// Floating navigation caption: distance/bearing to the mission's navigation point plus detail rows.
+// Owns one RenderStepped connection and a text-width cache; placement avoids HUD obstacles.
+// Mounted by MissionHud.tsx; reads Telemetry and the active FlightController, never the server.
 import React, { useEffect, useRef } from "@rbxts/react";
 import { RunService, TextService, Workspace } from "@rbxts/services";
 import {

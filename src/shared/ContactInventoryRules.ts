@@ -1,4 +1,4 @@
-// Large contact inventories: cheap-contact detail budget, parked-aircraft handoff and repeated artillery schedules (pure). Formerly EngineBatchD6.
+// Large contact inventories: cheap-contact detail budget, parked-aircraft handoff and repeated artillery schedules (pure).
 import { finiteNumber } from "./LandingRules";
 import { CanyonEscape, newArtillery, stepArtillery, ArtilleryState, validateArtilleryPhases } from "./ArtilleryRules";
 import type { MissionPhaseBlueprint } from "./MissionCatalog";

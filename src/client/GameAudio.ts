@@ -1,3 +1,6 @@
+// Client sound mix for a sortie: engine loops, wind, warnings, missile motors, explosions and UI cues.
+// Owns its SoundGroup, world sound folder, one-shot Sounds and per-model engine tracking.
+// Driven by FlightController (Start/Telemetry/Step/Stop); never embeds credentials or calls audio generation.
 import { ContentProvider, Debris, Players, SoundService, TweenService, Workspace } from "@rbxts/services";
 import { AudioRules, AudioWarning } from "../shared/AudioRules";
 import { HOSTILE_MISSILE, PLAYER_MISSILE } from "../shared/JetFactory";

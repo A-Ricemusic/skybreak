@@ -1,3 +1,6 @@
+// Input routing for the relay cinematic: maps GUI activations and keyboard/gamepad shortcuts to cinematic actions.
+// Pure types and one function; owns no state and never touches UserInputService.
+// Consumed by client/RelayCinematic.tsx and the offline cinematic specs.
 export type CinematicControl = "skip" | "pause" | "motion" | "text" | "next";
 export type CinematicAction = CinematicControl | "cancel";
 export type CinematicInput =

@@ -1,3 +1,7 @@
+// Game-wide constants: titles, campaign DataStore namespace and schema version, mission count and time limit,
+// ocean height and the menu camera. Pure data; owns nothing at runtime.
+// Read by server (CampaignService, CampaignRepository, WorldBuilder) and shared code; changing DataStoreName
+// or SaveVersion changes which saves are readable.
 export const GameConfig = {
 	Name: "Test Game Coding From Phone",
 	DisplayName: "SKYBREAK",

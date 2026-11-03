@@ -1,3 +1,6 @@
+// Practice (mission 0) blueprint: the three-step tutorial phases and the single training radar. Pure data.
+// Imported directly by MissionCatalog (not via missions/index). Text changes require `bun tools/voice-lines.ts &&
+// bun tools/story-voice-script.ts && bun tools/test-mission-catalog.ts --update`.
 import type { MissionBlueprint } from "../MissionCatalog";
 
 export const mission: MissionBlueprint = {

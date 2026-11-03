@@ -1,3 +1,6 @@
+// Encounter vocabulary and validation: ground target types and labels, fighter arrival triggers, standalone
+// aces, scramble/authored air poses and validateCampaignEncounters for every mission blueprint.
+// Pure types, data and functions. MissionCatalog runs the validation at load so a bad blueprint fails fast.
 import { isFiniteNumber } from "./Finite";
 import { duelTargetId } from "./FinaleDuelRules";
 import { WithdrawalIdentities } from "./LeaderWithdrawalRules";

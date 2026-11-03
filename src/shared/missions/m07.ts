@@ -1,3 +1,7 @@
+// Mission 7 (solar plant / two ridges) blueprint: maps M07WorldPlan layout types to GroundTargetTypes, builds
+// the typed ground roster (D-280 stable ids, one panel kept as scenery) and exports the MissionBlueprint.
+// Pure data. Consumed by missions/index and M07World. Text changes require `bun tools/voice-lines.ts &&
+// bun tools/story-voice-script.ts && bun tools/test-mission-catalog.ts --update`.
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
 import type { GroundTargetType, TypedGroundTarget, FighterArrival } from "../CampaignEncounters";

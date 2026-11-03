@@ -1,3 +1,5 @@
+// Title screen: SKYBREAK hero copy with CAMPAIGN and SETTINGS buttons laid out from MenuLayout.
+// Stateless React screen mounted by GameUI.tsx; navigation happens through the callbacks it is given.
 import React from "@rbxts/react";
 import { MISSION_COUNT } from "../../shared/MissionCatalog";
 import type { MenuLayout } from "../../shared/UILayout";

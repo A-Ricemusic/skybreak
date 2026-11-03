@@ -1,3 +1,5 @@
+// Mission 17 world: preloads ground and naval kits, builds M17WorldPlan through CompositionWorld, then adopts
+// the authored target models as ground targets. Owns no state; Build/Clear run under the world lifecycle.
 import { NAVAL_ASSETS } from "../shared/NavalKit";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";

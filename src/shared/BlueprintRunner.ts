@@ -1,3 +1,7 @@
+// Mission director state machine: advances a sortie through its MissionCatalog phases and tracks score,
+// twists, hazards, protection, landing and timeouts, reporting the objective and outcome.
+// Pure functions over a caller-owned BlueprintState; no instances, no Roblox services.
+// Driven by server/CombatSession.ts, PhaseDirector and the opt-in runtimes; most mission specs exercise it offline.
 import { isFiniteNumber } from "./Finite";
 import { duelTargetId, newVent, stepVent, VentState } from "./FinaleDuelRules";
 import { thresholdResult } from "./RearmRules";

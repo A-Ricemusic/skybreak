@@ -1,3 +1,7 @@
+// Mission 18 (voice breaks finale) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build18Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M18World, MissionWorld, missions/m18, M18FinaleRules, the
+// M18 specs; the vent route and enclosed run are static, airborne slots are spawned by runtime directors.
 import { FlightMath } from "./FlightMath";
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";

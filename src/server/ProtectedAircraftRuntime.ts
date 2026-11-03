@@ -1,4 +1,4 @@
-// Server adapters for ProtectedAircraftRules: protected actors, hits and warnings. Formerly EngineBatchD7Runtime.
+// Server adapters for ProtectedAircraftRules: protected actors, hits and warnings.
 
 import { protectedNavigationStep } from "./JammerCorridorRuntime";
 import { BlueprintRunner } from "../shared/BlueprintRunner";

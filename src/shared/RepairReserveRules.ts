@@ -1,4 +1,4 @@
-// Opt-in field repair (missions 15-17), sector reinforcement reserves and cheap armour eligibility (pure). Formerly EngineBatchD11.
+// Opt-in field repair (missions 15-17), sector reinforcement reserves and cheap armour eligibility (pure).
 import type { MissionPhaseBlueprint } from "./MissionCatalog";
 import type { GroundProgressPlan, SectorState } from "./GroundSectorRules";
 import type { TypedGroundTarget } from "./CampaignEncounters";

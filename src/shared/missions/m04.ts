@@ -1,3 +1,7 @@
+// Mission 4 (Blind Couriers) blueprint: derives the courier route, escort/jammer fighter waves and the ace from
+// M04WorldPlan's target layout, then exports the MissionBlueprint. Pure data, no instances.
+// Consumed only via missions/index. Text changes require `bun tools/voice-lines.ts && bun tools/story-voice-script.ts
+// && bun tools/test-mission-catalog.ts --update`.
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
 import type { FighterArrival } from "../CampaignEncounters";

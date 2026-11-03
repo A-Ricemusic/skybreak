@@ -1,3 +1,5 @@
+// Input-mode detection (keyboard/gamepad/touch) and key-code glyph lookup for the menus.
+// Owns only the glyph cache; reads UserInputService. Used by GameUI.tsx, MissionHud.tsx and Primitives.tsx.
 import { UserInputService } from "@rbxts/services";
 import { inputModeFromInputType, inputModeFromPreferred, type InputMode } from "../../shared/UILayout";
 

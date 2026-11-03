@@ -1,4 +1,4 @@
-// Server adapters for SurfaceTargetRules: sinking hulls, surface routes, SAM defence. Formerly EngineBatchD2Runtime.
+// Server adapters for SurfaceTargetRules: sinking hulls, surface routes, SAM defence.
 import { closedBridgeRoute } from "./LeaderWithdrawalRuntime";
 import { gunOccluded, gunRaycastParams } from "./GunRuntime";
 import { JetFactory } from "../shared/JetFactory";

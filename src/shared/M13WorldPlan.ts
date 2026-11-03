@@ -1,3 +1,7 @@
+// Mission 13 (evidence ravine) world plan: authored anchors, environment preset, analytic surface and the
+// scenery/target layout that build13Plan() turns into parts, props and the compact terrain plan.
+// Pure data and functions, no Roblox instances. Consumed by M13World, MissionWorld, missions/m13, JammerCorridorRuntime
+// specs and the M13 specs; jammer silhouettes here are review scenery, not combat actors.
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";

@@ -1,4 +1,4 @@
-// Protected (escorted) aircraft plans, health, poses and protection outcomes (pure). Formerly EngineBatchD7.
+// Protected (escorted) aircraft plans, health, poses and protection outcomes (pure).
 import type { DifficultyKind } from "./Difficulty";
 import { finiteNumber } from "./LandingRules";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";

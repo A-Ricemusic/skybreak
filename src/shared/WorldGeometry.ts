@@ -1,10 +1,3 @@
-import { type WorldKit } from "./WorldDistricts";
-import { type Rgb } from "./EnvironmentPresets";
-import { type EnvironmentPreset } from "./MissionCatalog";
-import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
-import { polyDist } from "./Polyline";
-export { polyDist };
-
 // Live world geometry: types and terrain-column queries shared by the per-mission
 // planners, TerrainWriter and the offline specs.
 //
@@ -19,6 +12,12 @@ export { polyDist };
 // rotation about +Y (CFrame.Angles(0, yaw, 0)). Props are placed by their ground
 // contact point (the waterline for the frigate, oil platform and quay) with -Z
 // as the asset's front, exactly like WorldAssets.
+import { type WorldKit } from "./WorldDistricts";
+import { type Rgb } from "./EnvironmentPresets";
+import { type EnvironmentPreset } from "./MissionCatalog";
+import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
+import { polyDist } from "./Polyline";
+export { polyDist };
 
 export type TerrainMaterial =
 	| "Grass"

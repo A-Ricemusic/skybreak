@@ -1,4 +1,4 @@
-// Enemy leader withdrawal routes and bridge closures (pure). Formerly EngineBatchD12.
+// Enemy leader withdrawal routes and bridge closures (pure).
 import { finiteNumber } from "./LandingRules";
 import { surfacePose, SurfaceRoute } from "./SurfaceTargetRules";
 import type { MissionPhaseBlueprint } from "./MissionCatalog";
