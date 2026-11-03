@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { DeletionObservation } from "../shared/DeletionObservation";
-import { CampaignRequestBudget } from "../server/CampaignRequestBudget";
+import { CAMPAIGN_DELETE_COOLDOWN, CampaignRequestBudget } from "../server/CampaignRequestBudget";
 
 describe("deletion observation lifetime", () => {
 	it("does not dispatch after navigation before the RPC", () => {
@@ -73,18 +73,30 @@ describe("independent campaign request budgets", () => {
 	it("allows poll then foreground and foreground then poll within 120ms", () => {
 		for (const statusFirst of [true, false]) {
 			const budget = new CampaignRequestBudget();
-			expect(budget.accept(10, statusFirst)).toBe(true);
-			expect(budget.accept(10.01, !statusFirst)).toBe(true);
+			expect(budget.accept(10, statusFirst ? "status" : "command")).toBe(true);
+			expect(budget.accept(10.01, statusFirst ? "command" : "status")).toBe(true);
 		}
 	});
 	it("bounds status spam without consuming or extending the command budget", () => {
 		const budget = new CampaignRequestBudget();
-		expect(budget.accept(10, false)).toBe(true);
-		expect(budget.accept(10, true)).toBe(true);
-		for (let i = 1; i < 50; i++) expect(budget.accept(10 + i / 100, true)).toBe(false);
-		expect(budget.accept(10.13, false)).toBe(true);
-		expect(budget.accept(10.14, false)).toBe(false);
-		expect(budget.accept(10.5, true)).toBe(true);
-		expect(budget.accept(10.26, false)).toBe(true);
+		expect(budget.accept(10, "command")).toBe(true);
+		expect(budget.accept(10, "status")).toBe(true);
+		for (let i = 1; i < 50; i++) expect(budget.accept(10 + i / 100, "status")).toBe(false);
+		expect(budget.accept(10.13, "command")).toBe(true);
+		expect(budget.accept(10.14, "command")).toBe(false);
+		expect(budget.accept(10.5, "status")).toBe(true);
+		expect(budget.accept(10.26, "command")).toBe(true);
+	});
+	it("gives slot deletion its own cooldown while other commands keep the short one", () => {
+		const budget = new CampaignRequestBudget();
+		expect(budget.accept(10, "delete")).toBe(true);
+		// A delete is also a command, so it spends the command budget.
+		expect(budget.accept(10.05, "command")).toBe(false);
+		expect(budget.accept(10.2, "command")).toBe(true);
+		expect(budget.accept(10.4, "delete")).toBe(false);
+		// A refused delete neither spends nor extends either budget.
+		expect(budget.accept(10.41, "command")).toBe(true);
+		expect(budget.accept(10 + CAMPAIGN_DELETE_COOLDOWN, "delete")).toBe(true);
+		expect(budget.accept(10 + CAMPAIGN_DELETE_COOLDOWN + 1, "delete")).toBe(false);
 	});
 });

@@ -137,6 +137,7 @@ const MODULES: string[] = [
 	"tests/CampaignShutdown.spec",
 	"tests/CampaignSchema.spec",
 	"tests/DeletionStatus.spec",
+	"tests/CampaignWriteSpacing.spec",
 	"tests/RelayCampaign.spec",
 	"tests/BlueprintProgress.spec",
 	"shared/LaunchLoading",
