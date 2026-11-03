@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { EncounterRole, MissionScoringPolicy } from "../shared/MissionPolicy";
-import { TargetScore } from "../shared/TargetScore";
+import { MAX_TARGET_SCORE_ROLES, readTargetScore, TargetScore } from "../shared/TargetScore";
 
 const m01: MissionScoringPolicy = {
 	points: { bomber: 100, escort: 60, ace: 240 },
@@ -9,6 +10,42 @@ const m01: MissionScoringPolicy = {
 };
 
 describe("TargetScore", () => {
+	it("accepts every authored mission role set within the persistence bounds", () => {
+		for (let mission = 0; mission <= 18; mission++) {
+			const policy = MissionCatalog.Scoring(mission);
+			const ledger = new TargetScore(policy);
+			for (const [role] of pairs(policy.points)) ledger.RecordKill(tostring(role), tostring(role));
+			expect(readTargetScore(ledger.Snapshot())).toBeDefined();
+		}
+	});
+
+	it("discards oversized role maps, including unknown zero-point roles", () => {
+		const kills: { [role: string]: number } = {},
+			points: { [role: string]: number } = {};
+		for (let i = 0; i <= MAX_TARGET_SCORE_ROLES; i++) {
+			kills[`r${i}`] = 1;
+			points[`r${i}`] = 0;
+		}
+		expect(readTargetScore({ total: 0, kills, points })).toBeUndefined();
+	});
+
+	it("bounds total breakdown size even below the role-count cap", () => {
+		const kills: { [role: string]: number } = {},
+			points: { [role: string]: number } = {};
+		for (let i = 0; i < 16; i++) {
+			const role = `long_role_name_for_size_budget_${i}`;
+			kills[role] = 1;
+			points[role] = 0;
+		}
+		expect(readTargetScore({ total: 0, kills, points })).toBeUndefined();
+	});
+
+	it("rejects oversized extra points maps without copying their contents", () => {
+		const points: { [role: string]: number } = {};
+		for (let i = 0; i <= MAX_TARGET_SCORE_ROLES; i++) points[`r${i}`] = 0;
+		expect(readTargetScore({ total: 0, kills: {}, points })).toBeUndefined();
+	});
+
 	it("counts each target id once and keeps bomber, escort and ace breakdowns", () => {
 		const ledger = new TargetScore(m01);
 		expect(ledger.RecordKill("bomber-1", "bomber")).toBe(true);

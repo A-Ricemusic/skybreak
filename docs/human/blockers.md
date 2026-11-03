@@ -1,3 +1,7 @@
+| Date | Status | Finding | Resolution / remaining acceptance |
+| --- | --- | --- | --- |
+| 2026-11-02 | Resolved (unmerged candidate) | Independent campaign persistence audit F1–F4 | Synchronous session-bound result admission; retained closing coordinators and shared 28 s deadline; fail-closed schema reads/UpdateAsync; bounded optional breakdown/cutscene data. Regression specs added. Studio Jest and Player not run; no merge/live claim. |
+
 Smoke budget blocker: the old 20 s threshold is replaced in unmerged #203 using current-main evidence. All supplied rows fit the new ceilings; a passing revised Studio suite is not claimed. Slow-mission optimization and M07 timing parity remain open. Historical blocker entries below retain their original evidence.
 
 Validation for this #203 update: prescribed-LUAU_BIN `bun run validate:offline` exited 0 (1,267 offline Luau checks, 36 planner cases, 518 compiled modules and 179 Python tests). Generated fixtures were current; no regeneration needed. Studio/Player not rerun.

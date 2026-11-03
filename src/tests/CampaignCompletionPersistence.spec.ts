@@ -6,6 +6,7 @@ import {
 	normalizeSlot,
 	serializeProfile,
 } from "../server/CampaignRepository";
+import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } from "../server/CampaignSettlement";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { TargetScore, TargetScoreSnapshot } from "../shared/TargetScore";
 import { MissionFinished } from "../shared/Types";
@@ -54,6 +55,111 @@ function roundTrip(c: CampaignCoordinator) {
 }
 
 describe("Campaign completion persistence (offline and Roblox Jest)", () => {
+	it("drops an oversized saved breakdown while retaining independent completion and best score", () => {
+		const kills: { [role: string]: number } = {},
+			points: { [role: string]: number } = {};
+		for (let i = 0; i < 100; i++) {
+			kills[`r${i}`] = 1;
+			points[`r${i}`] = 0;
+		}
+		const slot = normalizeSlot(
+			{
+				missions: {
+					"1": {
+						completed: true,
+						bestTime: 100,
+						bestScore: 0,
+						bestRank: "B",
+						bestTargetScore: { total: 0, kills, points },
+					},
+				},
+			},
+			1,
+		);
+		expect(slot.missions?.[1]?.completed).toBe(true);
+		expect(slot.missions?.[1]?.bestScore).toBe(0);
+		expect(slot.missions?.[1]?.bestTime).toBe(100);
+		expect(slot.missions?.[1]?.bestRank).toBe("B");
+		expect(slot.missions?.[1]?.bestTargetScore).toBeUndefined();
+	});
+
+	it("bounds cutscene traversal and preserves progress when the optional set is oversized", () => {
+		const noise: number[] = [];
+		for (let i = 0; i < 100; i++) noise.push(1);
+		const slot = normalizeSlot({ cutscenesSeen: noise, missions: { "1": { completed: true, bestScore: 600 } } }, 1);
+		expect(slot.cutscenesSeen).toEqual([]);
+		expect(slot.missions?.[1]?.completed).toBe(true);
+		expect(slot.missions?.[1]?.bestScore).toBe(600);
+		const chapters: number[] = [];
+		for (let id = 0; id <= 18; id++) chapters.push(id);
+		expect(normalizeSlot({ cutscenesSeen: chapters }, 1).cutscenesSeen).toEqual(chapters);
+	});
+
+	for (const cleanup of ["ReturnToMenu", "CancelLaunch", "PlayerRemoving"])
+		it(`retains an admitted win after immediate ${cleanup} before deferred saving`, () => {
+			let stored: unknown;
+			const deferred: (() => void)[] = [];
+			const c = new CampaignCoordinator(
+				"settlement",
+				{
+					load() {
+						return undefined;
+					},
+					update(_key, transform) {
+						stored = transform(stored);
+						return stored;
+					},
+				},
+				{
+					defer: (fn) => {
+						deferred.push(fn);
+					},
+					now: () => 1000,
+				},
+			);
+			c.load();
+			const identity = {};
+			let active: CampaignSortie | undefined = { identity, slot: 1, missionId: 1, difficulty: "ace" };
+			const stats = {
+				slot: 1,
+				missionId: 1,
+				kills: 6,
+				completedPhases: MissionCatalog.TotalPhases(MissionCatalog.Get(1)),
+				elapsed: 100,
+			};
+			const settlement = admitCampaignSettlement(c, active, identity, true, stats)!;
+			expect(c.getSlots()[0].missions?.[1]?.completed).toBe(true);
+			active = undefined;
+			stats.kills = 0;
+			stats.missionId = 2;
+			const connected = cleanup !== "PlayerRemoving";
+			let messages = 0;
+			// Removal's flush owns the same coordinator even though active flight state is gone.
+			deferred.shift()!();
+			expect(c.flush(0)).toBe(true);
+			finishCampaignSettlement(c, settlement, () => {
+				if (connected) messages++;
+			});
+			expect(active).toBeUndefined();
+			expect(messages).toBe(connected ? 1 : 0);
+			expect(settlement.stats.kills).toBe(6);
+			expect(settlement.stats.difficulty).toBe("ace");
+			expect(normalizeProfile(stored).slots[0].missions?.[1]?.completed).toBe(true);
+			expect(normalizeProfile(stored).slots[0].missions?.[2]).toBeUndefined();
+		});
+
+	it("refuses a result from a different combat session identity", () => {
+		const c = fresh();
+		const result = admitCampaignSettlement(
+			c,
+			{ identity: {}, slot: 1, missionId: 1, difficulty: "normal" },
+			{},
+			true,
+			{ slot: 1, missionId: 1, kills: 6, completedPhases: 1, elapsed: 100 },
+		);
+		expect(result).toBeUndefined();
+		expect(c.getSlots()[0].occupied).toBe(false);
+	});
 	for (const missing of [1, 6])
 		it(`does not substitute ground kills for ${missing} missing mission 1 air kills`, () => {
 			const c = fresh(),

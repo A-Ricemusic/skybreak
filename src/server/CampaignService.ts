@@ -1,3 +1,5 @@
+import { CampaignShutdown } from "./CampaignShutdown";
+import { admitCampaignSettlement, CampaignSortie, finishCampaignSettlement } from "./CampaignSettlement";
 import { awaitResultSettlement } from "../shared/ResultContinuation";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
@@ -11,7 +13,6 @@ import {
 	CampaignCoordinator,
 	CampaignStore,
 	canAttemptRecovery,
-	completeMission,
 	isValidSlot,
 	resolveMissionRequest,
 	StoredProfile,
@@ -37,6 +38,7 @@ interface PlayerState {
 	readonly coordinator: CampaignCoordinator;
 	loaded: boolean;
 	loadStarted: boolean;
+	activeSortie?: CampaignSortie;
 	activeSlot?: number;
 	activeMission?: number;
 	activeLaunchId?: number;
@@ -54,6 +56,7 @@ let remotes: Remotes | undefined;
 let combatService: CombatApi | undefined;
 let initialized = false;
 const states = new Map<Player, PlayerState>();
+const shutdown = new CampaignShutdown();
 
 function getProfileStore(): DataStore {
 	if (!profileStore) profileStore = DataStoreService.GetDataStore(GameConfig.Campaign.DataStoreName);
@@ -147,7 +150,7 @@ function listSlots(state: PlayerState): CampaignResponse {
 		}
 	}
 	if (state.coordinator.getPersistence() === "unavailable")
-		return refuse("Campaign saves are temporarily unavailable.");
+		return refuse(state.coordinator.getLoadError() ?? "Campaign saves are temporarily unavailable.");
 	return response(state);
 }
 
@@ -166,7 +169,10 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	if (!isValidSlot(slot)) return refuse("Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return refuse("Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable") {
-		return refuse("Your cloud save could not be loaded; mission start is blocked to protect it.");
+		return refuse(
+			state.coordinator.getLoadError() ??
+				"Your cloud save could not be loaded; mission start is blocked to protect it.",
+		);
 	}
 	if (!combatService) return refuse("Flight systems are not installed in this build.");
 	// Results can arrive before settlement releases its session. Keep this RPC pending
@@ -218,6 +224,12 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	}
 	if (started !== true) return refuse(tostring(startError ?? "The mission could not be started."));
 
+	state.activeSortie = table.freeze({
+		identity: combatService.GetSession(state.player),
+		slot,
+		missionId,
+		difficulty,
+	});
 	state.activeLaunchId = launchId;
 	state.activeSlot = slot;
 	state.activeMission = missionId;
@@ -232,7 +244,7 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 	if (!isValidSlot(slot)) return refuse("Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return refuse("Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable")
-		return refuse("Campaign saves are temporarily unavailable.");
+		return refuse(state.coordinator.getLoadError() ?? "Campaign saves are temporarily unavailable.");
 	if (state.activeSlot !== undefined || state.activeMission !== undefined)
 		return refuse("Finish the current mission before deleting a save.");
 	state.coordinator.deleteSlot(slot);
@@ -243,6 +255,7 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 }
 
 function returnToMenu(state: PlayerState): CampaignResponse {
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
 	state.activeLaunchId = undefined;
@@ -276,6 +289,7 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 		combatService?.CancelLaunch(player, launchId);
 		if (state.activeLaunchId === launchId) {
 			state.activeLaunchId = undefined;
+			state.activeSortie = undefined;
 			state.activeSlot = undefined;
 			state.activeMission = undefined;
 		}
@@ -321,41 +335,54 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	return refuse("Campaign service encountered an error.");
 }
 
-const onFinished: FinishedCallback = (player, won, stats) => {
+const onFinished: FinishedCallback = (player, won, stats, sessionIdentity) => {
 	const state = states.get(player);
-	if (!state || state.closing) return;
-	const slotIndex = state.activeSlot;
-	const missionId = state.activeMission;
-	const recorded = completeMission(state.coordinator, slotIndex, missionId, won, stats, (message) => {
-		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
-	});
-	if (!recorded) {
+	if (!state || state.closing || !state.activeSortie) return;
+	const settlement = admitCampaignSettlement(state.coordinator, state.activeSortie, sessionIdentity, won, stats);
+	if (!settlement) {
 		warn("SKYBREAK did not record a mission result that did not match the active server session");
-		// Still end the client's flight on a result screen instead of a frozen HUD. Nothing was saved or
-		// unlocked, so it must never read as a win (no rank, NEXT, or finale cinematic).
-		if (player.Parent === Players)
-			remotes!.MissionState.FireClient(player, {
-				kind: "Failed",
-				...stats,
-				reason: "not_recorded",
-				saved: false,
-				persistence: state.coordinator.getPersistence(),
-			});
-		return;
+		return () => {
+			if (!state.closing && player.Parent === Players)
+				remotes!.MissionState.FireClient(player, {
+					kind: "Failed",
+					...stats,
+					reason: "not_recorded",
+					saved: false,
+					persistence: state.coordinator.getPersistence(),
+				});
+		};
 	}
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
+	return () =>
+		finishCampaignSettlement(state.coordinator, settlement, (message) => {
+			if (!state.closing && player.Parent === Players) remotes!.MissionState.FireClient(player, message);
+		});
 };
 
-function shutdownPlayer(player: Player): void {
+/** Register before any yielding world cleanup, and stop accepting requests immediately. */
+function closePlayer(player: Player): PlayerState | undefined {
 	const state = states.get(player);
-	if (!state || state.closing) return;
+	if (!state || state.closing) return undefined;
 	state.closing = true;
+	shutdown.track(state.coordinator, () => state.loaded);
+	state.activeSortie = undefined;
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
-	if (combatService) pcall(() => combatService!.EndMission(player));
-	if (state.loaded) state.coordinator.flush();
 	states.delete(player);
+	return state;
+}
+
+function finishShutdown(state: PlayerState): void {
+	if (combatService) pcall(() => combatService!.EndMission(state.player));
+	if (!shutdown.flushPlayer(state.coordinator))
+		warn("SKYBREAK campaign close still has unresolved persistence; retained for server shutdown");
+}
+
+function shutdownPlayer(player: Player): void {
+	const state = closePlayer(player);
+	if (state) finishShutdown(state);
 }
 
 export const CampaignService = {
@@ -372,16 +399,14 @@ export const CampaignService = {
 		for (const player of Players.GetPlayers()) startLoading(getState(player));
 
 		game.BindToClose(() => {
-			let remaining = 0;
-			for (const player of Players.GetPlayers()) {
-				remaining++;
-				task.spawn(() => {
-					shutdownPlayer(player);
-					remaining--;
-				});
+			// Roblox allows 30 seconds. Share 28 seconds across ALL active and already-closing profiles.
+			const deadline = os.clock() + 28;
+			for (const [player] of states) {
+				const state = closePlayer(player);
+				if (state) task.spawn(() => finishShutdown(state));
 			}
-			const deadline = os.clock() + 25;
-			while (remaining > 0 && os.clock() < deadline) task.wait(0.1);
+			if (!shutdown.awaitDeadline(deadline))
+				warn(`SKYBREAK shutdown deadline reached with ${shutdown.pending()} unresolved campaign profiles`);
 		});
 	},
 };
@@ -412,6 +437,7 @@ export function installCampaignSmokePlayer(
 	});
 	return {
 		request: (action: string, payload?: unknown) => handleRequest(player, action, payload),
+		remove: () => shutdownPlayer(player),
 		recover: (missionId: number) => {
 			assert(
 				RunService.IsStudio() && game.Workspace.GetAttribute("SkybreakTestMode") === true,
@@ -422,6 +448,7 @@ export function installCampaignSmokePlayer(
 				"Release sortie before smoke recovery",
 			);
 			const state = states.get(player)!;
+			state.activeSortie = undefined;
 			state.activeSlot = undefined;
 			state.activeMission = undefined;
 			state.activeLaunchId = undefined;

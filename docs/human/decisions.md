@@ -824,3 +824,9 @@ Validation for this #203 update: prescribed-LUAU_BIN `bun run validate:offline` 
 Date: 2026-11-02. Decision maker: orchestrator on owner request 2026-11-02. Status: accepted.
 
 Use Prettier 3 (tabs, width 4, print width 120) and ESLint 9 flat config with typescript-eslint recommended and eslint-plugin-roblox-ts recommended for Roblox source; Bun/Node tools use a separate block. Alternatives considered: Biome and dprint. Rationale: Prettier+ESLint is the roblox-ts ecosystem standard with a roblox-ts lint plugin that detects Luau-incompatible TypeScript. eslint-config-prettier avoids conflicting formatting rules. Existing unsafe-to-autofix lint debt is explicitly downgraded in configuration; generated snapshots and tool outputs are excluded to preserve regeneration contracts. Both checks fail fast in validate:offline after the no-React-harness check. No intended runtime or Player change.
+
+## D-675 — Fail-closed campaign profile schemas
+
+Date: 2026-11-02. Decision maker: orchestrator on owner request 2026-11-02. Status: accepted.
+
+Only an absent DataStore key creates a fresh writable profile. Same-namespace v1 and v2 records migrate explicitly to v3; existing roots, slot containers and entries must be readable, and all other schema versions are refused. Apply the same check inside UpdateAsync so a newer record appearing after load cannot be downgraded. Preserve local earned progress, disable cloud writes, and return a clear client-facing protection message until a readable profile can be loaded. Alternative: normalize unsupported or malformed records to blank v3 and save them; rejected because it destroys existing or newer-deployment progress. This policy changes save durability and failure reporting only, with no gameplay/balance or mission-status change. Candidate implementation is unmerged; Studio/Player verification is not claimed.

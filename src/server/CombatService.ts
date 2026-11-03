@@ -319,6 +319,7 @@ function missionStats(session: CombatSession, won: boolean): MissionStats {
 function settlementHooks(session: CombatSession, won: boolean): SettlementHooks {
 	const callback = onFinished;
 	let stats: MissionStats | undefined;
+	let finishSave: (() => void) | void;
 	return {
 		announce: () => {
 			const crashed = session.crashReason !== undefined && session.crashReason !== "internal_error";
@@ -343,12 +344,13 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 		},
 		schedule: (complete) => {
 			stats = missionStats(session, won);
-			// The player may leave (session cleaned) in the same frame; the result is still theirs to keep.
+			// Admission records progress synchronously, bound to this exact combat session.
+			assert(callback, "No completion callback");
+			finishSave = callback(session.player, won, stats, session);
 			task.defer(complete);
 		},
 		save: () => {
-			assert(callback && stats, "No completion callback or result");
-			callback(session.player, won, stats);
+			if (finishSave) finishSave();
 		},
 		unsaved: () => {
 			if (session.cleaned || session.player.Parent !== Players) return;
