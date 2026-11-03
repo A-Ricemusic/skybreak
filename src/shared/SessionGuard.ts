@@ -1,5 +1,6 @@
 // Pure helpers for the server's per-session simulation loop: error isolation with a
 // re-entrancy guard, and the pause budget. No instances, no clock reads.
+import { isFiniteNumber } from "./Finite";
 
 export interface StepGuardState {
 	/** A step is executing (possibly suspended in a yield); a second entry is refused. */
@@ -39,13 +40,10 @@ export interface PauseState {
 }
 /** A sortie may be paused for this long in total; past it the clock runs again. */
 const PAUSE_BUDGET = 300;
-function finite(value: number): boolean {
-	return value === value && math.abs(value) !== math.huge;
-}
 export const PauseRules = {
 	Budget: PAUSE_BUDGET,
 	Remaining(state: PauseState, now: number): number {
-		const elapsed = state.pausedAt !== undefined && finite(now) ? math.max(0, now - state.pausedAt) : 0;
+		const elapsed = state.pausedAt !== undefined && isFiniteNumber(now) ? math.max(0, now - state.pausedAt) : 0;
 		return math.clamp(PAUSE_BUDGET - state.used - elapsed, 0, PAUSE_BUDGET);
 	},
 	New(): PauseState {
@@ -56,7 +54,7 @@ export const PauseRules = {
 	},
 	/** Start a pause; refused when already paused or the budget is spent. */
 	Pause(state: PauseState, now: number): boolean {
-		if (!finite(now) || state.pausedAt !== undefined || state.used >= PAUSE_BUDGET) return false;
+		if (!isFiniteNumber(now) || state.pausedAt !== undefined || state.used >= PAUSE_BUDGET) return false;
 		state.pausedAt = now;
 		return true;
 	},
@@ -65,7 +63,7 @@ export const PauseRules = {
 	 * capped at what is left of the budget (time beyond the cap counts against the clock).
 	 */
 	Resume(state: PauseState, now: number): number {
-		if (state.pausedAt === undefined || !finite(now)) return 0;
+		if (state.pausedAt === undefined || !isFiniteNumber(now)) return 0;
 		const span = math.clamp(now - state.pausedAt, 0, PAUSE_BUDGET - state.used);
 		state.used += span;
 		state.pausedAt = undefined;

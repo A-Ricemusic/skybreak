@@ -1,3 +1,4 @@
+import { finiteOr } from "./Finite";
 import type { LaunchPhase } from "./LaunchLoading";
 import type { InputMode, Rectangle } from "./UILayout";
 
@@ -41,10 +42,6 @@ export interface LoadingStage {
 	queued: boolean;
 }
 
-function finite(value: number, fallback: number): number {
-	return value === value && value !== math.huge && value !== -math.huge ? value : fallback;
-}
-
 /** Maps what the client knows (launch phase, server build attribute, preload fraction) to a segment and words. */
 export function loadingStage(input: LoadingInput): LoadingStage {
 	if (input.phase === "queued")
@@ -58,7 +55,7 @@ export function loadingStage(input: LoadingInput): LoadingStage {
 			queued: true,
 		};
 	if (input.phase === "preloading") {
-		const preload = math.clamp(finite(input.preload, 0), 0, 1);
+		const preload = math.clamp(finiteOr(input.preload, 0), 0, 1);
 		if (preload >= 1)
 			return {
 				key: "ready",
@@ -133,7 +130,7 @@ export function stageTarget(stage: LoadingStage, elapsed: number): number {
 	let within: number;
 	if (stage.measured !== undefined) within = math.clamp(stage.measured, 0, 1) * 0.98;
 	else {
-		const t = math.max(0, finite(elapsed, 0));
+		const t = math.max(0, finiteOr(elapsed, 0));
 		within = stage.base + (stage.cap - stage.base) * (1 - math.exp(-t / math.max(0.1, stage.tau)));
 	}
 	return math.clamp((stage.segment + math.clamp(within, 0, 1)) / LOADING_SEGMENT_COUNT, 0, 1);
@@ -175,7 +172,7 @@ export class LoadingProgress {
 
 /** "0:07", "1:23", "12:05": mission-clock style elapsed time. */
 export function formatElapsed(seconds: number): string {
-	const whole = math.max(0, math.floor(finite(seconds, 0)));
+	const whole = math.max(0, math.floor(finiteOr(seconds, 0)));
 	return string.format("%d:%02d", math.floor(whole / 60), whole % 60);
 }
 
@@ -232,7 +229,7 @@ export function loadingTips(mode: InputMode, options: LoadingTipOptions): string
 /** The tip shown `elapsed` seconds into the load, rotating every `period` seconds. */
 export function tipIndex(count: number, elapsed: number, period = 7): number {
 	if (count <= 0) return 0;
-	return math.floor(math.max(0, finite(elapsed, 0)) / period) % count;
+	return math.floor(math.max(0, finiteOr(elapsed, 0)) / period) % count;
 }
 
 export type LoadingMode = "wide" | "tall" | "compact";

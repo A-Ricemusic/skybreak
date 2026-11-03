@@ -1,5 +1,6 @@
 // Pure weapon rules shared by the server (authoritative) and the HUD (presentation).
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
+import { isFiniteNumber } from "./Finite";
 /** Pause and Resume freeze the sortie on the server (single-player): no stepping, and the clock is shifted. */
 /** GunStart/GunStop hold and release the opt-in player gun (SortieArmament); a sortie without a gun ignores them. */
 export type CombatActionKind =
@@ -67,9 +68,6 @@ export interface FireButtonState {
 	enabled: boolean;
 	/** Lock still building: the label is shown dimmed. */
 	dimmed: boolean;
-}
-function finite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value !== math.huge && value !== -math.huge;
 }
 /** Shortest distance from `point` to the segment `from` -> `to`. */
 function segmentDistance(point: Point, from: Point, to: Point): number {
@@ -166,7 +164,7 @@ export const WeaponRules = {
 	 * same tap) never costs the next legitimate event.
 	 */
 	AcceptAction(gate: ActionGateState, kind: CombatActionKind, now: number): boolean {
-		if (!finite(now)) return false;
+		if (!isFiniteNumber(now)) return false;
 		const last = gate.last.get(kind);
 		if (last !== undefined && now - last < ACTION_WINDOW) return false;
 		gate.last.set(kind, now);
@@ -174,18 +172,19 @@ export const WeaponRules = {
 	},
 	/** Why a player FIRE is refused, or whether it is guided (full lock in the envelope) or blind. */
 	Launch(input: LaunchInput): LaunchDecision {
-		if (!finite(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
-		if (finite(input.missileCooldown) && input.missileCooldown > 0) return { kind: "denied", reason: "cooldown" };
+		if (!isFiniteNumber(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
+		if (isFiniteNumber(input.missileCooldown) && input.missileCooldown > 0)
+			return { kind: "denied", reason: "cooldown" };
 		const locked =
 			input.hasTarget &&
 			input.canDamage !== false &&
-			finite(input.lockProgress) &&
+			isFiniteNumber(input.lockProgress) &&
 			input.lockProgress >= LOCKED_AT;
-		const base = finite(input.lockRange) && input.lockRange > 0 ? input.lockRange : LOCK_RANGE;
+		const base = isFiniteNumber(input.lockRange) && input.lockRange > 0 ? input.lockRange : LOCK_RANGE;
 		const range = WeaponRules.EnvelopeRange(base, input.groundTarget === true);
 		const inEnvelope =
-			finite(input.distance) &&
-			finite(input.dot) &&
+			isFiniteNumber(input.distance) &&
+			isFiniteNumber(input.dot) &&
 			input.distance <= range &&
 			input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
 		return locked && inEnvelope ? { kind: "guided" } : { kind: "blind" };
@@ -220,10 +219,11 @@ export const WeaponRules = {
 	/** FIRE button label and state from HUD telemetry. */
 	FireButton(missiles: number, missileCooldown: number, hasTarget: boolean, lockProgress: number): FireButtonState {
 		// Always enabled: the server answers every press, so a refusal is explained instead of swallowed.
-		if (!finite(missiles) || missiles <= 0) return { text: "EMPTY", filled: false, enabled: true, dimmed: true };
-		if (finite(missileCooldown) && missileCooldown > 0)
+		if (!isFiniteNumber(missiles) || missiles <= 0)
+			return { text: "EMPTY", filled: false, enabled: true, dimmed: true };
+		if (isFiniteNumber(missileCooldown) && missileCooldown > 0)
 			return { text: string.format("%.1f", missileCooldown), filled: false, enabled: true, dimmed: true };
-		const lock = hasTarget && finite(lockProgress) ? math.clamp(lockProgress, 0, 1) : 0;
+		const lock = hasTarget && isFiniteNumber(lockProgress) ? math.clamp(lockProgress, 0, 1) : 0;
 		if (lock >= LOCKED_AT) return { text: "FIRE", filled: true, enabled: true, dimmed: false };
 		if (lock > 0.01)
 			return {

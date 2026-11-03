@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 import type { GuidedBomb } from "./RingSweepRules";
 import { AreaAttack, validateAreaAttack } from "./ArtilleryRules";
 // Engine batch D1: the player gun and opt-in finite sortie ammunition.
@@ -173,10 +174,6 @@ export interface GunCandidate {
 	allowed: boolean;
 }
 
-function finite(value: unknown): value is number {
-	return typeIs(value, "number") && value === value && value !== math.huge && value !== -math.huge;
-}
-
 export const GunRules = {
 	Rate: GUN_RATE,
 	Interval: 1 / GUN_RATE,
@@ -203,7 +200,7 @@ export const GunRules = {
 	},
 	/** Trigger pressed: the next round fires once the shot cooldown allows. Refused (and not held) when the magazine is empty. */
 	Start(state: GunState): "gun_empty" | undefined {
-		if (!finite(state.rounds) || state.rounds <= 0) {
+		if (!isFiniteNumber(state.rounds) || state.rounds <= 0) {
 			state.held = false;
 			return "gun_empty";
 		}
@@ -219,7 +216,7 @@ export const GunRules = {
 	 * expires while held. Released, the cooldown only runs down to zero (no banked credit).
 	 */
 	Step(state: GunState, dt: number): number {
-		if (!finite(dt) || dt <= 0) return 0;
+		if (!isFiniteNumber(dt) || dt <= 0) return 0;
 		if (state.rounds <= 0) state.held = false;
 		if (!state.held) {
 			state.cooldown = math.max(0, state.cooldown - dt);
@@ -273,7 +270,7 @@ export const GunRules = {
 		range: number = GUN_RANGE,
 	): number | undefined {
 		const length = math.sqrt(forward.x * forward.x + forward.y * forward.y + forward.z * forward.z);
-		if (!finite(length) || length <= 0) return undefined;
+		if (!isFiniteNumber(length) || length <= 0) return undefined;
 		const fx = forward.x / length,
 			fy = forward.y / length,
 			fz = forward.z / length;
@@ -283,7 +280,7 @@ export const GunRules = {
 			const candidate = candidates[index];
 			if (!candidate.allowed) continue;
 			const p = candidate.position;
-			if (!finite(p.x) || !finite(p.y) || !finite(p.z)) continue;
+			if (!isFiniteNumber(p.x) || !isFiniteNumber(p.y) || !isFiniteNumber(p.z)) continue;
 			const dx = p.x - origin.x,
 				dy = p.y - origin.y,
 				dz = p.z - origin.z;

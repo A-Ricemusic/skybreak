@@ -1,3 +1,4 @@
+import { finiteOr } from "./Finite";
 import { EvadeRules } from "./EvadeRules";
 
 // Pure state of the EVADE control (touch button, hint and local roll prediction).
@@ -37,14 +38,10 @@ export interface EvadeGauge {
 	label: string;
 }
 
-function finite(value: unknown, fallback: number): number {
-	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
-}
-
 export function evadeGauge(telemetry: EvadeTelemetry): EvadeGauge {
-	const cooldown = math.max(0, finite(telemetry.evadeCooldown, 0));
+	const cooldown = math.max(0, finiteOr(telemetry.evadeCooldown, 0));
 	const reported = telemetry.evadeCharges;
-	const charged = typeIs(reported, "number") && finite(reported, -1) >= 0;
+	const charged = typeIs(reported, "number") && finiteOr(reported, -1) >= 0;
 	const maxCharges = charged ? EVADE_MAX_CHARGES : 1;
 	const charges = charged ? math.clamp(math.floor(reported as number), 0, EVADE_MAX_CHARGES) : cooldown <= 0 ? 1 : 0;
 	const period = charged ? EVADE_RECHARGE_SECONDS : EVADE_LEGACY_COOLDOWN;

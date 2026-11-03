@@ -1,6 +1,7 @@
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 import { WorldAirspace } from "./WorldAirspace";
 import { FlightInput } from "./Types";
+import { isFiniteNumber } from "./Finite";
 
 /**
  * One aircraft's flight state. The orientation is the quaternion (qw, qx, qy, qz)
@@ -136,7 +137,7 @@ export const FlightMath = {
 	AssistPitch: 0.5,
 	AssistRoll: 1.2,
 	IsFinite(value: unknown): value is number {
-		return typeIs(value, "number") && value === value && value > -math.huge && value < math.huge;
+		return isFiniteNumber(value);
 	},
 	ClampInput(value: unknown, fallback = 0): number {
 		return FlightMath.IsFinite(value) ? math.clamp(value, -1, 1) : fallback;

@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "./Finite";
 import { duelTargetId, newVent, stepVent, VentState } from "./FinaleDuelRules";
 import { thresholdResult } from "./RearmRules";
 import {
@@ -75,9 +76,6 @@ export interface BlueprintObjective {
 	objectiveTotal: number;
 	tutorialStep: "move" | "target" | "missile" | "";
 	beat?: string;
-}
-function finite(n: number): boolean {
-	return n === n && math.abs(n) < math.huge;
 }
 function distance(a: FlightPoint, b: FlightPoint): number {
 	return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2);
@@ -202,7 +200,7 @@ export const BlueprintRunner = {
 	ProtectDrain: PROTECT_DRAIN,
 	GunWeight: GUN_WEIGHT,
 	NewState(blueprint: MissionBlueprint, startedAt: number, extraRaiders = 0): BlueprintState {
-		assert(finite(startedAt) && blueprint.phases.size() > 0, "Invalid blueprint/clock");
+		assert(isFiniteNumber(startedAt) && blueprint.phases.size() > 0, "Invalid blueprint/clock");
 		const phases: MissionPhaseBlueprint[] = [];
 		for (const phase of blueprint.phases) phases.push(phase);
 		const state: BlueprintState = {
@@ -227,7 +225,7 @@ export const BlueprintRunner = {
 			optionalGroundKills: 0,
 			phaseOptionalKills: 0,
 			aceKilled: false,
-			extraRaiders: math.max(0, math.floor(finite(extraRaiders) ? extraRaiders : 0)),
+			extraRaiders: math.max(0, math.floor(isFiniteNumber(extraRaiders) ? extraRaiders : 0)),
 			phaseClock: 0,
 			hazardFired: false,
 			hazardAlive: 0,
@@ -247,11 +245,17 @@ export const BlueprintRunner = {
 		}
 	},
 	Tick(s: BlueprintState, now: number, health = 100): void {
-		if (s.outcome !== undefined || s.rearmActive || s.cutInActive || s.landingElapsed !== undefined || !finite(now))
+		if (
+			s.outcome !== undefined ||
+			s.rearmActive ||
+			s.cutInActive ||
+			s.landingElapsed !== undefined ||
+			!isFiniteNumber(now)
+		)
 			return;
 		s.elapsed = math.max(s.elapsed, now - s.startedAt, 0);
 		const threshold = BlueprintRunner.ActivePhase(s)?.scoreThreshold;
-		if (threshold && finite(health) && health <= 0) {
+		if (threshold && isFiniteNumber(health) && health <= 0) {
 			finish(s, "failed", "destroyed");
 			return;
 		}
@@ -271,7 +275,7 @@ export const BlueprintRunner = {
 		}
 		const hold = BlueprintRunner.ActivePhase(s)?.interceptHold;
 		if (hold) {
-			if (finite(health) && health <= 0) {
+			if (isFiniteNumber(health) && health <= 0) {
 				finish(s, "failed", "destroyed");
 				return;
 			}
@@ -287,13 +291,20 @@ export const BlueprintRunner = {
 		}
 		if (s.elapsed >= (s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint)))
 			finish(s, "failed", "timeout");
-		else if (finite(health) && health <= 0) finish(s, "failed", "destroyed");
+		else if (isFiniteNumber(health) && health <= 0) finish(s, "failed", "destroyed");
 		advanceTeaching(s);
 	},
 	ObserveControls(s: BlueprintState, x: number, y: number, dt: number, now: number): void {
 		BlueprintRunner.Tick(s, now);
 		const p = BlueprintRunner.ActivePhase(s);
-		if (s.outcome !== undefined || p?.kind !== "tutorial_move" || !finite(x) || !finite(y) || !finite(dt)) return;
+		if (
+			s.outcome !== undefined ||
+			p?.kind !== "tutorial_move" ||
+			!isFiniteNumber(x) ||
+			!isFiniteNumber(y) ||
+			!isFiniteNumber(dt)
+		)
+			return;
 		const observed = math.clamp(dt, 0, 0.1),
 			duration = p.execution?.movementDuration ?? 3;
 		if (math.abs(x) >= 0.2) s.turnObserved = math.min(duration, s.turnObserved + observed);
@@ -328,7 +339,7 @@ export const BlueprintRunner = {
 	},
 	AdvanceLanding(s: BlueprintState, dt: number, skip = false): void {
 		const plan = BlueprintRunner.ActivePhase(s)?.landing;
-		if (!plan || s.outcome !== undefined || !finite(dt) || dt < 0) return;
+		if (!plan || s.outcome !== undefined || !isFiniteNumber(dt) || dt < 0) return;
 		s.landingElapsed = math.min(landingDuration(plan), (s.landingElapsed ?? 0) + dt);
 		// A skip lands on the runway hold when the plan has one (MISSION ACCOMPLISHED), else it ends at once.
 		if (skip && canSkipLanding(s.landingElapsed)) s.landingElapsed = landingSkipTarget(plan, s.landingElapsed);
@@ -421,8 +432,8 @@ export const BlueprintRunner = {
 		drainScale = 1,
 	): void {
 		BlueprintRunner.Tick(s, now);
-		if (s.outcome !== undefined || !finite(dt) || dt <= 0 || dt > 0.1) return;
-		for (const n of [from.x, from.y, from.z, to.x, to.y, to.z, threats, drainScale]) if (!finite(n)) return;
+		if (s.outcome !== undefined || !isFiniteNumber(dt) || dt <= 0 || dt > 0.1) return;
+		for (const n of [from.x, from.y, from.z, to.x, to.y, to.z, threats, drainScale]) if (!isFiniteNumber(n)) return;
 		const p = BlueprintRunner.ActivePhase(s)!;
 		if (p.finale?.vent && s.vent) {
 			stepVent(s.vent, p.finale.vent, s.killedIds, from, to, dt);

@@ -1,5 +1,6 @@
 // Pure targeting order: nose-first automatic acquisition and the closest-on-screen TGT press.
 // Plain records only: no Roblox Instances or vectors, so the offline runner and Jest can check it.
+import { isFiniteNumber } from "./Finite";
 
 /** A plain world point or unit axis (CombatService adapts Vector3). */
 export interface Point {
@@ -66,11 +67,8 @@ const ASPECT_MIN = 0.3,
 /** A contact closer than this along the look axis is not "on screen": it is at or behind the camera. */
 const NEAR_STUDS = 1;
 
-function finite(value: number): boolean {
-	return value === value && value !== math.huge && value !== -math.huge;
-}
 function finitePoint(point: Point): boolean {
-	return finite(point.x) && finite(point.y) && finite(point.z);
+	return isFiniteNumber(point.x) && isFiniteNumber(point.y) && isFiniteNumber(point.z);
 }
 function distanceBetween(a: Point, b: Point): number {
 	const dx = a.x - b.x,
@@ -92,13 +90,13 @@ function pressTier(candidate: TargetCandidate): number {
 }
 /** Distance for the press order: a required contact counts RequiredTieStuds nearer; a non-finite distance sorts last. */
 function pressDistance(candidate: TargetCandidate): number {
-	const distance = finite(candidate.distance) && candidate.distance >= 0 ? candidate.distance : math.huge;
+	const distance = isFiniteNumber(candidate.distance) && candidate.distance >= 0 ? candidate.distance : math.huge;
 	return distance === math.huge ? distance : distance - (candidate.required === true ? REQUIRED_TIE_STUDS : 0);
 }
 
 /** 0: ahead, in range, clear. 1: ahead and in range but blocked or held. 2: ahead but out of range. 3: behind the jet. */
 function tier(candidate: TargetCandidate): number {
-	const dot = finite(candidate.dot) ? candidate.dot : -1;
+	const dot = isFiniteNumber(candidate.dot) ? candidate.dot : -1;
 	if (dot < 0) return 3;
 	if (candidate.inRange === false) return 2;
 	return candidate.blocked === true || candidate.held === true ? 1 : 0;
@@ -106,8 +104,8 @@ function tier(candidate: TargetCandidate): number {
 
 /** Higher is better within a tier: nose alignment, a bounded required bonus, a bounded nearness bias. */
 function score(candidate: TargetCandidate): number {
-	const dot = finite(candidate.dot) ? math.clamp(candidate.dot, -1, 1) : -1;
-	const distance = finite(candidate.distance) && candidate.distance >= 0 ? candidate.distance : math.huge;
+	const dot = isFiniteNumber(candidate.dot) ? math.clamp(candidate.dot, -1, 1) : -1;
+	const distance = isFiniteNumber(candidate.distance) && candidate.distance >= 0 ? candidate.distance : math.huge;
 	const bias = distance === math.huge ? DISTANCE_BIAS : (DISTANCE_BIAS * distance) / (distance + DISTANCE_SCALE);
 	return dot + (candidate.required === true ? REQUIRED_BONUS : 0) - bias;
 }
@@ -168,9 +166,12 @@ export const TargetPriority = {
 		if (lookAxis === undefined || rightAxis === undefined || upAxis === undefined) return undefined;
 		if (jet !== undefined && (!finitePoint(jet) || distanceBetween(position, jet) > MAX_CAMERA_OFFSET))
 			return undefined;
-		const fovDegrees = typeIs(fov, "number") && finite(fov) ? math.clamp(fov, FOV_MIN, FOV_MAX) : DEFAULT_FOV;
+		const fovDegrees =
+			typeIs(fov, "number") && isFiniteNumber(fov) ? math.clamp(fov, FOV_MIN, FOV_MAX) : DEFAULT_FOV;
 		const ratio =
-			typeIs(aspect, "number") && finite(aspect) ? math.clamp(aspect, ASPECT_MIN, ASPECT_MAX) : DEFAULT_ASPECT;
+			typeIs(aspect, "number") && isFiniteNumber(aspect)
+				? math.clamp(aspect, ASPECT_MIN, ASPECT_MAX)
+				: DEFAULT_ASPECT;
 		return {
 			position: { ...position },
 			look: lookAxis,

@@ -17,6 +17,9 @@ const dest = resolve(root, "build/offline-relay");
 
 const MODULES: string[] = [
 	"tests/TestPacing",
+	// Shared finite-number guard; nearly every rules module below imports it.
+	"shared/Finite",
+	"tests/Finite.spec",
 	// Frozen captures of the retired 27-mission campaign; several live specs still use them as fixtures.
 	"tests/legacy/LegacyStory",
 	"tests/LegacyCampaign.spec",
