@@ -14,11 +14,16 @@ import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 import { polyDist } from "./Polyline";
 export { polyDist };
 
-// Pure world plans for missions 3-27: every terrain voxel operation, primitive
-// part, uploaded-model placement and ground-target site of a mission world, as
-// plain numbers. The server (RelayWorld) executes a plan; the specs audit the
-// same plan offline (no Studio): flight points clear of terrain, targets on
-// ground, escort boats on water, nothing floating, and the mobile budget.
+// Pure procedural world plans (ids 3-27): every terrain voxel operation,
+// primitive part, uploaded-model placement and ground-target site of a world,
+// as plain numbers. The procedural builder (WorldPlanner.Build) is retained for
+// the legacy fixture specs only (src/tests/WorldPlan.spec.ts, TerrainSchedule.spec.ts);
+// live mission worlds are dispatched by server/MissionWorld.ts to the per-mission
+// MNNWorld builders. Production still imports the geometry helpers and types
+// exported here (bumpProfile via server/TerrainWriter, terrainTop and polyDist via
+// M01WorldPlan, frigateBerth via LegacyWorlds, plus TerrainOp/PartSpec/PropSpec).
+// The specs audit a plan offline (no Studio): flight points clear of terrain,
+// targets on ground, escort boats on water, nothing floating, and the mobile budget.
 //
 // Conventions: studs, Y up. Terrain ops are written in list order and overwrite
 // what is there (as Roblox Fill* does), except `bump`, which only adds. Yaw is a
@@ -2526,7 +2531,7 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 }
 
 export const WorldPlanner = {
-	/** The deterministic plan for missions 3-27 (cached). */
+	/** The deterministic procedural plan for ids 3-27 (cached); legacy fixture specs only, no live mission uses it. */
 	Build(id: number, blueprint?: MissionBlueprint): WorldPlan {
 		assert(id >= 3 && id <= 27, `No world plan for mission ${id}`);
 		if (blueprint !== undefined) return build(id, blueprint);

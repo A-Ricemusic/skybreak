@@ -1,8 +1,10 @@
 import { frigateBerth, type TerrainOp } from "./WorldPlan";
 
-// The numbers of the hand-composed mission 1 and 2 seas (server/MissionWorld,
-// server/Scenery) as plain data, so the offline specs can check hulls against
-// the same seabed the server writes. Missions 3-27 use WorldPlan's sea instead.
+// Sea numbers of the legacy hand-composed world (Practice, via server/Scenery)
+// as plain data, so the offline specs can check hulls against the same seabed
+// the server writes. Live missions 1-18 are built by their own MNNWorld
+// builders (dispatched from server/MissionWorld.ts) and do not use these; the
+// Iron Coast block below is exercised only by src/tests/LegacyWorlds.spec.ts.
 
 const OCEAN_Y = -18;
 /** Sea surface of the M1/M2 worlds. */

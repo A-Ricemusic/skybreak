@@ -15,7 +15,6 @@ if (!(await Bun.file(resolve(dir, "WorldPlan.luau")).exists()))
 const executable = requireLuauBin();
 const problems = process.argv.includes("--problems");
 const generator = String.raw`
-local W=require("./WorldPlan")
 local A=require("./WorldAudit")
 local C=require("./MissionCatalog").MissionCatalog
 local rows={}
