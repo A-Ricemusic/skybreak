@@ -1,0 +1,26 @@
+[
+  {
+    "name": "TerrainWriteState",
+    "source": "/Users/pelicannurse/.t3/worktrees/test app/t3-1f891385/out/tests/TerrainWriteState.spec.luau",
+    "sha256": "a61dd0b53c624a2bc7ddead32ad433595816b5e68945292cfa364988fc14a783",
+    "embeddedOnceUnchanged": true
+  },
+  {
+    "name": "WorldLifecycle",
+    "source": "/Users/pelicannurse/.t3/worktrees/test app/t3-1f891385/out/tests/WorldLifecycle.spec.luau",
+    "sha256": "012c6621c867066898591e03b5472ac5fa778b8761db88d2806df208da5c63e7",
+    "embeddedOnceUnchanged": true
+  },
+  {
+    "name": "TerrainSchedule",
+    "source": "/Users/pelicannurse/.t3/worktrees/test app/t3-1f891385/out/tests/TerrainSchedule.spec.luau",
+    "sha256": "5100a31302cf0b29c15bc86b21888fb17823ba13464aa2a6ae47e4a4248ed113",
+    "embeddedOnceUnchanged": true
+  },
+  {
+    "name": "TerrainEngineAcceptance",
+    "source": "/tmp/skybreak-audit-runtime/wave2/engine274-r3/TerrainEngineAcceptance.spec.luau",
+    "sha256": "f18d9106b8c5ed437b73600a5f9ad3f1c89899e2e06710b55bf87da71c6fc04e",
+    "embeddedOnceUnchanged": true
+  }
+]

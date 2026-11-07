@@ -16,7 +16,7 @@ export const M08World = {
 			0.25,
 		),
 	Clear: (cancelled: () => boolean) => {
-		if (!cancelled()) clearTerrainIfDirty();
+		clearTerrainIfDirty(cancelled);
 	},
 };
 registerWorldClear(M08_WORLD_KEY, M08World.Clear);

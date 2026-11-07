@@ -1,0 +1,8 @@
+{
+  "originalCompiledSource": "/Users/pelicannurse/.t3/worktrees/test app/t3-1f891385/out/tests/CampaignSmoke.spec.luau",
+  "sha256": "1ac527a2d32aa30f53acc3ac2bdecfb454db2dd3e1e81650ecd596e8d57bf303",
+  "embeddedExactlyOnceUnchanged": true,
+  "sourceTypescriptSha256": "0e560664f63264fda1eb14bf7a8fd6c76ebbb106d649eb97f016ac463653666f",
+  "BoundedWorldWorkSourceSha256": "05c18072690cc08d813ed7d32ea0bb3d534e951ddb6a9424087d474b4d6b2bd3",
+  "scope": "All four original CampaignSmoke tests including full Practice0 throughM18 synthetic settlement/Next flow; no source assertions/timeouts changed. Existing helper starts deadline after initial task.spawn; separate selected actual-state QA has strict wall assertions, this follow-up retains original source."
+}
