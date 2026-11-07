@@ -1,6 +1,6 @@
 // Pure state for the mission loading handshake. The server holds a freshly
 // built mission in this gate until the client reports that the aircraft and
-// world have replicated, or until the timeout elapses. Play (clock, stepping,
+// world have replicated, and never treats a deadline as readiness. Play (clock, stepping,
 // spawning) begins only when the gate is released.
 import { isFiniteNumber } from "./Finite";
 export interface LoadingGateState {
@@ -9,7 +9,7 @@ export interface LoadingGateState {
 	ready: boolean;
 	released: boolean;
 }
-/** Seconds the server waits for a client "Ready" before starting anyway. */
+/** Maximum lifetime of an unacknowledged mission; expiry tears it down without play. */
 const DEFAULT_TIMEOUT = 8;
 export const LoadingGate = {
 	Timeout: DEFAULT_TIMEOUT,
@@ -22,16 +22,37 @@ export const LoadingGate = {
 	},
 	/** Client confirmed its content; idempotent and harmless after release. */
 	MarkReady(state: LoadingGateState): void {
-		state.ready = true;
+		if (!state.released) state.ready = true;
 	},
 	ShouldRelease(state: LoadingGateState, now: number): boolean {
-		return !state.released && (state.ready || now >= state.deadline);
+		return !state.released && state.ready && now < state.deadline;
+	},
+	Expired(state: LoadingGateState, now: number): boolean {
+		return !state.released && now >= state.deadline;
 	},
 	/** Returns true exactly once, when the gate transitions to released. */
 	Release(state: LoadingGateState, now: number): boolean {
-		if (state.released || !(state.ready || now >= state.deadline)) return false;
+		if (state.released || !(state.ready && now < state.deadline)) return false;
 		state.released = true;
 		return true;
+	},
+	/** Validate the session stamp before acknowledging; late and duplicate packets do nothing. */
+	AcceptReady(
+		state: LoadingGateState,
+		now: number,
+		currentLaunchId: number | undefined,
+		receivedLaunchId: unknown,
+	): boolean {
+		if (
+			!isFiniteNumber(currentLaunchId) ||
+			currentLaunchId < 1 ||
+			receivedLaunchId !== currentLaunchId ||
+			state.released ||
+			now >= state.deadline
+		)
+			return false;
+		state.ready = true;
+		return LoadingGate.Release(state, now);
 	},
 	/** 0..1 fraction of expected parts present locally; unknown totals read as complete. */
 	Progress(localParts: number, expectedParts?: number): number {

@@ -1,3 +1,9 @@
+2026-11-07 loading candidate validation: final format, lint and roblox-ts compilation passed; focused standalone LoadingGate/LaunchLoading checks passed 14/14. MissionPreload, MissionReadiness and CampaignServiceSettlement engine regressions await parent Studio execution and independent recheck. No Player/device, upload, publication or level-status claim. Earlier pending-compiler notes below are superseded by this validation.
+
+2026-11-07 candidate follow-up (unmerged): loading expiry now clears campaign ownership through an authoritative exact-session/generation callback, independent of client cancellation or request budget. Readiness also requires identified collision scenery/initial actor roots and matching local terrain hits at launch and up to two initial-target columns; this is a sampled minimum, not whole-map or rendering proof. New ownership and critical-geometry/terrain Studio regressions await the parent runtime lease. Mission statuses remain unchanged.
+
+2026-11-07 loading-readiness candidate (unmerged): the previous six-second client deadline could report 100%/Ready with missing aircraft/root/world, and the eight-second server deadline started combat without acknowledgment. The candidate requires essential replication, bounds/cancels optional preload workers, checks the current launch stamp and root ownership, and cleans up an unresponsive session at the existing server deadline. The existing client deadline returns to briefing with a retry notice and sends only a stamped cancellation. Final compiler and Studio acceptance await the serialized runtime lease. No Player/device test, live mutation or mission-status change is claimed.
+
 2026-11-03 reconciliation against main `6fe63112` (cleanup sweep #248–#271 merged). No Player or phone test this sweep. Other open blockers are unchanged: M3 phone retest, Player/phone acceptance, naval upload key, audio upload halt.
 
 | Date | Status | Finding | Impact / assumption / needed action |

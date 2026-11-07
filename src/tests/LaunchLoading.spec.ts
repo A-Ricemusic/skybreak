@@ -60,6 +60,25 @@ describe("launch loading screen lifetime", () => {
 		expect(launch.Screen()).toBe("loading");
 		expect(launch.Pending()).toBe(true);
 	});
+	it("keeps a cancelled replication timer and its cancellation from a replacement launch", () => {
+		const launch = new LaunchLoading();
+		const server = new LaunchCancellation();
+		launch.Begin();
+		const old = launch.Generation();
+		server.Observe(old);
+		launch.Preload();
+		launch.Fail();
+		launch.Begin();
+		const replacement = launch.Generation();
+		server.Observe(replacement);
+		launch.Preload();
+		expect(launch.Current(old)).toBe(false);
+		// Even a cancellation already in transit only tombstones the old session.
+		server.Cancel(old);
+		expect(server.Cancelled(replacement)).toBe(false);
+		expect(launch.Current(replacement)).toBe(true);
+		expect(launch.Started()).toBe(true);
+	});
 	it("expires queued cleanup but leaves post-build replication to its existing watchdog", () => {
 		const launch = new LaunchLoading();
 		launch.Begin(0);

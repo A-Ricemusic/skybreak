@@ -107,6 +107,7 @@ import { targetScoreStats } from "../shared/TargetScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FinishedCallback, MissionLoading, MissionStats, Remotes } from "../shared/Types";
+import { captureTerrainProbes, markCriticalGeometry } from "../shared/MissionReadiness";
 import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";
 import { WeaponRules } from "../shared/WeaponRules";
@@ -130,6 +131,7 @@ let missionSerial = 0;
 let buildingMission = false;
 let missionRoot: Instance | undefined;
 let onFinished: FinishedCallback | undefined;
+let onLoadingExpired: ((player: Player, sessionIdentity: unknown, launchId: number | undefined) => void) | undefined;
 const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 const STATE_INTERVAL = 1 / 20;
 const TELEMETRY_INTERVAL = 0.1;
@@ -2431,7 +2433,7 @@ export const CombatService = {
 				assert(!cancelled(), "Launch request expired");
 				assert(player.Parent === Players, "Player left during mission setup");
 				// Hold in the loading gate: no clock, stepping or input until the client
-				// confirms replication (CombatAction "Ready") or the timeout elapses.
+				// confirms replication (CombatAction "Ready"); expiry cleans up without starting.
 				session.loading = LoadingGate.New(os.clock());
 				sessions.set(player, session);
 				player.ReplicationFocus = aircraft.PrimaryPart;
@@ -2441,6 +2443,15 @@ export const CombatService = {
 					session.wasAnchored = characterRoot.Anchored;
 					characterRoot.Anchored = true;
 				}
+				const roots: BasePart[] = [aircraft.PrimaryPart!];
+				for (const enemy of session.enemies) if (enemy.model.PrimaryPart) roots.push(enemy.model.PrimaryPart);
+				for (const ally of session.allies) if (ally.model.PrimaryPart) roots.push(ally.model.PrimaryPart);
+				if (session.navigationActor?.PrimaryPart) roots.push(session.navigationActor.PrimaryPart);
+				const terrainPositions = [aircraft.PrimaryPart!.Position];
+				for (let i = 0; i < math.min(2, world.groundTargets.size()); i++) {
+					const root = world.groundTargets[i].PrimaryPart;
+					if (root) terrainPositions.push(root.Position);
+				}
 				const loading: MissionLoading = {
 					kind: "Loading",
 					launchId,
@@ -2448,6 +2459,10 @@ export const CombatService = {
 					missionId,
 					aircraft,
 					expectedParts: countParts(folder),
+					requiredGeometry: markCriticalGeometry(folder, roots),
+					terrainProbes: captureTerrainProbes(terrainPositions),
+					folderName: folder.Name,
+					aircraftName: aircraft.Name,
 				};
 				CombatRemotes.missionState!.FireClient(player, loading);
 			},
@@ -2468,12 +2483,17 @@ export const CombatService = {
 		}
 		return $tuple(true);
 	},
-	Init(remotes: Remotes | Instance, finishedCallback: FinishedCallback): void {
+	Init(
+		remotes: Remotes | Instance,
+		finishedCallback: FinishedCallback,
+		loadingExpired?: (player: Player, sessionIdentity: unknown, launchId: number | undefined) => void,
+	): void {
 		assert(typeIs(finishedCallback, "function"), "CombatService.Init requires onFinished");
 		for (const connection of connections) connection.Disconnect();
 		connections.clear();
 		for (const [, session] of sessions) cleanupSession(session, false);
 		onFinished = finishedCallback;
+		onLoadingExpired = loadingExpired;
 		CombatRemotes.missionState = remote(remotes, "MissionState");
 		CombatRemotes.flightState = remote(remotes, "FlightState");
 		CombatRemotes.telemetry = remote(remotes, "Telemetry");
@@ -2542,14 +2562,21 @@ export const CombatService = {
 					target?: unknown;
 					special?: unknown;
 					view?: unknown;
+					launchId?: unknown;
 				};
 				if (!typeIs(data.action, "string")) return;
 				const now = os.clock();
 				if (session.loading) {
 					// The client has the aircraft and world locally; release the gate now.
-					if (data.action === "Ready") {
-						LoadingGate.MarkReady(session.loading);
-						if (LoadingGate.Release(session.loading, now)) beginPlay(session);
+					if (
+						data.action === "Ready" &&
+						session.aircraft.Parent === session.folder &&
+						session.folder.Parent === missionRoot &&
+						!session.cleaned &&
+						session.aircraft.PrimaryPart?.IsDescendantOf(session.aircraft)
+					) {
+						if (LoadingGate.AcceptReady(session.loading, now, session.launchId, data.launchId))
+							beginPlay(session);
 					}
 					return;
 				}
@@ -2648,7 +2675,10 @@ export const CombatService = {
 						session.guard,
 						() => {
 							if (session.loading) {
-								if (LoadingGate.Release(session.loading, now)) beginPlay(session);
+								if (LoadingGate.Expired(session.loading, now)) {
+									onLoadingExpired?.(session.player, session, session.launchId);
+									cleanupSession(session);
+								}
 								return;
 							}
 							if (PauseRules.Paused(session.pause)) {
