@@ -20,15 +20,15 @@ Chunk touches sum the globally aligned 128-stud bounding chunks per aligned job,
 
 ## Rejected bounded containment experiment
 
-[Exact candidate patch](rejected-containment.patch), [candidate planner measurements](containment-candidate.log), and [focused experiment log](containment-candidate-tests.log). It used same-material ordered runs, at most 128 jobs per window and 64 spatial buckets per box, with intact-window fallback; no subtraction/fragments or cross-material removal. Candidate focused tests passed 50/50 plus guards 4/4, including exhaustive mixed voxel/material comparisons, containment/corner/LOD fixtures, Water and eligibility/overflow/window fallbacks, cancellation and a pure reload/retry model. Those experimental tests are not counted as final production checks.
+[Exact candidate patch](rejected-containment.patch), [candidate planner measurements](containment-candidate.txt), and [focused experiment log](containment-candidate-tests.txt). It used same-material ordered runs, at most 128 jobs per window and 64 spatial buckets per box, with intact-window fallback; no subtraction/fragments or cross-material removal. Candidate focused tests passed 50/50 plus guards 4/4, including exhaustive mixed voxel/material comparisons, containment/corner/LOD fixtures, Water and eligibility/overflow/window fallbacks, cancellation and a pure reload/retry model. Those experimental tests are not counted as final production checks.
 
 It saved **zero** jobs, summed voxel writes or chunk touches on actual M4 build/cleanup versus the Water-barrier-only execution. Therefore the algorithm, opt-ins and experimental recovery tests were removed from production source. No speculative intersecting-box rewrite was landed. Cleanup footprint registration, original page persistence, cancellation/error retention, reload/retry from the beginning and mark-clean-after-completion remain unchanged; existing official focused recovery tests pass. Actual ServerStorage reload/task cancellation remains an engine review obligation.
 
 ## Final checks and reproduction
 
 - `bun run build`: passed (roblox-ts compilation, no engine).
-- Official standalone Luau adapter: **77 passed, 0 failed**, seven suites; module-error guards **4/4**. Includes scheduler ordered mixed-material/Water equivalence and eligibility/chunk limits, dirty-state partial/cancel/failure/final-yield recovery, lifecycle, loading and mission budgets, M4/M5 planner tests. [Final log](focused-tests.log).
-- Focused frozen M4 planner: **2/2**, [before](before.log), [after](after.log).
+- Official standalone Luau adapter: **77 passed, 0 failed**, seven suites; module-error guards **4/4**. Includes scheduler ordered mixed-material/Water equivalence and eligibility/chunk limits, dirty-state partial/cancel/failure/final-yield recovery, lifecycle, loading and mission budgets, M4/M5 planner tests. [Final log](focused-tests.txt).
+- Focused frozen M4 planner: **2/2**, [before](before.txt), [after](after.txt).
 - `bun run format && bun run lint`: passed (exit 0 for both).
 - Full offline/CI and engine suites were not run under this bounded lease.
 
