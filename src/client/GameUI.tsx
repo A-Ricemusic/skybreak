@@ -762,13 +762,33 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				changeScreen("loading");
 				const serial = ++loadingSerialRef.current;
 				const alive = () =>
-					mountedRef.current && loadingSerialRef.current === serial && screenRef.current === "loading";
+					mountedRef.current &&
+					loadingSerialRef.current === serial &&
+					screenRef.current === "loading" &&
+					launchLoading.Current(loading.launchId);
 				task.spawn(() => {
 					const expected = finiteOr(loading.expectedParts, 0) > 0 ? loading.expectedParts : undefined;
-					const ready = preloadMission(loading.aircraft, expected, alive, (fraction) => {
-						if (alive()) setLoadingProgress(fraction);
-					});
-					if (ready) remotes.CombatAction.FireServer({ action: "Ready" });
+					const ready = preloadMission(
+						loading.aircraft,
+						expected,
+						alive,
+						(fraction) => {
+							if (alive()) setLoadingProgress(fraction);
+						},
+						6,
+						() => {
+							if (loading.folderName === undefined || loading.aircraftName === undefined)
+								return loading.aircraft;
+							return Workspace.FindFirstChild("SkybreakCombat")
+								?.FindFirstChild(loading.folderName)
+								?.FindFirstChild(loading.aircraftName);
+						},
+						undefined,
+						loading.requiredGeometry,
+						loading.terrainProbes,
+					);
+					if (ready && alive())
+						remotes.CombatAction.FireServer({ action: "Ready", launchId: loading.launchId });
 				});
 				task.delay(LOADING_CLIENT_TIMEOUT, () => {
 					if (!alive()) return;
@@ -776,11 +796,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					launchLoading.Fail();
 					cancelRequests();
 					changeScreen(launchLoading.Screen());
-					showToast("The aircraft never reported ready. Request another launch.", true);
-					beginRequest((requestId) => {
-						const [response] = invoke("ReturnToMenu");
-						if (!mountedRef.current || requestRef.current !== requestId) return;
-						if (response?.slots) applyResponseSlots(response);
+					showToast("Mission replication did not finish. Request another launch.", true);
+					// A delayed cancellation is scoped to this generation on the server; it cannot end a retry.
+					task.spawn(() => {
+						if (!mountedRef.current || launchLoading.Current(loading.launchId)) return;
+						invoke("CancelLaunch", { launchId: loading.launchId });
 					});
 				});
 			} else if (payload.kind === "Started") {
@@ -805,13 +825,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				telemetryRef.current = resetTelemetry;
 				setTelemetry(resetTelemetry);
 				if (!controller.Start(started)) {
+					launchLoading.Fail();
 					cancelRequests();
 					changeScreen("briefing");
 					showToast("Aircraft link failed. Request another launch.", true);
-					beginRequest((requestId) => {
-						const [response] = invoke("ReturnToMenu");
-						if (!mountedRef.current || requestRef.current !== requestId) return;
-						if (response?.slots) applyResponseSlots(response);
+					// A delayed cancellation is scoped to this generation on the server; it cannot end a retry.
+					task.spawn(() => {
+						if (!mountedRef.current || launchLoading.Current(started.launchId)) return;
+						invoke("CancelLaunch", { launchId: started.launchId });
 					});
 					return;
 				}
