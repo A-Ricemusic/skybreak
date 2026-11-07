@@ -26,7 +26,7 @@ export const M13World = {
 			0.25,
 		),
 	Clear: (cancelled: () => boolean) => {
-		if (!cancelled()) clearTerrainIfDirty();
+		clearTerrainIfDirty(cancelled);
 	},
 };
 registerWorldClear(M13_WORLD_KEY, M13World.Clear);

@@ -1,3 +1,7 @@
+2026-11-07 terrain progress contract: stored progress is **diagnostic-only**, never a resume cursor. Every retry restarts the entire retained footprint; replacing a footprint cannot skip cells through stale progress.
+
+**2026-11-07 OPEN — M12 cleanup duration:** supplied investigation on cbb4e097 reports M12 build 15,389 ms followed by a CampaignSmoke clear timeout at the original 30 s guard. The suspended worker was cancelled; restore retried sparse cleanup (subsequent log 5.274 s / 688 jobs), with no 65 s release failure demonstrated. The failure latch correctly blocked M13–M18, so those missions were not exercised in that run. No intrinsic terrain exception or definite contention/Auto-Recovery cause was demonstrated. The unmerged cancellation repair preserves recovery state and adds retained progress diagnostics; **no observed fix for M12 duration yet**. Runtime owner must perform targeted and unchanged full-suite acceptance.
+
 2026-11-03 reconciliation against main `6fe63112` (cleanup sweep #248–#271 merged). No Player or phone test this sweep. Other open blockers are unchanged: M3 phone retest, Player/phone acceptance, naval upload key, audio upload halt.
 
 | Date | Status | Finding | Impact / assumption / needed action |

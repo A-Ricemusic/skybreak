@@ -1,3 +1,5 @@
+import { runBudgeted } from "../shared/TerrainSchedule";
+import { TerrainWriteState } from "../shared/TerrainWriteState";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import {
 	awaitLaunchSlot,
@@ -273,5 +275,45 @@ describe("World lifecycle gate (one world at a time)", () => {
 			message: "This mission world is single-player",
 			restoreMenu: false,
 		});
+	});
+});
+
+describe("Terrain cleanup under the world gate", () => {
+	it("stops cancelled cleanup before retry and never writes after gate release", () => {
+		const fake = new FakeScheduler();
+		const gate = new WorldLifecycle(fake, 0.1);
+		let writes = 0;
+		const state = new TerrainWriteState(
+			(cancelled) =>
+				runBudgeted(
+					[1, 2, 3, 4, 5, 6, 7, 8],
+					() => {
+						writes++;
+					},
+					{
+						budget: 0,
+						clock: () => fake.now(),
+						pause: () => {
+							if (cancelled !== undefined) fake.wait();
+						},
+						cancelled,
+					},
+				).complete,
+		);
+		let dirtyAtRestore = false;
+		gate.Cleanup({
+			clear: (cancelled) => state.ClearIfDirty(cancelled),
+			restore: () => {
+				dirtyAtRestore = state.Dirty();
+				state.ClearIfDirty();
+			},
+		});
+		fake.run(100);
+		expect(dirtyAtRestore).toBe(true);
+		expect(state.Dirty()).toBe(false);
+		expect(gate.Idle()).toBe(true);
+		const releasedWrites = writes;
+		fake.run(100);
+		expect(writes).toBe(releasedWrites);
 	});
 });

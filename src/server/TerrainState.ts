@@ -37,7 +37,7 @@ function saveFootprint(): void {
 	folder.Parent = ServerStorage;
 }
 let canTrack = false;
-const state = new TerrainWriteState(() => {
+const state = new TerrainWriteState((cancelled) => {
 	if (footprint === undefined) {
 		// Jest isolates module state between suites, but Terrain and its empty bounds
 		// survive. A completed clear is shared evidence; never repeat native Clear
@@ -45,7 +45,8 @@ const state = new TerrainWriteState(() => {
 		if (Workspace.Terrain.GetAttribute("SKYBREAKTerrainClean") !== true) Workspace.Terrain.Clear();
 	} else {
 		const started = os.clock();
-		const timing = TerrainWriter.Write(footprint, 0.25);
+		const timing = TerrainWriter.Write(footprint, 0.25, undefined, cancelled, true);
+		if (!timing.complete) return false;
 		print(
 			`MISSION_TERRAIN_CLEANUP mode=sparse seconds=${os.clock() - started} jobs=${timing.jobs} work=${timing.total} yields=${timing.yields}`,
 		);
@@ -72,9 +73,9 @@ export function trackTerrainBounds(min: Vector3, max: Vector3): void {
 	saveFootprint();
 }
 /** Clear the owned sparse footprint, or native terrain when writes were untracked. */
-export function clearTerrainIfDirty(): void {
+export function clearTerrainIfDirty(cancelled?: () => boolean): void {
 	if (!state.Dirty() && Workspace.Terrain.GetAttribute("SKYBREAKTerrainClean") === false) state.BeginWrite();
-	state.ClearIfDirty();
+	state.ClearIfDirty(cancelled);
 }
 /** A world is about to write terrain: start from empty terrain, then mark it written. */
 export function beginTerrainWrite(): void {

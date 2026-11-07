@@ -315,7 +315,17 @@ export function terrainExecutionJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): 
 	);
 }
 
+export interface BudgetProgress {
+	completed: number;
+	jobs: number;
+	workSeconds: number;
+	yields: number;
+	stage: "prepare" | "work" | "yield" | "cancelled" | "complete" | "failed";
+}
+
 export interface BudgetRun {
+	completed: number;
+	complete: boolean;
 	yields: number;
 	longest: number;
 	longestBatch: number;
@@ -326,31 +336,56 @@ export interface BudgetOptions {
 	clock: () => number;
 	pause: () => void;
 	cancelled?: () => boolean;
+	progress?: BudgetProgress;
 }
 
 /**
  * Runs `work` over `items` in order, pausing whenever one resumption has used `budget`
- * seconds. Reports the yields, the longest single item and the total work time.
+ * seconds. Cancellation returns complete=false, never evidence of successful cleanup.
+ * The optional progress object is updated in place before work/yields; it survives
+ * an externally stopped coroutine without requiring finally to execute.
  */
 export function runBudgeted<T>(items: T[], work: (item: T) => void, options: BudgetOptions): BudgetRun {
 	let yields = 0,
 		longest = 0,
 		longestBatch = 0,
 		total = 0;
+	const progress: BudgetProgress = options.progress ?? {
+		completed: 0,
+		jobs: items.size(),
+		workSeconds: 0,
+		yields: 0,
+		stage: "work",
+	};
+	progress.completed = 0;
+	progress.jobs = items.size();
+	progress.workSeconds = 0;
+	progress.yields = 0;
+	progress.stage = "work";
 	let slice = options.clock();
 	for (const item of items) {
-		if (options.cancelled?.()) break;
+		if (options.cancelled?.()) {
+			progress.stage = "cancelled";
+			break;
+		}
+		progress.stage = "work";
 		const start = options.clock();
 		work(item);
+		progress.completed++;
 		const finish = options.clock();
 		longest = math.max(longest, finish - start);
 		total += finish - start;
+		progress.workSeconds = total;
 		longestBatch = math.max(longestBatch, finish - slice);
 		if (finish - slice >= options.budget) {
+			progress.stage = "yield";
+			progress.yields++;
 			options.pause();
 			yields += 1;
 			slice = options.clock();
 		}
 	}
-	return { yields, longest, longestBatch, total };
+	const complete = progress.completed === items.size() && !options.cancelled?.();
+	progress.stage = complete ? "complete" : "cancelled";
+	return { yields, longest, longestBatch, total, completed: progress.completed, complete };
 }
