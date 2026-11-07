@@ -3,10 +3,12 @@ import {
 	CampaignCoordinator,
 	CampaignStore,
 	DELETION_EPOCH_CONFLICTS,
+	EPOCH_SAVE_VERSION,
 	StoredProfile,
 	StoredSlot,
 	mergeProfiles,
 	normalizeProfile,
+	profileReadError,
 	serializeProfile,
 } from "../server/CampaignRepository";
 
@@ -119,7 +121,9 @@ function node(shared: Shared, label: string, options: NodeOptions = {}) {
 
 /** An older-version server's ordinary rewrite: it keeps generations and progress but drops the unknown `epoch`. */
 function oldServerRewrite(shared: Shared): void {
+	// Fault injection for pre-refusal writers: deliberately bypass coordinator read guards.
 	const profile = normalizeProfile(shared.data);
+	profile.version = 3; // The historical serializer always wrote v3, including on a rewrite.
 	for (const slot of profile.slots) slot.epoch = undefined;
 	shared.data = serializeProfile(profile);
 }
@@ -551,5 +555,184 @@ describe("deletion epoch storage compatibility", () => {
 		expect(mergeProfiles(left, newer).slots[0].epoch).toBe("newer");
 		expect(mergeProfiles(left, newer).slots[0].occupied).toBe(false);
 		expect(mergeProfiles(newer, left).slots[0].epoch).toBe("newer");
+	});
+});
+
+describe("phase-2 schema fence (staged; production flag remains off)", () => {
+	it("leaves flag-off saves at v3 and stamps v4 on the first ordinary conflict-on write", () => {
+		const shared = seeded();
+		const off = node(shared, "off");
+		off.coordinator.load();
+		off.coordinator.recordMissionStarted(2);
+		off.run();
+		expect((shared.data as StoredProfile).version).toBe(3);
+		const on = node(shared, "on", { conflicts: true });
+		on.coordinator.load();
+		on.coordinator.recordMissionStarted(2);
+		on.run();
+		expect((shared.data as StoredProfile).version).toBe(EPOCH_SAVE_VERSION);
+		expect(slot(shared).missions?.[2]?.completed).toBe(true);
+	});
+
+	it("fences the reviewer's retained flag-off double-delete before it can empty durable on-writer progress", () => {
+		const shared = seeded();
+		const off = node(shared, "off", { maxAttempts: 3 });
+		const on = node(shared, "on", { conflicts: true });
+		off.coordinator.load();
+		off.coordinator.deleteSlot(1);
+		off.coordinator.deleteSlot(1);
+		on.coordinator.load();
+		on.coordinator.deleteSlot(1);
+		on.run();
+		on.coordinator.recordMissionResult(1, 1, true, 6, 91);
+		on.run();
+		const durable = shared.data;
+		off.run();
+		expect(shared.data).toBe(durable);
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(91);
+		expect(off.updates()).toBe(1); // schema refusal is never automatically retried
+		expect(off.receipt()).toBe("failed");
+		expect(off.coordinator.hasCloudLoaded()).toBe(false);
+		expect(off.coordinator.getPersistence()).toBe("unavailable");
+		expect(off.coordinator.recover()).toBe(false);
+		expect(off.coordinator.flush(0)).toBe(false);
+		expect(shared.data).toBe(durable);
+	});
+
+	it("a flag-off transform rerun refuses a v4 fence committed after its first invocation", () => {
+		const shared = seeded();
+		const off = node(shared, "off");
+		const on = node(shared, "on", { conflicts: true });
+		off.coordinator.load();
+		on.coordinator.load();
+		off.coordinator.deleteSlot(1);
+		off.coordinator.deleteSlot(1);
+		off.changeBetweenTransforms(() => {
+			on.coordinator.deleteSlot(1);
+			on.coordinator.recordMissionResult(1, 1, true, 6, 92);
+			on.run();
+		});
+		off.run();
+		expect(off.coordinator.hasCloudLoaded()).toBe(false);
+		expect(slot(shared).epoch).toBe("on1");
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(92);
+	});
+
+	it("an off writer that commits first is respected by the on writer's stale pending deletion", () => {
+		const shared = seeded();
+		const off = node(shared, "off");
+		const on = node(shared, "on", { conflicts: true });
+		off.coordinator.load();
+		on.coordinator.load();
+		on.coordinator.deleteSlot(1);
+		off.coordinator.deleteSlot(1);
+		off.coordinator.recordMissionResult(1, 1, true, 6, 93);
+		off.run();
+		on.run();
+		expect(on.receipt()).toBe("failed");
+		expect(slot(shared).epoch).toBe("off1");
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(93);
+		expect((shared.data as StoredProfile).version).toBe(EPOCH_SAVE_VERSION);
+		// Its next unrelated write cannot downgrade the fenced profile.
+		off.coordinator.recordMissionStarted(2);
+		off.run();
+		expect(off.coordinator.hasCloudLoaded()).toBe(false);
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(93);
+	});
+
+	it("on rejoin resumes v4 progress while off rejoin is unavailable and cannot write a blank", () => {
+		const shared = seeded();
+		const on = node(shared, "on", { conflicts: true });
+		on.coordinator.load();
+		on.coordinator.deleteSlot(1);
+		on.run();
+		on.coordinator.recordMissionResult(1, 1, true, 6, 94);
+		on.run();
+		const durable = shared.data;
+		const offRejoin = node(shared, "off-rejoin");
+		expect(offRejoin.coordinator.load()).toBe(false);
+		offRejoin.coordinator.deleteSlot(1);
+		offRejoin.coordinator.recordMissionStarted(1);
+		offRejoin.run();
+		expect(offRejoin.updates()).toBe(0);
+		expect(shared.data).toBe(durable);
+		const rejoin = node(shared, "rejoin", { conflicts: true });
+		expect(rejoin.coordinator.load()).toBe(true);
+		expect(rejoin.coordinator.getSlots()[0].missions?.[1]?.bestTime).toBe(94);
+		rejoin.coordinator.recordMissionResult(1, 2, true, 6, 95);
+		rejoin.run();
+		expect(slot(shared).epoch).toBe("on1");
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(94);
+		expect(slot(shared).missions?.[2]?.bestTime).toBe(95);
+	});
+
+	it("an ambiguous first v4 write retries idempotently without weakening the fence", () => {
+		const shared = seeded();
+		const on = node(shared, "on", { conflicts: true, maxAttempts: 2 });
+		const off = node(shared, "off");
+		off.coordinator.load();
+		off.coordinator.deleteSlot(1);
+		off.coordinator.deleteSlot(1);
+		on.coordinator.load();
+		on.coordinator.deleteSlot(1);
+		on.failAmbiguously(1);
+		on.beforeRetry(() => off.run());
+		on.run();
+		expect(on.issued.size()).toBe(1);
+		expect(on.receipt()).toBe("confirmed");
+		expect(off.receipt()).toBe("failed");
+		expect(slot(shared).epoch).toBe("on1");
+		expect((shared.data as StoredProfile).version).toBe(EPOCH_SAVE_VERSION);
+	});
+
+	it("does not claim safety against a legacy writer that ignores schema refusals; drain stays mandatory", () => {
+		const shared = seeded();
+		const stale = normalizeProfile(shared.data);
+		stale.slots[0] = normalizeProfile({ version: 3, slots: { "1": { generation: 2 } } }).slots[0];
+		const on = node(shared, "on", { conflicts: true });
+		on.coordinator.load();
+		on.coordinator.deleteSlot(1);
+		on.coordinator.recordMissionResult(1, 1, true, 6, 96);
+		on.run();
+		expect(slot(shared).missions?.[1]?.bestTime).toBe(96);
+		// Deliberate model of pre-refusal code, NOT a permitted CampaignCoordinator write: generation-only
+		// replacement followed by its historical v3 serializer can still destroy this record and its fence.
+		const unsafe = mergeProfiles(shared.data, stale);
+		unsafe.version = 3;
+		shared.data = serializeProfile(unsafe);
+		expect(slot(shared).missions?.[1]).toBeUndefined();
+		expect((shared.data as StoredProfile).version).toBe(3);
+		expect(DELETION_EPOCH_CONFLICTS).toBe(false);
+	});
+
+	it("does not let conflict support bypass v4 structure validation", () => {
+		for (const data of [
+			{ version: EPOCH_SAVE_VERSION },
+			{ version: EPOCH_SAVE_VERSION, slots: "broken" },
+			{ version: EPOCH_SAVE_VERSION, slots: { "1": { missions: "broken" } } },
+		]) {
+			const shared: Shared = { data };
+			const on = node(shared, "on", { conflicts: true });
+			expect(on.coordinator.load()).toBe(false);
+			on.coordinator.recordMissionStarted(1);
+			on.run();
+			expect(on.updates()).toBe(0);
+			expect(shared.data).toBe(data);
+		}
+	});
+
+	it("preserves the schema fence through normalize, serialize and both pure merge directions", () => {
+		const shared = seeded();
+		const legacy = shared.data;
+		const on = node(shared, "on", { conflicts: true });
+		on.coordinator.load();
+		on.coordinator.recordMissionStarted(2);
+		on.run();
+		expect(profileReadError(shared.data)).toBeDefined();
+		expect(profileReadError(shared.data, true)).toBeUndefined();
+		expect(serializeProfile(normalizeProfile(shared.data)).version).toBe(EPOCH_SAVE_VERSION);
+		expect(serializeProfile(mergeProfiles(legacy, shared.data)).version).toBe(EPOCH_SAVE_VERSION);
+		expect(serializeProfile(mergeProfiles(shared.data, legacy)).version).toBe(EPOCH_SAVE_VERSION);
+		expect(profileReadError({ version: 5, slots: {} }, true)).toBeDefined();
 	});
 });
