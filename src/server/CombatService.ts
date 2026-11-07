@@ -2738,6 +2738,7 @@ export function installCampaignSmokeCombat(
 	const previous = {
 		missionRoot,
 		onFinished,
+		onLoadingExpired,
 		missionState: CombatRemotes.missionState,
 		flightState: CombatRemotes.flightState,
 		telemetry: CombatRemotes.telemetry,
@@ -2767,6 +2768,9 @@ export function installCampaignSmokeCombat(
 			enemy.health > 0 &&
 			sessionCanDamage(session, enemy.kind, enemy.required),
 		restore: () => {
+			// Init-based integration specs install real Heartbeat and remote listeners; never leak them to another suite.
+			for (const connection of connections) connection.Disconnect();
+			connections.clear();
 			assert(
 				sessions.size() === 0 && !buildingMission && worldLifecycle.Idle(),
 				"Clean up before restoring combat transport",
@@ -2778,6 +2782,7 @@ export function installCampaignSmokeCombat(
 			CombatRemotes.telemetry = previous.telemetry;
 			CombatRemotes.combatEffect = previous.combatEffect;
 			onFinished = previous.onFinished;
+			onLoadingExpired = previous.onLoadingExpired;
 		},
 	};
 }
