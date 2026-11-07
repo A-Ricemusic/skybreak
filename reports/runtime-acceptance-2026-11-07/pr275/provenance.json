@@ -1,0 +1,236 @@
+{
+  "acceptedLoadingHead": "391fffee6cf698f24a3eb1432bfb37fa656825c1",
+  "mergedTerrainMain": "3a4b098cb949a7d009c0a443cf76acd26f02d36c",
+  "reportedBy": "runtime lease owner; immutable reports inspected by loading implementation agent",
+  "originalEvidenceRoot": "/Users/pelicannurse/Projects/test app/reports/runtime-acceptance-2026-11-07",
+  "originalFilesPreserved": true,
+  "sources": [
+    {
+      "path": "engine275-r3/validated-summary.json",
+      "sha256": "ea4604f27306fb56c48096d8d4611a91b8409499655ab2fd3e3b5f7c440ffcf5"
+    },
+    {
+      "path": "engine275-r3/source-copy-proof.json",
+      "sha256": "0fda0d7b5ce9d7b56d922861ea6aea8ab867b996be7c8b1891c9bccf522e5ee5"
+    },
+    {
+      "path": "engine275-r3/expected-counts.json",
+      "sha256": "d8c169264ad18d06d4af290fff27c6e96918ea361df1e0c30df01e4bce586430"
+    },
+    {
+      "path": "engine275-r3/manifest.json",
+      "sha256": "b13e2572585fb878862613ef9ccd40e980c07aff7c91740686fad40811ebc1cb"
+    },
+    {
+      "path": "engine275-r3/output.log",
+      "sha256": "a600092029ac4eda22bacd9958640f7963a4285793909a1ffad31450f705aca2"
+    },
+    {
+      "path": "engine275-r2/output.log",
+      "sha256": "f7f17c8c1321c70996c35812da125c0e6b058c1dbda9543d6ff09169de761b83"
+    },
+    {
+      "path": "engine275-r2/validated-summary.json",
+      "sha256": "b7df17000de2ba52252fa57339d5d672a433d79e4c88c081cd87a1f9a6651665"
+    },
+    {
+      "path": "engine275-diagnostic/result.json",
+      "sha256": "33a6e73b294a8367aa4df50309b0c84d35267e820501b2e6fd24fbd2d020df11"
+    },
+    {
+      "path": "engine275-diagnostic/output.log",
+      "sha256": "890f52504f392c64a2aeef9130ca5ce8b31c40de059d78bbe637d7d6ee796e90"
+    }
+  ],
+  "loadingSourceIdentities": [
+    {
+      "path": "src/shared/MissionReadiness.ts",
+      "sha256": "925946d02d2e77ac06f497143d8660473afeef92964561948827f598b1ca72ce",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/shared/LoadingGate.ts",
+      "sha256": "82470d4f428e39411783e673d75268164edca6eebff7be2a832ecb3c487383d3",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/client/MissionPreload.ts",
+      "sha256": "87e8bb3059b19bd33f113be82ace96b3aa8e6896180bfc644b2ef7d25b0aa7e9",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/client/GameUI.tsx",
+      "sha256": "687e59a59843c39136db66ba9cd5a1cfeecb078729c87c6587f8f1bc928662c2",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/server/CombatService.ts",
+      "sha256": "e3ec8fc1788618866488a9dcf240e5a4f6c1f5ad7ae00a9e81e3fe4580f1496f",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/server/CampaignService.ts",
+      "sha256": "1b54aea9d029b0307e37541a0deb9dab927bc0e6d8e3455711626dff359367a3",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/server/index.server.ts",
+      "sha256": "b3df746fc15185f3bf5742384822fdcaa407d485ea725cb4ffc7cbd2271f41d4",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/shared/Types.ts",
+      "sha256": "13e542dc5b2af79152e3ba45fa6431d9605231828ceab662eba6d8dda75632e1",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/MissionReadiness.spec.ts",
+      "sha256": "9f9a54d308758a4151ec371f2f5dde6bcaf2a6f12cd9fc03534f468ead36709d",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/MissionPreload.spec.ts",
+      "sha256": "2241a90557038b68967f1b4f1374bdbe16d5c6e3779a4a858d8dc8d6e8273b31",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/LoadingHandshakeRuntime.spec.ts",
+      "sha256": "1abb5755039983ee65d2ad4951b9c9ab20d45c98cde918bc280245694045a8bf",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/LoadingGate.spec.ts",
+      "sha256": "3e4d2cdfc5bfd54a19ca7e73db6e4dfeae46b053fd3422e80bd1cf322bb66629",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/LaunchLoading.spec.ts",
+      "sha256": "21014f9d01e3a651b262c11450e25729d5e30e9b6d185c538e19442fd0a1ae66",
+      "identicalToApprovedLoadingHead": true
+    },
+    {
+      "path": "src/tests/CampaignServiceSettlement.spec.ts",
+      "sha256": "d20e3918a0b6c1b581dd2a4d52f05d5f9bc8639bd9107bc87a86446db86aa9c9",
+      "identicalToApprovedLoadingHead": true
+    }
+  ],
+  "terrainComposition": {
+    "mainCancellationFoundationSha256": "3d1e442e46226e1cbdb434624d77a9d30e365e8101cbf32184a2270ab647ee5b",
+    "envelopeReaderSha256": "7c90910f96f2c2624f334ec4d3b5101d65adb2239140cb7e2d835316f90f5894",
+    "mainFoundationAndAcceptedReaderPreserved": true
+  },
+  "scope": "Selected procedural synthetic engine contracts on exact loading head: 37 passed, 0 failed, 7 suites. Not combined-head engine or natural Player/device/cloud/visual acceptance.",
+  "combinedEngineAcceptance": "pending parent integration recheck and runtime execution",
+  "remaining": [
+    "native water/material seams",
+    "actual capture cancellation wiring",
+    "Practice-M18 readiness on combined head",
+    "Player/physical mobile/cloud/visual acceptance"
+  ],
+  "historicalEvidence": "Original 32/33 at 2fb435b1 and causal collision diagnostic retained without modification; superseded only for the repaired selected contract suite.",
+  "integratedTerrainSourceIdentities": [
+    {
+      "path": "src/server/CompositionWorld.ts",
+      "mainSha256": "4fe175661601e0482d8dc1aea64f38c9fa8915d052afe4addf24de4ad0e11758",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M06World.ts",
+      "mainSha256": "25abda2461e668340bad9487122c2667ae4e647e50ee27f0eb3bc07b9e369e3d",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M07World.ts",
+      "mainSha256": "e5bd4baaecdd2b4c78ccd32c1a67835aa8a225cd53be8869dd22242028fc3deb",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M08World.ts",
+      "mainSha256": "f664170faf29e32d4ba0947ec20828d2e6393f24762ee3897f5dcc0cb080ebe3",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M09World.ts",
+      "mainSha256": "fed3adda5be56c3ce73c924e83ee662114e80d5c62353f437b0e64e143232841",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M10World.ts",
+      "mainSha256": "0bb8b27240ade6401e03bb2921b32cdfc9787bd438fd68e3e7b9e604c846e6b6",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M11World.ts",
+      "mainSha256": "5e981061eb5be055fedc14271374c0227d6a53e181d913ecc3ee9a4d879fb496",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M12World.ts",
+      "mainSha256": "8424831a4f2cf56548f60f32e5931428cdf56fb17b6e02020fd6d4a9c63d23bc",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/M13World.ts",
+      "mainSha256": "c7da31bbb141b24514529ddc4ac37c46fe3a01be75b2cf70773d9117984ec1ab",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/TerrainState.ts",
+      "mainSha256": "3d1e442e46226e1cbdb434624d77a9d30e365e8101cbf32184a2270ab647ee5b",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/TerrainWriter.ts",
+      "mainSha256": "7b7468d99229b18e884206430db9a9b9ca813f23227f31f7c4f1ae681ad27ae4",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/server/WorldLifecycleRuntime.ts",
+      "mainSha256": "21298dc5960c9b1a42b79edc15254d6e1e1d1ba23507926fe6fa4ab8a804e24d",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/shared/TerrainSchedule.ts",
+      "mainSha256": "933272c2bd164f1ae932a1d5eb50f6befe7676cb4ec0b648341af96c5510fbd9",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/shared/TerrainWriteState.ts",
+      "mainSha256": "5ee17872eddd37a1c537a10c204a520cd80a4de222b491e46f9bc4db22989ca3",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/tests/TerrainSchedule.spec.ts",
+      "mainSha256": "a34fc4a809092c76433246f273be40ad9e00342b2931f3c35241a451ffccb654",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/tests/TerrainWriteState.spec.ts",
+      "mainSha256": "026c84e505fec8cf3616d0dcd998c813d51812ded3a1b5f9af9141bb703b8d20",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    },
+    {
+      "path": "src/tests/WorldLifecycle.spec.ts",
+      "mainSha256": "95da86cb6d00db6e6111232c257338eebf5905fb27dff613f948ade5569f2099",
+      "matchesMainExceptUnchangedEnvelopeReader": true
+    }
+  ],
+  "combinedLocalValidation": {
+    "format": "passed",
+    "lint": "passed",
+    "robloxTsCompilation": "passed",
+    "selectedOfflineSuites": [
+      "LoadingGate",
+      "LaunchLoading",
+      "TerrainWriteState",
+      "TerrainSchedule",
+      "WorldLifecycle"
+    ],
+    "passed": 46,
+    "failed": 0,
+    "moduleGuardsPassed": 4,
+    "moduleGuardsFailed": 0,
+    "fullOfflineRun": false,
+    "StudioRun": false
+  }
+}

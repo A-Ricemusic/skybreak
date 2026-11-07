@@ -35,7 +35,7 @@ describe("Terrain write scheduler", () => {
 		let now = 0,
 			cancelled = false;
 		const writes: number[] = [];
-		runBudgeted(
+		const result = runBudgeted(
 			[1, 2, 3],
 			(n) => {
 				writes.push(n);
@@ -50,6 +50,8 @@ describe("Terrain write scheduler", () => {
 				cancelled: () => cancelled,
 			},
 		);
+		expect(result.complete).toBe(false);
+		expect(result.completed).toBe(1);
 		expect(writes).toEqual([1]);
 		runBudgeted([4], (n) => writes.push(n), {
 			budget: 0.008,
@@ -58,6 +60,19 @@ describe("Terrain write scheduler", () => {
 			cancelled: () => true,
 		});
 		expect(writes).toEqual([1]);
+	});
+	it("does not report success when cancelled in the final yield", () => {
+		let cancelled = false;
+		const result = runBudgeted([1], () => undefined, {
+			budget: 0,
+			clock: () => 0,
+			pause: () => {
+				cancelled = true;
+			},
+			cancelled: () => cancelled,
+		});
+		expect(result.completed).toBe(1);
+		expect(result.complete).toBe(false);
 	});
 	it("yields whenever a resumption has used its budget, in order, and reports the longest job", () => {
 		let now = 0,
@@ -81,6 +96,8 @@ describe("Terrain write scheduler", () => {
 				},
 			},
 		);
+		expect(run.complete).toBe(true);
+		expect(run.completed).toBe(7);
 		expect(order.join(",")).toBe("1,2,3,4,5,6,7");
 		// 5+5+5 ms, then the 20 ms job alone, then 5+5+5 ms (the last slice ends the run).
 		expect(slices.map((s) => s.join("+")).join(" | ")).toBe("1+2+3 | 4 | 5+6+7 | ");

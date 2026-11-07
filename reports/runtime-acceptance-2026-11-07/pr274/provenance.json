@@ -1,0 +1,45 @@
+{
+  "acceptedHead": "ef56c177ca37684ce09ef19972f291b7c89bb0fb",
+  "reportedBy": "runtime lease owner; reports inspected by terrain implementation agent",
+  "originalEvidenceRoot": "/Users/pelicannurse/Projects/test app/reports/runtime-acceptance-2026-11-07",
+  "originalFilesPreserved": true,
+  "sources": [
+    {
+      "path": "engine274-r3/validated-summary.json",
+      "sha256": "9504a80aa5480f78f12b4e9c2f16fc2085f182a859854586a0763cf181eac640"
+    },
+    {
+      "path": "engine274-smoke/validated-summary.json",
+      "sha256": "cf225f394053c5550ff581cd4a5efb2e893e88e70c4d9ee567bc4ba8affe33a3"
+    },
+    {
+      "path": "engine274-r3/source-copy-proof.json",
+      "sha256": "16b80c9b6b16074d5c4a74f74af9c2c23ebc762650dbc1361de01ef5ec2237de"
+    },
+    {
+      "path": "engine274-smoke/source-copy-proof.json",
+      "sha256": "a28c551d17bb00b47ce145e1c6e24dbade03122a544ce4c5ff932ab657f61d1f"
+    },
+    {
+      "path": "engine274-r3/output.log",
+      "sha256": "c4e4cdd1920cde53c8db1dba9da7f42ffeae19d83337d8468e7f071e9fc40784"
+    },
+    {
+      "path": "engine274-smoke/output.log",
+      "sha256": "edd745039fc8f6613b43014221e71f83bd0db26ade2184a4ae97370a36e5fc2f"
+    },
+    {
+      "path": "engine274-r3/TerrainEngineAcceptance.spec.luau",
+      "sha256": "f18d9106b8c5ed437b73600a5f9ad3f1c89899e2e06710b55bf87da71c6fc04e"
+    },
+    {
+      "path": "natural-summary.json",
+      "sha256": "988164c1846436154c22adab29c6ca64f471971e372963475d17ee84cb1f477e"
+    }
+  ],
+  "selectedDeadlineContract": "QA Bound computes deadline before worker launch, asserts total elapsed <= original bound and confirms worker dead before return; actual M12 clear/menu restore use 30 seconds. Original tracked CampaignSmoke helper is unchanged and starts its deadline after initial task.spawn.",
+  "scope": "Actual Roblox engine with procedural dependencies; synthetic CampaignSmoke forced victories and in-memory storage. No natural full-campaign, production asset/network, Player, physical-phone, audio or visual acceptance. Contended timing; no intrinsic M12 duration fix claimed.",
+  "separateBaseline": "Natural controls/server-outcome Practice\u2013M3 completion at cbb4e097 is separate baseline evidence, not a natural acceptance run of PR274.",
+  "branchFollowup": "Docs/evidence-only followup; all17 reviewed terrain source/test blobs must remain identical434d8a0d and accepted ef56c177.",
+  "strictDeadlineHelperExcerpt": "local function Bound(label,body,seconds)\n local started=os.clock();local deadline=started+seconds -- BEFORE worker construction/launch\n local finished,result,failure=false,nil,nil\n local worker=launchOwned(function()\n  local ok,value=pcall(body);if ok then result=value else failure=value end;finished=true\n end)\n while not finished and os.clock()<deadline do task.wait()end\n if not finished then\n  local dead,reason=cancelOwned(worker)\n  assert(dead,label..\" could not stop worker: \"..tostring(reason))\n  error(label..\" exceeded original bound; worker confirmed dead\")\n end\n assert(coroutine.status(worker)==\"dead\",label..\" returned before owned worker stopped\")\n assert(os.clock()-started<=seconds,label..\" initial/synchronous work exceeded wall deadline\")\n if failure~=nil then error(tostring(failure))end\n return result\nend"
+}

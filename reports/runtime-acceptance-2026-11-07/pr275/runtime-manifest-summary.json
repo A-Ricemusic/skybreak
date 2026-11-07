@@ -1,0 +1,29 @@
+{
+  "pr": 275,
+  "head": "391fffee6cf698f24a3eb1432bfb37fa656825c1",
+  "scope": "Selected synthetic engine contracts only, not baseline natural campaign or Player acceptance",
+  "selectedSpecs": [
+    "MissionPreload",
+    "MissionReadiness",
+    "CampaignServiceSettlement",
+    "LoadingGate",
+    "LaunchLoading",
+    "LoadingScreenRuntime",
+    "LoadingHandshakeRuntime"
+  ],
+  "files": {
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_MissionPreload.spec.luau": "03e77a33cc1b6382633d5b92acbc91a7110741f2f96c60bc925aff1242c54e7e",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_MissionReadiness.spec.luau": "2426561ed4ce0904b0b032bacc8b0f9d574819734488270b2b22141d2de4552b",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_CampaignServiceSettlement.spec.luau": "3c1fa5aeafd36d937152003336041c3fa971454b21be2ef300e4b01e69ca2b75",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_LoadingGate.spec.luau": "a05f6e3fd817ed21e343a80351fd82b96a4dde2faf09cf3f2586b8b5371623a5",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_LaunchLoading.spec.luau": "fa25143cd633a26c0f91001d8bbe5e7412d76c81f1015f8aa1429d459c47a861",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_LoadingScreenRuntime.spec.luau": "e1ec8204004c0cbb1d29fba9d890f23a5f3c7fd8d2935d701c2f97b435b66e54",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/QA_LoadingHandshakeRuntime.spec.luau": "875f2918546af2441a685dade059331e0eb387a6e8c93886a4b0061f80a3b58c",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/test.project.json": "7a2fc52b759de38daded62b5c252a8dab1404654f977ce7f02aa8a762a642047",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/entry.luau": "81dee4e4528645ba753bae209503fc18f3ad397c4b4d1166b8f892a9aeb59624",
+    "/tmp/skybreak-audit-runtime/wave2/engine275-r3/tests.rbxlx": "436f4cf5d6c269060099c076b36f28d6d0929d453e87d74327d99de196991a81",
+    "/Users/pelicannurse/Projects/test app/tools/runtime-acceptance-fixture.luau": "dd8e26e277e2863a35e411b307f496170180d523f3a17cafbe02f05d08750ae3",
+    "/tmp/skybreak-audit-runtime/wave2/qa-fixture-bounds.luau": "1bdbf373810106d24b9c03e38d44815b1e050481c07f12f9f649976af7377598",
+    "/tmp/skybreak-audit-runtime/wave2/prepare-loading-engine-r3.py": "48f4de78d273a55436f4237dbd35db75d31b5c0d3d6a4bd462981eb06c1d9dd2"
+  }
+}

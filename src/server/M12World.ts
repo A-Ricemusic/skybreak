@@ -33,7 +33,7 @@ export const M12World = {
 		return { groundTargets: built.groundTargets, targetVisuals };
 	},
 	Clear: (cancelled: () => boolean) => {
-		if (!cancelled()) clearTerrainIfDirty();
+		clearTerrainIfDirty(cancelled);
 	},
 };
 registerWorldClear(M12_WORLD_KEY, M12World.Clear);

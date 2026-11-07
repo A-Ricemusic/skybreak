@@ -32,7 +32,7 @@ export const M09World = {
 		return { groundTargets: built.groundTargets, targetVisuals: visuals };
 	},
 	Clear: (cancelled: () => boolean) => {
-		if (!cancelled()) clearTerrainIfDirty();
+		clearTerrainIfDirty(cancelled);
 	},
 };
 registerWorldClear(M09_WORLD_KEY, M09World.Clear);

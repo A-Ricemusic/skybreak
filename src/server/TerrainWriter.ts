@@ -7,6 +7,7 @@ import {
 	FILL_CHUNK,
 	TERRAIN_BUDGET,
 	type BudgetRun,
+	type BudgetProgress,
 	type TerrainJob,
 } from "../shared/TerrainSchedule";
 import { bumpProfile, type TerrainOp } from "../shared/WorldPlan";
@@ -86,19 +87,46 @@ export const TerrainWriter = {
 		budget = TERRAIN_BUDGET,
 		fillChunk = FILL_CHUNK,
 		cancelled?: () => boolean,
+		cleanupDiagnostics = false,
 	): BudgetRun & { jobs: number } {
 		const endTrace = worldTraceScope("terrain-batches");
+		const started = os.clock();
+		const progress: BudgetProgress = { completed: 0, jobs: 0, workSeconds: 0, yields: 0, stage: "prepare" };
+		// Diagnostic-only snapshot, never a resume cursor. Every retry restarts the
+		// retained footprint; replacement owners cannot inherit or skip old jobs.
+		const report = () => {
+			if (!cleanupDiagnostics) return;
+			Workspace.Terrain.SetAttribute(
+				"SKYBREAKTerrainCleanupProgress",
+				`elapsed=${os.clock() - started} completed=${progress.completed}/${progress.jobs} work=${progress.workSeconds} yields=${progress.yields} stage=${progress.stage}`,
+			);
+		};
 		try {
 			const terrain = Workspace.Terrain;
 			terrain.SetAttribute("SKYBREAKTerrainClean", false);
+			report();
 			const jobs = terrainExecutionJobs(ops, fillChunk);
+			progress.jobs = jobs.size();
+			progress.stage = "work";
+			report();
 			const timing = runBudgeted(jobs, (job) => run(terrain, job), {
 				budget,
 				clock: os.clock,
-				pause: () => task.wait(),
+				pause: () => {
+					report(); // Persist before yielding: task.cancel does not unwind finally.
+					task.wait();
+					progress.stage = "work";
+					report();
+				},
+				progress,
 				cancelled,
 			});
+			report();
 			return { ...timing, jobs: jobs.size() };
+		} catch (err) {
+			progress.stage = "failed";
+			report();
+			throw err;
 		} finally {
 			endTrace();
 		}
