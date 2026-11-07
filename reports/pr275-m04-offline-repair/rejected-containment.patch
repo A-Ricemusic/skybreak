@@ -1,0 +1,164 @@
+diff --git a/src/server/CompositionWorld.ts b/src/server/CompositionWorld.ts
+index 7949da35..cbfcc6bf 100644
+--- a/src/server/CompositionWorld.ts
++++ b/src/server/CompositionWorld.ts
+@@ -70,6 +70,7 @@ export function buildComposition(
+ 	cloudFeet: number,
+ 	terrainBudget = WORLD_TERRAIN_BUDGET,
+ 	fillChunk = WORLD_FILL_CHUNK,
++	normalizeContained = false,
+ ): { groundTargets: Model[] } {
+ 	const start = os.clock();
+ 	parent.SetAttribute("WorldBuildPhase", "plan");
+@@ -105,7 +106,7 @@ export function buildComposition(
+ 	}
+ 	parent.SetAttribute("WorldBuildPhase", "terrain");
+ 	trackTerrainFootprint(plan.ops);
+-	const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
++	const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk, undefined, false, normalizeContained);
+ 	parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
+ 	parent.SetAttribute("WorldTerrainLongest", timing.longest);
+ 	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
+diff --git a/src/server/M04World.ts b/src/server/M04World.ts
+index 91c3fbb0..33d65920 100644
+--- a/src/server/M04World.ts
++++ b/src/server/M04World.ts
+@@ -14,6 +14,7 @@ export const M04World = {
+ 			5500,
+ 			M04_TERRAIN_BUDGET,
+ 			WORLD_FILL_CHUNK,
++			true, // Bounded containment normalization; other mission builds retain their execution path.
+ 		),
+ 	/** One clear for normal exit and partial construction, owned by the shared world gate (see compositionClear). */
+ 	Clear: compositionClear,
+diff --git a/src/server/TerrainState.ts b/src/server/TerrainState.ts
+index 101f41fd..14928ccb 100644
+--- a/src/server/TerrainState.ts
++++ b/src/server/TerrainState.ts
+@@ -45,7 +45,7 @@ const state = new TerrainWriteState((cancelled) => {
+ 		if (Workspace.Terrain.GetAttribute("SKYBREAKTerrainClean") !== true) Workspace.Terrain.Clear();
+ 	} else {
+ 		const started = os.clock();
+-		const timing = TerrainWriter.Write(footprint, 0.25, undefined, cancelled, true);
++		const timing = TerrainWriter.Write(footprint, 0.25, undefined, cancelled, true, true);
+ 		if (!timing.complete) return false;
+ 		print(
+ 			`MISSION_TERRAIN_CLEANUP mode=sparse seconds=${os.clock() - started} jobs=${timing.jobs} work=${timing.total} yields=${timing.yields}`,
+diff --git a/src/server/TerrainWriter.ts b/src/server/TerrainWriter.ts
+index f995a133..9700bf69 100644
+--- a/src/server/TerrainWriter.ts
++++ b/src/server/TerrainWriter.ts
+@@ -88,6 +88,7 @@ export const TerrainWriter = {
+ 		fillChunk = FILL_CHUNK,
+ 		cancelled?: () => boolean,
+ 		cleanupDiagnostics = false,
++		normalizeContained = false,
+ 	): BudgetRun & { jobs: number } {
+ 		const endTrace = worldTraceScope("terrain-batches");
+ 		const started = os.clock();
+@@ -105,7 +106,7 @@ export const TerrainWriter = {
+ 			const terrain = Workspace.Terrain;
+ 			terrain.SetAttribute("SKYBREAKTerrainClean", false);
+ 			report();
+-			const jobs = terrainExecutionJobs(ops, fillChunk);
++			const jobs = terrainExecutionJobs(ops, fillChunk, normalizeContained);
+ 			progress.jobs = jobs.size();
+ 			progress.stage = "work";
+ 			report();
+diff --git a/src/shared/TerrainSchedule.ts b/src/shared/TerrainSchedule.ts
+index 300590fc..dbddd786 100644
+--- a/src/shared/TerrainSchedule.ts
++++ b/src/shared/TerrainSchedule.ts
+@@ -236,14 +236,61 @@ function commutingTerrainRuns(jobs: TerrainJob[]): TerrainJob[] {
+ 	return out;
+ }
+ 
++/** Bounded containment only: no splitting, volume growth, or cross-material reordering.
++ * Each 128-job window indexes at most 64 256-stud buckets per box. Oversized
++ * windows fall back intact. The fixed window bounds even adversarial bucket collisions.
++ * Retained authored ops/cleanup pages are never changed; only execution jobs are removed.
++ */
++export function containedTerrainJobs(jobs: TerrainJob[]): TerrainJob[] {
++ const out: TerrainJob[] = [];
++ for (let start = 0; start < jobs.size(); start += 128) {
++  const window: TerrainJob[] = [];
++  for (let index=start; index<math.min(jobs.size(),start+128); index++) window.push(jobs[index]);
++  const buckets = new Map<string, number[]>();
++  const regions: GridRegion[] = [];
++  const keys: string[][] = [];
++  let fallback = false;
++  for (const job of window) {
++   const r = alignedBlockRegion(job.op);
++   if (job.region !== undefined || job.op.material === "Water" || r === undefined || job.op.material !== window[0].op.material) { fallback = true; break; }
++   const lo = r.min.map((v) => math.floor(v / 256));
++   const hi = r.max.map((v) => math.ceil(v / 256) - 1);
++   if ((hi[0]-lo[0]+1)*(hi[1]-lo[1]+1)*(hi[2]-lo[2]+1)>64) { fallback = true; break; }
++   const entry: string[] = [];
++   for (let x=lo[0]; x<=hi[0]; x++) for (let y=lo[1]; y<=hi[1]; y++) for (let z=lo[2]; z<=hi[2]; z++) entry.push(`${x}:${y}:${z}`);
++   regions.push(r); keys.push(entry);
++  }
++  if (fallback) { for (const job of window) out.push(job); continue; }
++  const removed = new Set<number>();
++  const contains = (a: GridRegion, b: GridRegion) => a.min[0]<=b.min[0] && a.min[1]<=b.min[1] && a.min[2]<=b.min[2] && a.max[0]>=b.max[0] && a.max[1]>=b.max[1] && a.max[2]>=b.max[2];
++  for (let i=0; i<window.size(); i++) {
++   const candidates = new Set<number>();
++   for (const key of keys[i]) for (const prior of buckets.get(key) ?? []) candidates.add(prior);
++   for (const prior of candidates) {
++    if (removed.has(prior)) continue;
++    if (contains(regions[prior], regions[i])) { removed.add(i); break; }
++    if (contains(regions[i], regions[prior])) removed.add(prior);
++   }
++   if (!removed.has(i)) for (const key of keys[i]) {
++    let bucket = buckets.get(key);
++    if (bucket === undefined) { bucket=[]; buckets.set(key,bucket); }
++    bucket.push(i);
++   }
++  }
++  for (let i=0; i<window.size(); i++) if (!removed.has(i)) out.push(window[i]);
++ }
++ return out;
++}
++
+ /** Coalesce full-voxel boxes within a same-material run only. Such writes commute;
+  * intersecting different materials and curved/partial voxels are ordering barriers. Operates
+  * on execution jobs, never the retained plan or its fingerprint. */
+-export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): TerrainJob[] {
++export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK, normalizeContained = false): TerrainJob[] {
+ 	const out: TerrainJob[] = [];
+ 	let run: TerrainJob[] = [];
+ 	const flush = () => {
+ 		// A merge on Y can unlock X/Z unions; stop at the fixed point.
++		if (normalizeContained) run = containedTerrainJobs(run);
+ 		let previousSize = -1;
+ 		while (previousSize !== run.size()) {
+ 			previousSize = run.size();
+@@ -288,7 +335,7 @@ export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): Ter
+ 		run = [];
+ 	};
+ 	for (const job of commutingTerrainRuns(jobs)) {
+-		if (job.region !== undefined || alignedBlockRegion(job.op) === undefined) {
++		if (job.region !== undefined || job.op.material === "Water" || alignedBlockRegion(job.op) === undefined) {
+ 			flush();
+ 			out.push(job);
+ 			continue;
+@@ -301,10 +348,11 @@ export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): Ter
+ }
+ 
+ /** Optimize execution boxes before artificial chunk cuts, then enforce the same cap. */
+-export function terrainExecutionJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJob[] {
++export function terrainExecutionJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK, normalizeContained = false): TerrainJob[] {
+ 	const boxes = coalesceTerrainJobs(
+ 		ops.map((op) => ({ op, cells: fillVoxels(op) })),
+ 		fillChunk,
++		normalizeContained,
+ 	);
+ 	return coalesceTerrainJobs(
+ 		terrainJobs(
+@@ -312,6 +360,7 @@ export function terrainExecutionJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK):
+ 			fillChunk,
+ 		),
+ 		fillChunk,
++		normalizeContained,
+ 	);
+ }
+ 

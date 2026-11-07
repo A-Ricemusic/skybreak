@@ -1,3 +1,4 @@
+import type { LoadingTerrainProbe } from "./MissionReadiness";
 // Shared wire types: save slots and campaign responses, the Remotes contract, flight input packets, HUD state,
 // telemetry and every MissionMessage the server sends the client. Types only, no runtime code.
 // Imported across server and client; changes here are protocol changes, keep old-server payloads readable.
@@ -173,15 +174,21 @@ export interface MissionStarted {
 	/** Level the sortie is flown on (Difficulty kind). */
 	difficulty?: string;
 }
-/** World and aircraft exist on the server; play begins on "Started" once the client is ready or the server times out. */
+/** World and aircraft exist on the server; play begins on "Started" only after client readiness; timeout aborts. */
 export interface MissionLoading {
 	launchId?: number;
 	missionId?: number;
 	kind: "Loading";
 	slot: number;
 	aircraft: Model;
-	/** BaseParts in the mission folder when it was sent, for client progress only. */
+	/** Server-issued hints scoped under Workspace.SkybreakCombat; recover late Instance references. */
+	folderName?: string;
+	aircraftName?: string;
+	/** BaseParts required in the mission folder before readiness. */
 	expectedParts?: number;
+	requiredGeometry?: number;
+	/** Explicit occupied/empty voxel columns with settled collision at launch/initial targets; sampled only. */
+	terrainProbes?: LoadingTerrainProbe[];
 }
 export interface Telemetry {
 	/** Batch D1: rounds left in the fitted gun; absent when the sortie has no gun. */

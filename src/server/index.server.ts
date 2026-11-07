@@ -76,7 +76,11 @@ function initialize(): void {
 	// Handlers first. Neither Init reads anything built below (CombatService makes its own
 	// SkybreakCombat folder; CampaignService only loads player data), and everything below can
 	// yield on asset loads — pcall catches errors, not stalls.
-	const [combatInitialized, combatError] = pcall(() => CombatService.Init(remotes, CampaignService.OnFinished));
+	const [combatInitialized, combatError] = pcall(() =>
+		CombatService.Init(remotes, CampaignService.OnFinished, (player, identity, launchId) =>
+			CampaignService.OnLoadingExpired(player, identity, launchId),
+		),
+	);
 	if (!combatInitialized) {
 		warn(`SKYBREAK CombatService initialization failed; missions are disabled: ${tostring(combatError)}`);
 		CampaignService.Init(remotes, undefined);

@@ -1,0 +1,115 @@
+OFFLINE_MODULE_GUARD passed=4 failed=0
+OFFLINE_SPECS registered=7
+launch loading screen lifetime
+PASS covers construction immediately and holds the input lock through preload until Started
+PASS restores briefing eligibility after refusal, build failure or timeout and ignores late readiness
+PASS watchdog restores briefing when neither the launch RPC nor Loading completes
+PASS keeps a cancelled replication timer and its cancellation from a replacement launch
+PASS expires queued cleanup but leaves post-build replication to its existing watchdog
+PASS remembers server cancellation before a delayed RPC starts and cannot cancel a newer launch
+PASS ignores a cancel far ahead of every observed launch so it cannot poison later launches
+PASS honours a cancel that arrives before its own delayed launch request
+PASS queues on the same loading screen, then builds and preloads without allowing a second launch
+World lifecycle gate (one world at a time)
+PASS queues an immediate relaunch until the old world is cleared and the menu restored
+PASS never fires a stale clear or restore after the next world is built
+PASS refuses a queued launch whose player left during cleanup, finishes the cleanup and asks for the menu
+PASS clears a world abandoned during construction before the next launch builds
+PASS cancels an overrunning clear and opens the gate only after it has stopped
+PASS stops a clear that ignores its token at its next yield before opening the gate
+PASS never sticks when a clear throws or its coordinator is killed
+PASS refuses a launch (and asks for the menu) only when the wait bound passes
+PASS skips and cancels world clears once the server is closing
+PASS builds at once when idle and adds only the result delay for an instant clear (missions 1 and 2)
+PASS refuses a second world while one is live
+Terrain cleanup under the world gate
+PASS stops cancelled cleanup before retry and never writes after gate release
+Terrain write state
+PASS clears only dirty terrain without invoking a native clear on the Jest thread
+PASS keeps terrain dirty if its clear fails so recovery retries
+Terrain cleanup cancellation recovery
+PASS retains the footprint after a known job is cancelled, then retries to completion
+PASS does not discard the footprint when an engine job throws
+Hard terrain worker interruption
+PASS retains progress and dirty recovery evidence when stopped at a yield
+Terrain cleanup final-operation boundary
+PASS retains recovery state on cancel after the final write and before success
+PASS retains recovery state on throw after the final write and before success
+Terrain write scheduler
+PASS stops a chunked clear at cancellation after a yield without writing later jobs
+PASS does not report success when cancelled in the final yield
+PASS yields whenever a resumption has used its budget, in order, and reports the longest job
+PASS never runs more than one budget plus one job between yields on the heaviest worlds
+PASS bounds every job: fills by FILL_CHUNK, bump slices by BUMP_CHUNK, whole wedges and balls by UNSPLIT_MAX
+PASS splits only on voxel planes and writes the same terrain as the unsplit plan
+PASS slices each bump's grid region into disjoint pieces that cover it exactly
+Full-voxel terrain execution
+PASS uses region fills only when every face is on the voxel lattice
+PASS joins boxes across disjoint materials but preserves every intersecting overwrite
+PASS preserves an exhaustive mixed-material voxel field through both optimization passes
+PASS keeps Water as a native semantic barrier even for adjacent full-voxel boxes
+PASS coalesces all three axes without crossing material barriers or mutating plans
+Legacy curved terrain cleanup bounds
+PASS covers negative and partial boundary cells with an aligned, bounded Air footprint
+Planned curved terrain cleanup
+PASS covers each curved write separately without joining distant worlds
+Dormant M04/M05 world compositions
+PASS is deterministic, cooperatively planned with only M04 activated
+PASS exports unique prefixed ids, required air counts and NNE contact poses
+PASS places exactly 88 industrial ground contacts, two tankers and three helicopters
+PASS supports every refinery and rig footprint without target overlaps
+PASS supports and clears every rotated track centre and corner
+PASS supports every prop footprint including the tower and waterline platform
+PASS exports the observed 100-point contact and a rig ledger above the goal
+m04_inland_hills BUDGET voxels=150028992 jobs=8364 parts=92 props=120 descendants=3228 estimatedSeconds=15.889926795967565
+m05_night_refinery BUDGET voxels=51031552 jobs=1423 parts=444 props=5 descendants=820 estimatedSeconds=7.259600000000004
+PASS caps Part dimensions and enforces Studio-calibrated budgets
+PASS caps every column above Y=0 and seals perimeters beyond the hard airspace
+PASS matches noon/night weather and exports bounded light fields
+Campaign loading estimates
+PASS keeps runtime slices within calibration and charges calibrated yields
+MISSION_LOAD_ESTIMATE mission=01 seconds=13.466104193971166 jobs=14701
+PASS keeps M01 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=02 seconds=10.467155743071215 jobs=14706
+PASS keeps M02 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=03 seconds=15.420240000000373 jobs=10087
+PASS keeps M03 within the 16-second modeled build budget
+PASS executes every floor-free M03 terrain job across 0.25-second slices
+MISSION_LOAD_ESTIMATE mission=04 seconds=15.889926795967565 jobs=8364
+PASS keeps M04 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=05 seconds=7.259600000000004 jobs=1423
+PASS keeps M05 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=06 seconds=10.265293536898355 jobs=3918
+PASS keeps M06 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=07 seconds=14.500979999999998 jobs=8934
+PASS keeps M07 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=08 seconds=4.23476 jobs=1369
+PASS keeps M08 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=09 seconds=10.474135772368065 jobs=4497
+PASS keeps M09 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=10 seconds=14.739430159031665 jobs=7929
+PASS keeps M10 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=11 seconds=14.4552 jobs=5930
+PASS keeps M11 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=12 seconds=12.770959999999999 jobs=4479
+PASS keeps M12 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=13 seconds=13.2532 jobs=4563
+PASS keeps M13 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=14 seconds=7.02152 jobs=1909
+PASS keeps M14 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=15 seconds=11.35168 jobs=4160
+PASS keeps M15 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=16 seconds=12.30048 jobs=4434
+PASS keeps M16 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=17 seconds=7.28312 jobs=2153
+PASS keeps M17 within the 16-second modeled build budget
+MISSION_LOAD_ESTIMATE mission=18 seconds=3.7024 jobs=348
+PASS keeps M18 within the 16-second modeled build budget
+LoadingGate
+PASS holds until the client is ready, then releases exactly once
+PASS expires without releasing when the client never answers
+PASS rejects late and stale Ready and releases a normal launch only once
+PASS honours a custom timeout and rejects a bad clock
+PASS reports replication progress as a clamped fraction
+OFFLINE_LUAU_RESULT passed=77 failed=0
+

@@ -1,0 +1,338 @@
+{
+  "head": "c8a7177423ba696b8daae1d17b992d9fe332c977",
+  "artifact": "combined-followup-r5",
+  "acceptance": "FAILED M4 build budget + guarded recovery/cleanup; not13suite78pass",
+  "expected": {
+    "suites": 13,
+    "tests": 78
+  },
+  "actualPhases": [
+    {
+      "todo": 0,
+      "total": 37,
+      "success": true,
+      "pending": 0,
+      "phase": "loading_selected",
+      "suites": 7,
+      "passed": 37,
+      "failed": 0
+    },
+    {
+      "todo": 0,
+      "total": 32,
+      "success": true,
+      "pending": 0,
+      "phase": "terrain_selected",
+      "suites": 3,
+      "passed": 32,
+      "failed": 0
+    },
+    {
+      "todo": 0,
+      "total": 4,
+      "success": true,
+      "pending": 0,
+      "phase": "native",
+      "suites": 1,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "todo": 0,
+      "total": 4,
+      "success": false,
+      "pending": 0,
+      "phase": "smoke",
+      "suites": 1,
+      "passed": 3,
+      "failed": 1
+    }
+  ],
+  "phaseDurationsSeconds": [
+    15.891,
+    10.098,
+    2.965,
+    121.338
+  ],
+  "externallyVerifiedPassingSuiteCases": {
+    "CampaignServiceSettlement": 3,
+    "LaunchLoading": 9,
+    "LoadingGate": 5,
+    "LoadingHandshakeRuntime": 2,
+    "LoadingScreenRuntime": 8,
+    "MissionPreload": 5,
+    "MissionReadiness": 5,
+    "TerrainSchedule": 13,
+    "TerrainWriteState": 7,
+    "WorldLifecycle": 12,
+    "NativeReadiness": 4
+  },
+  "unrunPhases": [
+    "adjunct1suite1test"
+  ],
+  "readinessRows": [
+    {
+      "launchId": 1,
+      "columns": 2,
+      "laterBeginNoop": true,
+      "registeredReady": true,
+      "captureSeconds": 0.0010245833545923233,
+      "started": 1,
+      "preload": true,
+      "mission": 0
+    },
+    {
+      "launchId": 2,
+      "columns": 1,
+      "laterBeginNoop": true,
+      "registeredReady": true,
+      "captureSeconds": 0.0008423333056271076,
+      "started": 1,
+      "preload": true,
+      "mission": 1
+    },
+    {
+      "launchId": 3,
+      "columns": 3,
+      "laterBeginNoop": true,
+      "registeredReady": true,
+      "captureSeconds": 0.002111666603013873,
+      "started": 1,
+      "preload": true,
+      "mission": 2
+    },
+    {
+      "launchId": 4,
+      "columns": 3,
+      "laterBeginNoop": true,
+      "registeredReady": true,
+      "captureSeconds": 0.008688500034622848,
+      "started": 1,
+      "preload": true,
+      "mission": 3
+    },
+    {
+      "launchId": 5,
+      "columns": 1,
+      "laterBeginNoop": true,
+      "registeredReady": true,
+      "captureSeconds": 0.001234874944202602,
+      "started": 1,
+      "preload": true,
+      "mission": 4
+    }
+  ],
+  "smokeRows": [
+    {
+      "mission": 0,
+      "buildMs": 1653,
+      "targets": 1,
+      "result": "0"
+    },
+    {
+      "mission": 1,
+      "buildMs": 12105,
+      "targets": 13,
+      "result": "0"
+    },
+    {
+      "mission": 2,
+      "buildMs": 17299,
+      "targets": 24,
+      "result": "0"
+    },
+    {
+      "mission": 3,
+      "buildMs": 17428,
+      "targets": 14,
+      "result": "0"
+    },
+    {
+      "mission": 4,
+      "buildMs": 24945,
+      "targets": 3,
+      "result": "FAIL build 24945ms exceeded 22000ms acceptance budget; recovery: Refuse campaign recovery with live workers or pending lifecycle cleanup; cleanup worker failed; later launches disabled"
+    },
+    {
+      "mission": 5,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 6,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 7,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 8,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 9,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 10,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 11,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 12,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 13,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 14,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 15,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 16,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 17,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    },
+    {
+      "mission": 18,
+      "buildMs": null,
+      "targets": 0,
+      "result": "FAIL previous cleanup failed; refusing overlapping worlds"
+    }
+  ],
+  "nativeCaptureCancellation": {
+    "captureSeconds": 0.1592351667350158,
+    "retry": 2,
+    "occupiedSuppressed": true,
+    "subsequentIteration": true,
+    "retryUnmodifiedCaptureCalls": 1,
+    "admissions": 0,
+    "entered": true,
+    "cancelSinceAccepted": 0.1423619999550283,
+    "originalAliveTrue": true,
+    "nativeCasts": 22,
+    "cancelAt": 32.785218833363615,
+    "snapshots": 2,
+    "origins": [
+      [
+        2,
+        260,
+        502
+      ],
+      [
+        2,
+        72,
+        -850
+      ]
+    ],
+    "budgetTimes": [
+      {
+        "launchId": 1,
+        "action": "StartMission",
+        "at": 32.642860916676
+      },
+      {
+        "launchId": 1,
+        "action": "CancelLaunch",
+        "at": 32.78522291663103
+      },
+      {
+        "launchId": 2,
+        "action": "StartMission",
+        "at": 33.86866512498818
+      },
+      {
+        "launchId": 1,
+        "action": "CancelLaunch",
+        "at": 34.0014167916961
+      }
+    ],
+    "starts": 1,
+    "restorationDeferred": true,
+    "requested": [
+      [
+        0,
+        250,
+        500
+      ],
+      [
+        0,
+        50,
+        -850
+      ]
+    ],
+    "undefined": true,
+    "originalAliveFalse": true,
+    "launchEntry": 32.64285816671327
+  },
+  "nativeCoverage": "All4 actual native cases passed: Water occupancy/material/ray/old descriptor rejection/explicit empty; retained cleanup footprint+envelope then completed retry; material seam snapped columns+overwrite; native curve partialoccupancy0.18359375; actualcapturecancel/retry/stale1 isolation. Synthetic occupied-hit suppression is explicit.",
+  "primaryFailure": "M4 build24945ms > unchanged22000ms acceptance, not30sec harddeadline; measured under preserved contention, not proven intrinsic regression",
+  "secondaryFailures": [
+    "Real Campaign recovery refused while trackedworkers or lifecycle notidle; QA Work.Fail latched schedulingstop",
+    "Actual lifecycle clear/restore callbacks then refused by strict QA scheduler: QA stopped; no further scheduling",
+    "M5-M18 BLOCKED by cleanupfailed latch, not exercised/separate worlddefects",
+    "afterAll MissingReadyrow5 after worker/gate/seam/export/listener restoration; final terrain clean/footprint assertions not reached"
+  ],
+  "teardown": {
+    "shellExitCode": 0,
+    "shellIsNotAcceptance": true,
+    "studioAutoquit": true,
+    "ownedWorkersDeadAndGateIdle": "Adapter restore/afterAll deadidle assertions reached before missingrow5",
+    "serviceOverridesListeners": "Retainedrestore/export+signal cleanup code preceded missingrow5; no direct final snapshot",
+    "finalTerrainClean": "UNVERIFIED/NOT ACCEPTED; assertion after rowcompleteness not reached. Cleanup was refused, so retainedM4footprint/dirty possible; no direct finalstate snapshot."
+  },
+  "logFilterDefect": {
+    "path": "src/tests/CampaignSmoke.spec.ts:86",
+    "compiled": "out/tests/CampaignSmoke.spec.luau:99",
+    "finding": "{ string.find(message, fallbackText) } ~= nil always true (boxed LuaTuple); everymessage classifiedwarning, original errorcollector unreachable; rows warning0 is not evidence of no errors",
+    "scope": "Unchanged existing test source/compiled bug; reported read-only duringrun; no edits/rebuild/rerun",
+    "rawCreatorErrors": []
+  },
+  "warnings": [
+    "Expected rangeguard warning in selected loading test",
+    "Expected capture cancellation construction warning in native case",
+    "Actual QA-latch world lifecycle errors during M4 recovery/teardown",
+    "Builtin/plugin/contentGET warnings separately logged; no unexpectedassetcreation observed"
+  ],
+  "contention": "UnrelatedVite94599 preserved, before/after process snapshots archived; no quiet claim",
+  "scope": "Synthetic procedural engine acceptance only; no all19Ready/fullcampaign pass, no Player/mobile/cloud/productionvisual/naturalcampaign acceptance",
+  "rerun": "Not authorized; frozenartifact and all earlier evidence unchanged"
+}

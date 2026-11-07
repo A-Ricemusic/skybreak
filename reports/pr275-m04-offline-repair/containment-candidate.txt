@@ -1,0 +1,10 @@
+M04_EXECUTION build jobs=8236 cells=150028992 estimated128StudChunkTouches=97949
+M04_EXECUTION cleanup jobs=8125 cells=150028992 estimated128StudChunkTouches=97949
+MISSION_PLAN_OFFLINE mission=4 pass=1 seconds=0.034009833354502916 maxCheckpointGap=0.002543958369642496 checkpoints=3875 hash=3359413120
+MISSION_PLAN_OFFLINE_PHASE mission=4 phase=surface.sample seconds=0.022150666685774922
+MISSION_PLAN_OFFLINE_PHASE mission=4 phase=surface.emit seconds=0.009315208299085498
+MISSION_PLAN_OFFLINE mission=4 pass=2 seconds=0.033976249978877604 maxCheckpointGap=0.0025363333988934755 checkpoints=3875 hash=3359413120
+MISSION_PLAN_OFFLINE_PHASE mission=4 phase=surface.sample seconds=0.02343483327422291
+MISSION_PLAN_OFFLINE_PHASE mission=4 phase=surface.emit seconds=0.008005083305761218
+PLAN_PERFORMANCE passed=2 failed=0
+

@@ -288,7 +288,7 @@ export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): Ter
 		run = [];
 	};
 	for (const job of commutingTerrainRuns(jobs)) {
-		if (job.region !== undefined || alignedBlockRegion(job.op) === undefined) {
+		if (job.region !== undefined || job.op.material === "Water" || alignedBlockRegion(job.op) === undefined) {
 			flush();
 			out.push(job);
 			continue;
@@ -331,12 +331,45 @@ export interface BudgetRun {
 	longestBatch: number;
 	total: number;
 }
+/** Elapsed monotonic-clock spans, never CPU or pure native-engine time.
+ * Updated in place for failures; completed work excludes a throwing callback.
+ * pauseCallback includes the entire injected pause, including its reporting.
+ */
+export interface BudgetDiagnostics {
+	elapsedSeconds: number;
+	completedWorkElapsedSeconds: number;
+	failedWorkElapsedSeconds: number;
+	pauseCallbackElapsedSeconds: number;
+	maxPauseCallbackElapsedSeconds: number;
+	maxJobElapsedSeconds: number;
+	maxBatchElapsedSeconds: number;
+	otherElapsedSeconds: number;
+	completed: number;
+	yields: number;
+	status: "prepare" | "complete" | "cancelled" | "failed";
+}
+export function createBudgetDiagnostics(): BudgetDiagnostics {
+	return {
+		elapsedSeconds: 0,
+		completedWorkElapsedSeconds: 0,
+		failedWorkElapsedSeconds: 0,
+		pauseCallbackElapsedSeconds: 0,
+		maxPauseCallbackElapsedSeconds: 0,
+		maxJobElapsedSeconds: 0,
+		maxBatchElapsedSeconds: 0,
+		otherElapsedSeconds: 0,
+		completed: 0,
+		yields: 0,
+		status: "prepare",
+	};
+}
 export interface BudgetOptions {
 	budget: number;
 	clock: () => number;
 	pause: () => void;
 	cancelled?: () => boolean;
 	progress?: BudgetProgress;
+	diagnostics?: BudgetDiagnostics;
 }
 
 /**
@@ -362,30 +395,89 @@ export function runBudgeted<T>(items: T[], work: (item: T) => void, options: Bud
 	progress.workSeconds = 0;
 	progress.yields = 0;
 	progress.stage = "work";
-	let slice = options.clock();
-	for (const item of items) {
-		if (options.cancelled?.()) {
-			progress.stage = "cancelled";
-			break;
-		}
-		progress.stage = "work";
-		const start = options.clock();
-		work(item);
-		progress.completed++;
-		const finish = options.clock();
-		longest = math.max(longest, finish - start);
-		total += finish - start;
-		progress.workSeconds = total;
-		longestBatch = math.max(longestBatch, finish - slice);
-		if (finish - slice >= options.budget) {
-			progress.stage = "yield";
-			progress.yields++;
-			options.pause();
-			yields += 1;
-			slice = options.clock();
-		}
+	const diagnostics = options.diagnostics;
+	if (diagnostics !== undefined) {
+		diagnostics.elapsedSeconds = 0;
+		diagnostics.completedWorkElapsedSeconds = 0;
+		diagnostics.failedWorkElapsedSeconds = 0;
+		diagnostics.pauseCallbackElapsedSeconds = 0;
+		diagnostics.maxPauseCallbackElapsedSeconds = 0;
+		diagnostics.maxJobElapsedSeconds = 0;
+		diagnostics.maxBatchElapsedSeconds = 0;
+		diagnostics.otherElapsedSeconds = 0;
+		diagnostics.completed = 0;
+		diagnostics.yields = 0;
+		diagnostics.status = "prepare";
 	}
-	const complete = progress.completed === items.size() && !options.cancelled?.();
-	progress.stage = complete ? "complete" : "cancelled";
-	return { yields, longest, longestBatch, total, completed: progress.completed, complete };
+	let slice = options.clock();
+	const started = slice;
+	let openWork: number | undefined;
+	let openPause: number | undefined;
+	let terminal: BudgetDiagnostics["status"] = "failed";
+	const execute = (): BudgetRun => {
+		for (const item of items) {
+			if (options.cancelled?.()) {
+				progress.stage = "cancelled";
+				break;
+			}
+			progress.stage = "work";
+			const start = options.clock();
+			openWork = start;
+			work(item);
+			progress.completed++;
+			const finish = options.clock();
+			openWork = undefined;
+			longest = math.max(longest, finish - start);
+			total += finish - start;
+			progress.workSeconds = total;
+			longestBatch = math.max(longestBatch, finish - slice);
+			if (finish - slice >= options.budget) {
+				progress.stage = "yield";
+				progress.yields++;
+				if (diagnostics !== undefined) openPause = options.clock();
+				options.pause();
+				yields += 1;
+				slice = options.clock();
+				if (diagnostics !== undefined) {
+					const duration = slice - openPause!;
+					diagnostics.pauseCallbackElapsedSeconds += duration;
+					diagnostics.maxPauseCallbackElapsedSeconds = math.max(
+						diagnostics.maxPauseCallbackElapsedSeconds,
+						duration,
+					);
+					openPause = undefined;
+				}
+			}
+		}
+		const complete = progress.completed === items.size() && !options.cancelled?.();
+		progress.stage = complete ? "complete" : "cancelled";
+		terminal = complete ? "complete" : "cancelled";
+		return { yields, longest, longestBatch, total, completed: progress.completed, complete };
+	};
+	// Keep the no-diagnostics path's exception behavior and clock calls unchanged.
+	if (diagnostics === undefined) return execute();
+	const [ok, result] = pcall(execute);
+	{
+		const finishedAt = options.clock();
+		diagnostics.elapsedSeconds = finishedAt - started;
+		diagnostics.completedWorkElapsedSeconds = total;
+		diagnostics.failedWorkElapsedSeconds = openWork !== undefined ? finishedAt - openWork : 0;
+		if (openPause !== undefined) {
+			const duration = finishedAt - openPause;
+			diagnostics.pauseCallbackElapsedSeconds += duration;
+			diagnostics.maxPauseCallbackElapsedSeconds = math.max(diagnostics.maxPauseCallbackElapsedSeconds, duration);
+		}
+		diagnostics.maxJobElapsedSeconds = math.max(longest, diagnostics.failedWorkElapsedSeconds);
+		diagnostics.maxBatchElapsedSeconds = math.max(longestBatch, openPause === undefined ? finishedAt - slice : 0);
+		diagnostics.otherElapsedSeconds =
+			diagnostics.elapsedSeconds -
+			total -
+			diagnostics.failedWorkElapsedSeconds -
+			diagnostics.pauseCallbackElapsedSeconds;
+		diagnostics.completed = progress.completed;
+		diagnostics.yields = progress.yields;
+		diagnostics.status = terminal;
+	}
+	if (!ok) error(result, 0);
+	return result;
 }

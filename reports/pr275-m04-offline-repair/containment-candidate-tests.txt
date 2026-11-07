@@ -1,0 +1,67 @@
+OFFLINE_MODULE_GUARD passed=4 failed=0
+OFFLINE_SPECS registered=5
+launch loading screen lifetime
+PASS covers construction immediately and holds the input lock through preload until Started
+PASS restores briefing eligibility after refusal, build failure or timeout and ignores late readiness
+PASS watchdog restores briefing when neither the launch RPC nor Loading completes
+PASS keeps a cancelled replication timer and its cancellation from a replacement launch
+PASS expires queued cleanup but leaves post-build replication to its existing watchdog
+PASS remembers server cancellation before a delayed RPC starts and cannot cancel a newer launch
+PASS ignores a cancel far ahead of every observed launch so it cannot poison later launches
+PASS honours a cancel that arrives before its own delayed launch request
+PASS queues on the same loading screen, then builds and preloads without allowing a second launch
+World lifecycle gate (one world at a time)
+PASS queues an immediate relaunch until the old world is cleared and the menu restored
+PASS never fires a stale clear or restore after the next world is built
+PASS refuses a queued launch whose player left during cleanup, finishes the cleanup and asks for the menu
+PASS clears a world abandoned during construction before the next launch builds
+PASS cancels an overrunning clear and opens the gate only after it has stopped
+PASS stops a clear that ignores its token at its next yield before opening the gate
+PASS never sticks when a clear throws or its coordinator is killed
+PASS refuses a launch (and asks for the menu) only when the wait bound passes
+PASS skips and cancels world clears once the server is closing
+PASS builds at once when idle and adds only the result delay for an instant clear (missions 1 and 2)
+PASS refuses a second world while one is live
+Terrain cleanup under the world gate
+PASS stops cancelled cleanup before retry and never writes after gate release
+Terrain write state
+PASS clears only dirty terrain without invoking a native clear on the Jest thread
+PASS keeps terrain dirty if its clear fails so recovery retries
+Terrain cleanup cancellation recovery
+PASS retains the footprint after a known job is cancelled, then retries to completion
+PASS does not discard the footprint when an engine job throws
+Hard terrain worker interruption
+PASS retains progress and dirty recovery evidence when stopped at a yield
+Terrain cleanup final-operation boundary
+PASS retains recovery state on cancel after the final write and before success
+PASS retains recovery state on throw after the final write and before success
+Normalized cleanup retains the original recovery footprint
+PASS restarts full normalized execution after partial construction, cancellation, and reload
+Terrain write scheduler
+PASS stops a chunked clear at cancellation after a yield without writing later jobs
+PASS does not report success when cancelled in the final yield
+PASS yields whenever a resumption has used its budget, in order, and reports the longest job
+PASS never runs more than one budget plus one job between yields on the heaviest worlds
+PASS bounds every job: fills by FILL_CHUNK, bump slices by BUMP_CHUNK, whole wedges and balls by UNSPLIT_MAX
+PASS splits only on voxel planes and writes the same terrain as the unsplit plan
+PASS slices each bump's grid region into disjoint pieces that cover it exactly
+Full-voxel terrain execution
+PASS uses region fills only when every face is on the voxel lattice
+PASS joins boxes across disjoint materials but preserves every intersecting overwrite
+PASS preserves an exhaustive mixed-material voxel field through both optimization passes
+PASS removes only contained same-material boxes and preserves intersecting corners and LOD joins
+PASS falls back intact for bucket overflow, incompatible operations, and window boundaries
+PASS keeps Water as a native semantic barrier even for adjacent full-voxel boxes
+PASS coalesces all three axes without crossing material barriers or mutating plans
+Legacy curved terrain cleanup bounds
+PASS covers negative and partial boundary cells with an aligned, bounded Air footprint
+Planned curved terrain cleanup
+PASS covers each curved write separately without joining distant worlds
+LoadingGate
+PASS holds until the client is ready, then releases exactly once
+PASS expires without releasing when the client never answers
+PASS rejects late and stale Ready and releases a normal launch only once
+PASS honours a custom timeout and rejects a bad clock
+PASS reports replication progress as a clamped fraction
+OFFLINE_LUAU_RESULT passed=50 failed=0
+

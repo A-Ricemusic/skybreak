@@ -1,0 +1,65 @@
+{
+  "captureSeconds": 0.1592351667350158,
+  "retry": 2,
+  "occupiedSuppressed": true,
+  "subsequentIteration": true,
+  "retryUnmodifiedCaptureCalls": 1,
+  "admissions": 0,
+  "entered": true,
+  "cancelSinceAccepted": 0.1423619999550283,
+  "originalAliveTrue": true,
+  "nativeCasts": 22,
+  "cancelAt": 32.785218833363615,
+  "snapshots": 2,
+  "origins": [
+    [
+      2,
+      260,
+      502
+    ],
+    [
+      2,
+      72,
+      -850
+    ]
+  ],
+  "budgetTimes": [
+    {
+      "launchId": 1,
+      "action": "StartMission",
+      "at": 32.642860916676
+    },
+    {
+      "launchId": 1,
+      "action": "CancelLaunch",
+      "at": 32.78522291663103
+    },
+    {
+      "launchId": 2,
+      "action": "StartMission",
+      "at": 33.86866512498818
+    },
+    {
+      "launchId": 1,
+      "action": "CancelLaunch",
+      "at": 34.0014167916961
+    }
+  ],
+  "starts": 1,
+  "restorationDeferred": true,
+  "requested": [
+    [
+      0,
+      250,
+      500
+    ],
+    [
+      0,
+      50,
+      -850
+    ]
+  ],
+  "undefined": true,
+  "originalAliveFalse": true,
+  "launchEntry": 32.64285816671327
+}

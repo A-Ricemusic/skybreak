@@ -391,6 +391,22 @@ function shutdownPlayer(player: Player): void {
 }
 
 export const CampaignService = {
+	/** Authoritative abort, never a result: only the exact expired session may release campaign ownership. */
+	OnLoadingExpired(player: Player, sessionIdentity: unknown, launchId: number | undefined): void {
+		const state = states.get(player);
+		if (
+			!state ||
+			state.closing ||
+			!state.activeSortie ||
+			state.activeSortie.identity !== sessionIdentity ||
+			state.activeLaunchId !== launchId
+		)
+			return;
+		state.activeSortie = undefined;
+		state.activeSlot = undefined;
+		state.activeMission = undefined;
+		state.activeLaunchId = undefined;
+	},
 	OnFinished: onFinished,
 	Init(remoteTable: Remotes, combatModule?: CombatApi): void {
 		assert(!initialized, "CampaignService.Init may only be called once");

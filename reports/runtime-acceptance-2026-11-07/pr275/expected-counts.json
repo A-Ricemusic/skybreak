@@ -1,0 +1,13 @@
+{
+  "suites": 7,
+  "tests": 37,
+  "cases": {
+    "MissionPreload": 5,
+    "MissionReadiness": 5,
+    "CampaignServiceSettlement": 3,
+    "LoadingGate": 5,
+    "LaunchLoading": 9,
+    "LoadingScreenRuntime": 8,
+    "LoadingHandshakeRuntime": 2
+  }
+}

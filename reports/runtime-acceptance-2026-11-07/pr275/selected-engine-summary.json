@@ -1,0 +1,37 @@
+{
+  "total": 37,
+  "success": true,
+  "suites": 7,
+  "passed": 37,
+  "failed": 0,
+  "cases": {
+    "CampaignServiceSettlement": 3,
+    "LaunchLoading": 9,
+    "LoadingGate": 5,
+    "LoadingHandshakeRuntime": 2,
+    "LoadingScreenRuntime": 8,
+    "MissionPreload": 5,
+    "MissionReadiness": 5
+  },
+  "skipped": 0,
+  "pending": 0,
+  "durationSeconds": 15.519,
+  "head": "391fffee6cf698f24a3eb1432bfb37fa656825c1",
+  "scope": "Procedural synthetic selected engine contracts; not Player/mobile/cloud/production visuals",
+  "teardown": {
+    "exitCode": 0,
+    "handshakeFinallyAwaitIdle5": true,
+    "serviceOverridesAndListenersRestored": "Assertions/finally in both passing cases; process exited; no late creator errors observed",
+    "nativeRockFillAirRemoval": "Passed bounded observed refresh case"
+  },
+  "warnings": [
+    "Expected actual mission construction range-guard error in pre-registration cleanup/retry test, asserted by LogService",
+    "Two content GET asset-type warnings for203785492; built-in font/plugin/localhost warnings separate from asset writes"
+  ],
+  "remaining": [
+    "actual capture cancellation wiring",
+    "water/material seams and broader native geometry",
+    "Practice-M18 launch readiness on combined head",
+    "Player/physical mobile/cloud/visual coverage"
+  ]
+}

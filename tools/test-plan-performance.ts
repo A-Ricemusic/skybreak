@@ -12,6 +12,7 @@ import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
 import { spawnWithTimeout } from "./spawn";
 const root = resolve(import.meta.dir, "..");
+const focusedM04 = process.argv.includes("--m04");
 let source = `local function fingerprint(value)
  local h=5381
  local function feed(s) for i=1,#s do h=(h*33+string.byte(s,i))%4294967296 end end
@@ -67,6 +68,7 @@ source += `
 -- Reverse the second pass: an order-dependent leak must not hide behind mission complexity.
 for pass=1,2 do for index=1,18 do
  local id=if pass==1 then index else 19-index
+ if ${focusedM04 ? "id==4" : "true"} then
  local last=os.clock();local start=last;local longest=0;local calls=0;local phases={}
  local p=builders[id](nil,function(phase)
   local now=os.clock();local dt=now-last;last=now;longest=math.max(longest,dt);calls+=1
@@ -92,6 +94,23 @@ for pass=1,2 do for index=1,18 do
   for _,op in p.ops do local erase=table.clone(op);erase.material="Air";table.insert(air,erase) end
   local cleanup=terrainSchedule.terrainExecutionJobs(air)
   print("MISSION_TERRAIN_EXECUTION mission="..id.." jobsBefore="..#before.." jobsAfter="..#after.." cleanupJobs="..#cleanup.." sparseCleanup=true")
+ end
+ if id==4 and pass==1 then
+  local function metrics(label,jobs)
+   local cells,touches=0,0
+   for _,job in jobs do
+    cells+=job.cells
+    local r=terrainSchedule.alignedBlockRegion(job.op)
+    assert(r,"M04 metrics require aligned boxes")
+    local n=1
+    for axis=1,3 do n*=math.ceil(r.max[axis]/128)-math.floor(r.min[axis]/128) end
+    touches+=n
+   end
+   print("M04_EXECUTION "..label.." jobs="..#jobs.." cells="..cells.." estimated128StudChunkTouches="..touches)
+  end
+  metrics("build",terrainSchedule.terrainExecutionJobs(p.ops))
+  local air={} for _,op in p.ops do table.insert(air,terrainSchedule.terrainCleanupOp(op)) end
+  metrics("cleanup",terrainSchedule.terrainExecutionJobs(air))
  end
  local actual=fingerprint(p)
  if pass==1 then
@@ -119,8 +138,9 @@ for pass=1,2 do for index=1,18 do
  assert(longest<=0.1,"Offline checkpoint slice exceeded for M"..id)
  assert(calls>0 and calls<=100000,"Plan work count out of bounds for M"..id)
  p=nil
+ end
 end end
-print("PLAN_PERFORMANCE passed=36 failed=0")
+print("PLAN_PERFORMANCE passed=${focusedM04 ? 2 : 36} failed=0")
 `;
 const path = resolve(root, "build/offline-relay/performance.luau");
 await Bun.write(path, source);

@@ -1,0 +1,51 @@
+[
+  {
+    "spec": "MissionPreload",
+    "originalCompiledSha256": "fcd75deb2870e2871bee785f95f9413861213172c0b69588a44d23da9bca4575",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 4839,
+    "wrapperBytes": 5554
+  },
+  {
+    "spec": "MissionReadiness",
+    "originalCompiledSha256": "cc3f272d02f9f0e3506b63163f6c1dfe11fbbc441d4d089b3902b040ba324863",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 7547,
+    "wrapperBytes": 8262
+  },
+  {
+    "spec": "CampaignServiceSettlement",
+    "originalCompiledSha256": "0dfaf95c8983a8000ca1fcc2ccd0ecf8d1d6b65a1f35d4bb7b619189920e0a7b",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 6936,
+    "wrapperBytes": 7651
+  },
+  {
+    "spec": "LoadingGate",
+    "originalCompiledSha256": "59e367c87be8c72a158e1f747a3d9e70139c8069930aba23a23392a8786128d3",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 2719,
+    "wrapperBytes": 3434
+  },
+  {
+    "spec": "LaunchLoading",
+    "originalCompiledSha256": "116317a054903caed042257d56090a71a246bcd72bbf9261864973b325963ade",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 6634,
+    "wrapperBytes": 7349
+  },
+  {
+    "spec": "LoadingScreenRuntime",
+    "originalCompiledSha256": "bc2698f9350733cd4b030ba0bc45897a5f6d6b0cb8544a85e3aba7a8599d1d0f",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 13061,
+    "wrapperBytes": 13776
+  },
+  {
+    "spec": "LoadingHandshakeRuntime",
+    "originalCompiledSha256": "779c3db0daf1aa84cabefbab1529cba637df5bc25ba2e748d4eb9305404070f3",
+    "unalteredOriginalBodyPresentOnce": true,
+    "originalBytes": 14452,
+    "wrapperBytes": 15167
+  }
+]

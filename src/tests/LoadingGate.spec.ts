@@ -12,11 +12,24 @@ describe("LoadingGate", () => {
 		expect(LoadingGate.Release(gate, 102)).toBe(false);
 		expect(gate.released).toBe(true);
 	});
-	it("releases on the timeout when the client never answers", () => {
+	it("expires without releasing when the client never answers", () => {
 		const gate = LoadingGate.New(50);
 		expect(LoadingGate.Release(gate, 50 + LoadingGate.Timeout - 0.01)).toBe(false);
-		expect(LoadingGate.Release(gate, 50 + LoadingGate.Timeout)).toBe(true);
+		expect(LoadingGate.Release(gate, 50 + LoadingGate.Timeout)).toBe(false);
+		expect(LoadingGate.Expired(gate, 50 + LoadingGate.Timeout)).toBe(true);
+		LoadingGate.MarkReady(gate);
 		expect(LoadingGate.Release(gate, 60)).toBe(false);
+	});
+	it("rejects late and stale Ready and releases a normal launch only once", () => {
+		const expired = LoadingGate.New(0);
+		expect(LoadingGate.AcceptReady(expired, 8, 1, 1)).toBe(false);
+		expect(expired.ready).toBe(false);
+		const replacement = LoadingGate.New(8);
+		expect(LoadingGate.AcceptReady(replacement, 9, undefined, undefined)).toBe(false);
+		expect(LoadingGate.AcceptReady(replacement, 9, 2, 1)).toBe(false);
+		expect(LoadingGate.AcceptReady(replacement, 9, 2, undefined)).toBe(false);
+		expect(LoadingGate.AcceptReady(replacement, 9, 2, 2)).toBe(true);
+		expect(LoadingGate.AcceptReady(replacement, 9, 2, 2)).toBe(false);
 	});
 	it("honours a custom timeout and rejects a bad clock", () => {
 		const gate = LoadingGate.New(10, 2);

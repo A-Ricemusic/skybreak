@@ -1,0 +1,12 @@
+{
+  "base": "cdb496c1a9a20464c0f8513313e6b9f996e5144a",
+  "nativeDispatchExactSourceEqual": true,
+  "nativeDispatchSHA256": "b2f028c5440ebe1607ebf0794f790abdf7c7cd4ed65d0b9da128dd47a80ed185",
+  "unchangedFiles": {
+    "src/shared/M13WorldPlan.ts": "8f8fdfacd568ec99d0e1b74144a69fb9c63445a8f1c1e4cde88cbd4d041b2f97",
+    "src/server/M13World.ts": "c7da31bbb141b24514529ddc4ac37c46fe3a01be75b2cf70773d9117984ec1ab",
+    "src/shared/CompactWorldSurface.ts": "e3ea295afd8651f81ce28763d669ef165fe0ea225375a0fb536d3d5d2a2ef1fd",
+    "src/shared/SealedWorldSurface.ts": "ee792812aaa79007c6ca976b232ae4e4932702f3b2b739f1050a8a71ee282a3d",
+    "src/shared/M04WorldPlan.ts": "afeec23f9ab9f3d977a52c8b6ea4dadd803a5accaf4ecdde463b96905e6aa806"
+  }
+}
