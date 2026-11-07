@@ -292,6 +292,8 @@ const MODULES: string[] = [
 	"tests/MilitaryGroundKit.spec",
 	"shared/EnvironmentPresets",
 	"shared/TerrainSchedule",
+	"shared/TerrainDiagnostics",
+	"tests/TerrainDiagnostics.spec",
 	"shared/WorldDistricts",
 	"shared/WorldGeometry",
 	"shared/WorldPlan",

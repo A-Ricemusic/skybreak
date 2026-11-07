@@ -7,7 +7,7 @@ import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
-import { Workspace } from "@rbxts/services";
+import { HttpService, Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
@@ -72,11 +72,22 @@ export function buildComposition(
 	fillChunk = WORLD_FILL_CHUNK,
 ): { groundTargets: Model[] } {
 	const start = os.clock();
+	parent.SetAttribute("WorldDiagBuildStatus", "incomplete");
+	for (const attribute of [
+		"WorldBuildElapsedDiagnostics",
+		"WorldDiagPlanElapsedSeconds",
+		"WorldDiagSetupElapsedSeconds",
+		"WorldDiagFootprintElapsedSeconds",
+		"WorldDiagPublishElapsedSeconds",
+	])
+		parent.SetAttribute(attribute, undefined);
 	parent.SetAttribute("WorldBuildPhase", "plan");
 	traceWorldPhase("setup");
 	const profile = planProfiler(parent);
 	const plan = makePlan(profile.checkpoint);
 	profile.finish();
+	const planFinished = os.clock();
+	parent.SetAttribute("WorldDiagPlanElapsedSeconds", planFinished - start);
 	const names: WorldAssetName[] = plan.props.map((p) => p.asset);
 	for (const t of plan.targets) {
 		const name = candidate(t);
@@ -103,8 +114,11 @@ export function buildComposition(
 		m.Parent = scene;
 		models.set(t.id, m);
 	}
+	const setupFinished = os.clock();
+	parent.SetAttribute("WorldDiagSetupElapsedSeconds", setupFinished - planFinished);
 	parent.SetAttribute("WorldBuildPhase", "terrain");
-	trackTerrainFootprint(plan.ops);
+	const footprintTiming = trackTerrainFootprint(plan.ops);
+	parent.SetAttribute("WorldDiagFootprintElapsedSeconds", footprintTiming.elapsedSeconds);
 	const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
 	parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 	parent.SetAttribute("WorldTerrainLongest", timing.longest);
@@ -112,6 +126,7 @@ export function buildComposition(
 	parent.SetAttribute("WorldTerrainJobs", timing.jobs);
 	parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
 	parent.SetAttribute("WorldTerrainYields", timing.yields);
+	const terrainFinished = os.clock();
 	parent.SetAttribute("WorldBuildPhase", "dressing");
 	traceWorldPhase("prop-composition-placement");
 	let dressingSlice = os.clock();
@@ -252,6 +267,7 @@ export function buildComposition(
 			decorateNavalScenery(scene, "NavalLandingCraft", well !== undefined ? [hull, well] : [hull]);
 		}
 	}
+	const dressingFinished = os.clock();
 	assertWorldInstanceBudget(scene, descendantLimit);
 	parent.SetAttribute("CloudBaseReferenceFeet", cloudFeet);
 	parent.SetAttribute("WorldPropsMissing", missing);
@@ -259,5 +275,26 @@ export function buildComposition(
 	parent.SetAttribute("Composition", plan.key);
 	parent.SetAttribute("WorldBuildPhase", "done");
 	traceWorldPhase("build-tail");
+	const finished = os.clock();
+	const diagnostics = {
+		schema: 1,
+		clock: "elapsed-not-cpu",
+		status: "complete",
+		elapsedSeconds: finished - start,
+		planElapsedSeconds: planFinished - start,
+		setupElapsedSeconds: setupFinished - planFinished,
+		footprint: footprintTiming,
+		terrain: timing.diagnostics,
+		// Includes attribute/reporting gaps between the separately measured write/footprint spans.
+		beforeTerrainOtherElapsedSeconds:
+			terrainFinished - setupFinished - footprintTiming.elapsedSeconds - timing.diagnostics.elapsedSeconds,
+		dressingElapsedSeconds: dressingFinished - terrainFinished,
+		postBuildElapsedSeconds: finished - dressingFinished,
+	};
+	const encodedDiagnostics = HttpService.JSONEncode(diagnostics);
+	parent.SetAttribute("WorldBuildElapsedDiagnostics", encodedDiagnostics);
+	parent.SetAttribute("WorldDiagBuildStatus", "complete");
+	print(`MISSION_BUILD_ELAPSED world=${parent.Name} diagnostics=${encodedDiagnostics}`);
+	parent.SetAttribute("WorldDiagPublishElapsedSeconds", os.clock() - finished);
 	return { groundTargets: [] };
 }

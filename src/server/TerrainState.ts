@@ -19,11 +19,15 @@ function loadFootprint(): TerrainOp[] | undefined {
 	return HttpService.JSONDecode(pages.join("")) as TerrainOp[];
 }
 let footprint = loadFootprint();
-function saveFootprint(): void {
+function saveFootprint() {
+	const started = os.clock();
 	ServerStorage.FindFirstChild(OWNER)?.Destroy();
-	if (footprint === undefined) return;
+	if (footprint === undefined)
+		return { jsonElapsedSeconds: 0, storageElapsedSeconds: os.clock() - started, pages: 0, encodedBytes: 0 };
 	// StringValue has a 200,000-byte ceiling; large legacy plans need multiple pages.
+	const jsonStart = os.clock();
 	const encoded = HttpService.JSONEncode(footprint);
+	const jsonEnd = os.clock();
 	const folder = new Instance("Folder");
 	folder.Name = OWNER;
 	let count = 0;
@@ -35,6 +39,12 @@ function saveFootprint(): void {
 	}
 	folder.SetAttribute("Pages", count);
 	folder.Parent = ServerStorage;
+	return {
+		jsonElapsedSeconds: jsonEnd - jsonStart,
+		storageElapsedSeconds: jsonStart - started + os.clock() - jsonEnd,
+		pages: count,
+		encodedBytes: encoded.size(),
+	};
 }
 let canTrack = false;
 const state = new TerrainWriteState((cancelled) => {
@@ -57,12 +67,23 @@ const state = new TerrainWriteState((cancelled) => {
 	Workspace.Terrain.SetAttribute("SKYBREAKTerrainClean", true);
 });
 /** Called before the first write, so partial builds have the same cleanup owner. */
-export function trackTerrainFootprint(ops: TerrainOp[]): void {
+export function trackTerrainFootprint(ops: TerrainOp[]) {
+	const started = os.clock();
 	// Every planned shape registers its own bounded cleanup box before any write.
 	if (!canTrack) beginTerrainWrite();
 	canTrack = false;
+	const conversionStart = os.clock();
 	footprint = ops.map(terrainCleanupOp);
-	saveFootprint();
+	const persistenceStart = os.clock();
+	const persistence = saveFootprint();
+	const finishedAt = os.clock();
+	return {
+		elapsedSeconds: finishedAt - started,
+		preludeElapsedSeconds: conversionStart - started,
+		conversionElapsedSeconds: persistenceStart - conversionStart,
+		persistenceElapsedSeconds: finishedAt - persistenceStart,
+		...persistence,
+	};
 }
 /** Conservative grid box for a legacy curved write. Terrain is exclusively owned,
  * so erasing surrounding air is safe; never expand this to the campaign extent.

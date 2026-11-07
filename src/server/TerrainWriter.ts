@@ -1,6 +1,9 @@
 import { worldTraceScope } from "./WorldBuildTrace";
-import { Workspace } from "@rbxts/services";
+import { measureTerrainWait, prepareTerrainDiagnostics, type TerrainJobGroup } from "../shared/TerrainDiagnostics";
+import { HttpService, Workspace } from "@rbxts/services";
 import {
+	createBudgetDiagnostics,
+	type BudgetDiagnostics,
 	terrainExecutionJobs,
 	alignedBlockRegion,
 	runBudgeted,
@@ -78,6 +81,19 @@ function run(terrain: Terrain, job: TerrainJob): void {
 	else terrain.FillCylinder(new CFrame(o.x, o.y, o.z), o.sy, o.sx, mat);
 }
 
+export interface TerrainWriteDiagnostics {
+	schema: 1;
+	status: "prepare" | "complete" | "cancelled" | "failed";
+	elapsedSeconds: number;
+	executionPreparationElapsedSeconds: number;
+	summaryPreparationElapsedSeconds: number;
+	actualWaitElapsedSeconds: number;
+	maxActualWaitElapsedSeconds: number;
+	otherElapsedSeconds: number;
+	scheduler: BudgetDiagnostics;
+	groups: TerrainJobGroup[];
+}
+
 export const TerrainWriter = {
 	/** One scheduled job (measurement harnesses time jobs individually). */
 	WriteJob: run,
@@ -88,9 +104,30 @@ export const TerrainWriter = {
 		fillChunk = FILL_CHUNK,
 		cancelled?: () => boolean,
 		cleanupDiagnostics = false,
-	): BudgetRun & { jobs: number } {
+	): BudgetRun & { jobs: number; diagnostics: TerrainWriteDiagnostics } {
 		const endTrace = worldTraceScope("terrain-batches");
 		const started = os.clock();
+		const diagnostics: TerrainWriteDiagnostics = {
+			schema: 1,
+			status: "prepare",
+			elapsedSeconds: 0,
+			executionPreparationElapsedSeconds: 0,
+			summaryPreparationElapsedSeconds: 0,
+			actualWaitElapsedSeconds: 0,
+			maxActualWaitElapsedSeconds: 0,
+			otherElapsedSeconds: 0,
+			scheduler: createBudgetDiagnostics(),
+			groups: [],
+		};
+		const snapshot = () => {
+			// Diagnostic publication must not replace a native error or fail a completed write.
+			pcall(() =>
+				Workspace.Terrain.SetAttribute(
+					"SKYBREAKTerrainWriteElapsedDiagnostics",
+					HttpService.JSONEncode(diagnostics),
+				),
+			);
+		};
 		const progress: BudgetProgress = { completed: 0, jobs: 0, workSeconds: 0, yields: 0, stage: "prepare" };
 		// Diagnostic-only snapshot, never a resume cursor. Every retry restarts the
 		// retained footprint; replacement owners cannot inherit or skip old jobs.
@@ -102,32 +139,59 @@ export const TerrainWriter = {
 			);
 		};
 		try {
+			snapshot(); // Incomplete attempt marker; a hard stop must not leave an older success.
 			const terrain = Workspace.Terrain;
 			terrain.SetAttribute("SKYBREAKTerrainClean", false);
 			report();
-			const jobs = terrainExecutionJobs(ops, fillChunk);
+			const { jobs, summary, executionPreparationElapsedSeconds, summaryPreparationElapsedSeconds } =
+				prepareTerrainDiagnostics(() => terrainExecutionJobs(ops, fillChunk), os.clock);
+			diagnostics.executionPreparationElapsedSeconds = executionPreparationElapsedSeconds;
+			diagnostics.summaryPreparationElapsedSeconds = summaryPreparationElapsedSeconds;
+			diagnostics.groups = summary.groups;
+			let completedIndex = 0;
 			progress.jobs = jobs.size();
 			progress.stage = "work";
 			report();
-			const timing = runBudgeted(jobs, (job) => run(terrain, job), {
-				budget,
-				clock: os.clock,
-				pause: () => {
-					report(); // Persist before yielding: task.cancel does not unwind finally.
-					task.wait();
-					progress.stage = "work";
-					report();
+			const timing = runBudgeted(
+				jobs,
+				(job) => {
+					run(terrain, job);
+					const group = summary.byJob[completedIndex++];
+					group.completedJobs++;
+					group.completedEstimatedCells += job.cells;
 				},
-				progress,
-				cancelled,
-			});
+				{
+					budget,
+					clock: os.clock,
+					pause: () => {
+						report(); // Persist before yielding: task.cancel does not unwind finally.
+						measureTerrainWait(() => task.wait(), os.clock, diagnostics);
+						progress.stage = "work";
+						report();
+					},
+					diagnostics: diagnostics.scheduler,
+					progress,
+					cancelled,
+				},
+			);
 			report();
-			return { ...timing, jobs: jobs.size() };
+			diagnostics.status = timing.complete ? "complete" : "cancelled";
+			return { ...timing, jobs: jobs.size(), diagnostics };
 		} catch (err) {
+			diagnostics.status = "failed";
 			progress.stage = "failed";
 			report();
 			throw err;
 		} finally {
+			diagnostics.elapsedSeconds = os.clock() - started;
+			diagnostics.otherElapsedSeconds =
+				diagnostics.elapsedSeconds -
+				diagnostics.executionPreparationElapsedSeconds -
+				diagnostics.summaryPreparationElapsedSeconds -
+				diagnostics.scheduler.elapsedSeconds;
+			// One aggregate snapshot per write, including returned cancellation/errors. Hard
+			// task cancellation may prevent finally; the existing pre-yield progress survives.
+			snapshot();
 			endTrace();
 		}
 	},
