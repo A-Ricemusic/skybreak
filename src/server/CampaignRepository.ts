@@ -100,6 +100,8 @@ export interface MissionDebriefScore {
 const SLOT_COUNT = GameConfig.Campaign.SlotCount;
 const MISSION_KILLS = GameConfig.Campaign.MaxRecordedKills;
 const SAVE_VERSION = GameConfig.Campaign.SaveVersion;
+/** Phase-2 write fence: schema-aware flag-off builds refuse v4, including inside UpdateAsync. */
+export const EPOCH_SAVE_VERSION = 4;
 
 /** A GUID is 36 characters; anything longer than this bound is not an epoch this game wrote. */
 const MAX_EPOCH_LENGTH = 64;
@@ -350,12 +352,17 @@ function missionsReadError(raw: unknown): string | undefined {
 }
 
 /** Only a missing key is fresh. Existing unreadable data must never become a writable blank. */
-export function profileReadError(raw: unknown): string | undefined {
+export function profileReadError(raw: unknown, epochConflicts = false): string | undefined {
 	if (raw === undefined) return undefined;
 	if (!typeIs(raw, "table"))
 		return "Campaign save has an invalid profile structure; saving is disabled to protect it.";
 	const stored = raw as StoredProfile;
-	if (stored.version !== 1 && stored.version !== 2 && stored.version !== SAVE_VERSION)
+	if (
+		stored.version !== 1 &&
+		stored.version !== 2 &&
+		stored.version !== SAVE_VERSION &&
+		!(epochConflicts && stored.version === EPOCH_SAVE_VERSION)
+	)
 		return "Campaign save uses an unsupported schema version; saving is disabled. Please rejoin an updated server.";
 	if (!typeIs(stored.slots, "table"))
 		return "Campaign save has an invalid slot container; saving is disabled to protect it.";
@@ -374,12 +381,14 @@ export function profileReadError(raw: unknown): string | undefined {
 	return undefined;
 }
 
+/** Pure codec accepts both staged schemas; coordinators separately gate v4 on conflict support. */
 export function normalizeProfile(raw: unknown): CampaignProfile {
-	const issue = profileReadError(raw);
+	const issue = profileReadError(raw, true);
 	assert(issue === undefined, issue);
 	const profile = blankProfile();
 	if (raw === undefined) return profile;
 	const stored = raw as StoredProfile;
+	if (stored.version === EPOCH_SAVE_VERSION) profile.version = EPOCH_SAVE_VERSION;
 	// Explicit supported migrations: v1 completion belongs to M1; v2 legacy mission fields
 	// become v3 records in normalizeSlot. v3 keeps its per-mission records.
 	const legacyV1 = stored.version === 1;
@@ -396,7 +405,9 @@ function rankOf(value: unknown): MissionRank | undefined {
  * Phase 2 of the deletion-epoch rollout, deliberately OFF. Phase 1 (this deploy) only writes and preserves each slot's
  * `epoch`; every merge decision stays on the pre-epoch generation rules, so servers that drop the field (every server
  * running before this change) coexist exactly as before. Enable only in a later deploy, once no server that drops
- * `epoch` can still write campaign records; then competing deletions stop merging (see resolveSlot).
+ * `epoch` or ignores schema refusals can still write campaign records, and all flag-off writers have drained.
+ * Phase-2 writes atomically stamp v4 to fence schema-aware flag-off writers; this is defense in depth, not a drain.
+ * Rollback must retain conflict semantics and v4 support (see D-676).
  */
 export const DELETION_EPOCH_CONFLICTS = false;
 
@@ -516,6 +527,9 @@ export function mergeProfiles(storedRaw: unknown, desiredRaw: unknown, lineage?:
 	const stored = normalizeProfile(storedRaw);
 	const desired = normalizeProfile(desiredRaw);
 	const merged = blankProfile();
+	// Pure helpers must never downgrade an activated profile back to a legacy-writable schema.
+	if (stored.version === EPOCH_SAVE_VERSION || desired.version === EPOCH_SAVE_VERSION)
+		merged.version = EPOCH_SAVE_VERSION;
 	for (let index = 1; index <= SLOT_COUNT; index++)
 		merged.slots[index - 1] = mergeSlot(stored.slots[index - 1], desired.slots[index - 1], index, lineage);
 	return merged;
@@ -558,7 +572,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.epoch !== undefined) stored.epoch = source.epoch;
 		slots.set(tostring(index), stored);
 	}
-	return { version: SAVE_VERSION, slots };
+	return { version: profile.version === EPOCH_SAVE_VERSION ? EPOCH_SAVE_VERSION : SAVE_VERSION, slots };
 }
 
 function clientSlots(profile: CampaignProfile): SaveSlot[] {
@@ -951,7 +965,7 @@ export class CampaignCoordinator {
 	}
 
 	private checkReadable(raw: unknown, scope: OperationScope): void {
-		const issue = profileReadError(raw);
+		const issue = profileReadError(raw, this.epochConflicts);
 		if (issue !== undefined) {
 			this.loadError = issue;
 			scope.refused = true;
@@ -1021,7 +1035,11 @@ export class CampaignCoordinator {
 				const saved = this.store!.update(this.key, (current) => {
 					// UpdateAsync can observe a newer deployment's record after our successful load.
 					this.checkReadable(current, scope);
-					return serializeProfile(mergeProfiles(current, desired, lineage));
+					const merged = mergeProfiles(current, desired, lineage);
+					// Stamp in the same atomic transform as the first phase-2 change. Old schema-aware
+					// writers must fail closed before their retained generation-only write can commit.
+					if (this.epochConflicts) merged.version = EPOCH_SAVE_VERSION;
+					return serializeProfile(merged);
 				});
 				this.checkReadable(saved, scope);
 				return normalizeProfile(saved);

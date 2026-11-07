@@ -1,3 +1,5 @@
+2026-11-07: #273 merged to main `1e196aec`, staging the v4 schema fence for deletion epochs. The production conflict flag remains false, so activation and F1 remain open. No Player/device observation or drain was performed here. Draft #275 loading work is not shipped; engine wiring acceptance remains pending. No mission status changed.
+
 2026-11-03 cleanup sweep merged to main `6fe63112` (#248–#271, 24 PRs; maintainability, readability and security pass requested by the owner). **No one played these changes in Roblox Player or on a phone.** They are live through the automatic pipeline. Every completed main publish run succeeded, including the final one for `6fe63112` (#271). Runs marked cancelled were queued runs superseded by a later merge. Gameplay and balance are unchanged; no level status changed.
 
 What the owner may notice in Player (none of it observed yet):
