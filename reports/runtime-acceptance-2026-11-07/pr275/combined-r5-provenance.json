@@ -1,0 +1,63 @@
+{
+  "executedHead": "c8a7177423ba696b8daae1d17b992d9fe332c977",
+  "artifact": "combined-followup-r5",
+  "originalEvidenceRoot": "/Users/pelicannurse/Projects/test app/reports/runtime-acceptance-2026-11-07/combined-followup-r5",
+  "originalFilesPreserved": true,
+  "reportedBy": "runtime lease owner; immutable summary/source proof inspected by implementation agent",
+  "sources": [
+    {
+      "path": "validated-summary.json",
+      "sha256": "6a6c2b023cc4cde966dca3718b3c95a7e4ec7efcd5a9327c3f31a306b3f76932"
+    },
+    {
+      "path": "source-copy-proof.json",
+      "sha256": "918eeb2dc371615ae8cdeabc1b20f2fa51ca6a5a997ee99c047b8ad5caec1206"
+    },
+    {
+      "path": "native-capture-cancellation.json",
+      "sha256": "da7fd8739a405c4bcfbb6494b49a09a557c971566b8244088860fd65464d7442"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "9d9aea4db1b3b1ab4ebff94b35edc8849fb2fd3fc168639c4039266d216112dc"
+    },
+    {
+      "path": "expected-counts.json",
+      "sha256": "d6460e80dc75823617542c3d4768b27454f370c05e7ba2e260c29cc79d89c3ef"
+    },
+    {
+      "path": "output.log",
+      "sha256": "c427f8dd9362d2cdaec8d3b08969030515e9f0602ed6b99bf466ecd6b8b12a65"
+    },
+    {
+      "path": "studio.log",
+      "sha256": "d555b30e9ca53057c9416a3b690afaf1a6f1d7fef4dd010474017f941645bbb9"
+    },
+    {
+      "path": "execution-file-hashes.json",
+      "sha256": "7af2c9c585a0426ed4b50052f75935024f61dd160759f75850fa5947daf8040d"
+    },
+    {
+      "path": "delta-proof.json",
+      "sha256": "55fb22bcab2dcc92883f29b3f5ba7d80d72408c27293803abfd9844bb55e6d9a"
+    }
+  ],
+  "terminalAcceptance": "failed: M4 build budget and guarded recovery/cleanup; not 78 passed",
+  "passingPhases": {
+    "loading": 37,
+    "terrain": 32,
+    "native": 4
+  },
+  "smoke": {
+    "passed": 3,
+    "failed": 1,
+    "M4BuildMs": 24945,
+    "unchangedBudgetMs": 22000,
+    "laterBlockedRows": 14,
+    "readyRows": 5,
+    "adjunct": "unrun",
+    "finalTerrainClean": "UNVERIFIED"
+  },
+  "diagnosticLimitations": "Old boxed LuaTuple log matching makes errors=0/warning absence claims unreliable; captureError textual filter assertion weakened. Independent state assertions remain separate evidence. New log-fix head requires review/engine execution.",
+  "currentChangeScope": "test-only log classification and regressions; no production/budget changes"
+}

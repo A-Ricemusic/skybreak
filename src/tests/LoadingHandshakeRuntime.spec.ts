@@ -11,6 +11,7 @@ import { JetFactory } from "../shared/JetFactory";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { PauseRules } from "../shared/SessionGuard";
 import type { Remotes } from "../shared/Types";
+import { isTerrainCaptureFailureLog } from "./helpers/CampaignSmokeLogs";
 
 function primitive(name: string): Model {
 	const model = new Instance("Model");
@@ -98,9 +99,8 @@ describe("production loading handshake wiring (Studio)", () => {
 				let rejectCapture = captureFailure;
 				let rejectedFolder: Instance | undefined;
 				const captureErrors: string[] = [];
-				const log = LogService.MessageOut.Connect((message) => {
-					if (string.find(message, "Owned terrain column exceeds supported ray range") !== undefined)
-						captureErrors.push(message);
+				const log = LogService.MessageOut.Connect((message, kind) => {
+					if (isTerrainCaptureFailureLog(message, kind)) captureErrors.push(message);
 				});
 				jets.Create = (_self, name) => primitive(name);
 				world.Build = (_self, id, folder) => {

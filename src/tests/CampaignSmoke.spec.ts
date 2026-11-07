@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { boundedWorldWork, cancelWorldWork } from "./BoundedWorldWork";
+import { classifyCampaignLog } from "./helpers/CampaignSmokeLogs";
 import { WorldCleanup, WorldLifecycle } from "../shared/WorldLifecycle";
 import { MissionWorld } from "../server/MissionWorld";
 import { LogService, Players, Workspace } from "@rbxts/services";
@@ -72,18 +73,9 @@ describe("campaign production launch → world → settlement → Next (Studio)"
 			results: MissionFinished[] = [],
 			warnings: string[] = [];
 		const log = LogService.MessageOut.Connect((message, kind) => {
-			if (string.find(message, "still loading after the preload deadline; placing fallbacks") !== undefined) {
-				warnings.push(message);
-				return;
-			}
-			if (
-				kind === Enum.MessageType.MessageError ||
-				(kind === Enum.MessageType.MessageWarning &&
-					(string.find(message, "SKYBREAK world lifecycle") !== undefined ||
-						string.find(message, "settlement:") !== undefined ||
-						string.find(message, "SKYBREAK mission construction failed") !== undefined))
-			)
-				errors.push(message);
+			const classification = classifyCampaignLog(message, kind);
+			if (classification === "warning") warnings.push(message);
+			else if (classification === "error") errors.push(message);
 		});
 		const root = new Instance("Folder");
 		root.Name = "CampaignSmoke";

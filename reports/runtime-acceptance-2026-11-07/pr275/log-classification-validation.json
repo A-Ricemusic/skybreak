@@ -1,0 +1,22 @@
+{
+  "scope": "Test-only log-classification correction; no production/budget change",
+  "validation": {
+    "format": "passed",
+    "lint": "passed",
+    "robloxTsCompilation": "passed",
+    "officialStandaloneLuauCasesPassed": 3,
+    "casesFailed": 0,
+    "moduleGuardsPassed": 4,
+    "moduleGuardsFailed": 0,
+    "enumAdaptation": "Distinct named MessageType constant shim for standalone equality branches; not engine Enum or engine acceptance",
+    "JestDiscovery": "test.project.json maps entire out/tests; run-jest.luau testMatch **/*.spec includes CampaignSmokeLogs.spec and helpers compiled beneath Tests/helpers",
+    "engineRun": "pending"
+  },
+  "sourceSha256": {
+    "src/tests/helpers/CampaignSmokeLogs.ts": "c1d1bf51f4e6dbe3109a79bd1e6b18beefc7fe06a5e15ca7f28e41d5e1bb1d3d",
+    "src/tests/CampaignSmokeLogs.spec.ts": "f0f22a98e962c3c5c74496dd42e1fe87fd940bff29b2c518922accd781a0dfff",
+    "src/tests/CampaignSmoke.spec.ts": "db37728e4eb713f515b574c493b7d916d731884deeb731e8041cc6c9207432fa",
+    "src/tests/LoadingHandshakeRuntime.spec.ts": "4a33dbc7bab41cde27176b8fb554db25261eac4815f04143a5d75c222e8a2d39"
+  },
+  "immutableR5": "Combined r5 remains unchanged and failed overall; this candidate does not repair or replace its execution result"
+}

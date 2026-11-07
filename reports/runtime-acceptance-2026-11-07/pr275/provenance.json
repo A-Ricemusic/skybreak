@@ -232,5 +232,7 @@
     "moduleGuardsFailed": 0,
     "fullOfflineRun": false,
     "StudioRun": false
-  }
+  },
+  "integrationIdentityVerificationHead": "c8a7177423ba696b8daae1d17b992d9fe332c977",
+  "laterTestOnlyChange": "Log-classification correction changes test listeners/helpers after the recorded integration identity check; original source identities describe the prior accepted/tested source, not current test files."
 }
