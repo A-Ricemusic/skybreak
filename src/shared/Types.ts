@@ -187,7 +187,7 @@ export interface MissionLoading {
 	/** BaseParts required in the mission folder before readiness. */
 	expectedParts?: number;
 	requiredGeometry?: number;
-	/** Actual terrain hits at launch and initial target columns; not whole-map rendering proof. */
+	/** Explicit occupied/empty voxel columns with settled collision at launch/initial targets; sampled only. */
 	terrainProbes?: LoadingTerrainProbe[];
 }
 export interface Telemetry {

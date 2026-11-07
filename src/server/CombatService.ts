@@ -107,6 +107,7 @@ import { targetScoreStats } from "../shared/TargetScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FinishedCallback, MissionLoading, MissionStats, Remotes } from "../shared/Types";
+import { terrainReadinessBounds } from "./TerrainState";
 import { captureTerrainProbes, markCriticalGeometry } from "../shared/MissionReadiness";
 import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";
@@ -2432,6 +2433,27 @@ export const CombatService = {
 				phaseDirector.Apply(session);
 				assert(!cancelled(), "Launch request expired");
 				assert(player.Parent === Players, "Player left during mission setup");
+				const roots: BasePart[] = [aircraft.PrimaryPart!];
+				for (const enemy of session.enemies) if (enemy.model.PrimaryPart) roots.push(enemy.model.PrimaryPart);
+				for (const ally of session.allies) if (ally.model.PrimaryPart) roots.push(ally.model.PrimaryPart);
+				if (session.navigationActor?.PrimaryPart) roots.push(session.navigationActor.PrimaryPart);
+				const terrainPositions = [aircraft.PrimaryPart!.Position];
+				for (let i = 0; i < math.min(2, world.groundTargets.size()); i++) {
+					const root = world.groundTargets[i].PrimaryPart;
+					if (root) terrainPositions.push(root.Position);
+				}
+				let terrainProbes: MissionLoading["terrainProbes"];
+				const [terrainCaptured, terrainError] = pcall(() => {
+					terrainProbes = captureTerrainProbes(terrainPositions, {
+						bounds: terrainReadinessBounds(),
+						alive: () => !cancelled() && player.Parent === Players && folder.Parent === missionRoot,
+					});
+				});
+				if (!terrainCaptured || !terrainProbes) {
+					cleanupSession(session, false);
+					if (!terrainCaptured) error(terrainError);
+					error("Terrain collision did not confirm its owned voxel columns. Request another launch.");
+				}
 				// Hold in the loading gate: no clock, stepping or input until the client
 				// confirms replication (CombatAction "Ready"); expiry cleans up without starting.
 				session.loading = LoadingGate.New(os.clock());
@@ -2443,15 +2465,6 @@ export const CombatService = {
 					session.wasAnchored = characterRoot.Anchored;
 					characterRoot.Anchored = true;
 				}
-				const roots: BasePart[] = [aircraft.PrimaryPart!];
-				for (const enemy of session.enemies) if (enemy.model.PrimaryPart) roots.push(enemy.model.PrimaryPart);
-				for (const ally of session.allies) if (ally.model.PrimaryPart) roots.push(ally.model.PrimaryPart);
-				if (session.navigationActor?.PrimaryPart) roots.push(session.navigationActor.PrimaryPart);
-				const terrainPositions = [aircraft.PrimaryPart!.Position];
-				for (let i = 0; i < math.min(2, world.groundTargets.size()); i++) {
-					const root = world.groundTargets[i].PrimaryPart;
-					if (root) terrainPositions.push(root.Position);
-				}
 				const loading: MissionLoading = {
 					kind: "Loading",
 					launchId,
@@ -2460,7 +2473,7 @@ export const CombatService = {
 					aircraft,
 					expectedParts: countParts(folder),
 					requiredGeometry: markCriticalGeometry(folder, roots),
-					terrainProbes: captureTerrainProbes(terrainPositions),
+					terrainProbes,
 					folderName: folder.Name,
 					aircraftName: aircraft.Name,
 				};

@@ -17,7 +17,9 @@ function preloadMission(
 	resolve?: () => unknown,
 	preload?: (items: Instance[]) => void,
 ): boolean {
-	return enginePreloadMission(aircraft, expectedParts, alive, progress, timeout, resolve, preload, 1, []);
+	return enginePreloadMission(aircraft, expectedParts, alive, progress, timeout, resolve, preload, 1, [
+		{ origin: new Vector3(100000, 9000, 100000), distance: 16 },
+	]);
 }
 
 function fixture() {

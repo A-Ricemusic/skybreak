@@ -93,3 +93,16 @@ export function markTerrainClean(): void {
 export function terrainDirty(): boolean {
 	return state.Dirty();
 }
+
+/** Vertical envelope of this world's registered voxel writes (all campaign builders and Practice register).
+ * No owned writes is an explicitly terrain-free fixture/world; still inspect through the launch column to y=0.
+ */
+export function terrainReadinessBounds(): { minY: number; maxY: number } {
+	let minY = 0,
+		maxY = 0;
+	for (const op of footprint ?? []) {
+		minY = math.min(minY, op.y - op.sy / 2);
+		maxY = math.max(maxY, op.y + op.sy / 2);
+	}
+	return { minY, maxY };
+}
