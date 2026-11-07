@@ -1,3 +1,11 @@
+2026-11-07 PR #274 merge reconciliation: merged current main `1e196aec` (PR #273). Persistence v4-fence staging is merged/live under the automatic-pipeline convention, with `DELETION_EPOCH_CONFLICTS = false`; F1 stays open until separately authorized drain and activation. Terrain cancellation remains an unmerged candidate with engine acceptance pending; no M12 duration fix or Player/device verification is claimed. Practice and missions 1–18 keep their existing statuses.
+
+2026-11-07 implementation validation: frozen install, `bun run format`, `bun run lint` and `bun run build` all exited 0. A scratch runner using the existing offline adapter and official `LUAU_BIN=/Users/pelicannurse/Projects/test app/build/offline-luau/luau` selected only TerrainWriteState, TerrainSchedule and WorldLifecycle: **32 passed / 0 failed**, with module guards 4/0. Scratch runner removed; results retained locally at `build/terrain-focused-results.log`. No full offline gate or Studio run; engine acceptance and independent review remain pending. CPU slot 3 explicitly released.
+
+2026-11-07 terrain progress contract: stored progress is **diagnostic-only**, never a resume cursor. Every retry restarts the entire retained footprint; replacing a footprint cannot skip cells through stale progress.
+
+**2026-11-07 unmerged terrain cancellation candidate — not shipped:** cancellation now returns explicit incomplete status, preserves the sparse footprint/dirty marker, and reaches world clear jobs. Retained Terrain progress attributes support interruption diagnosis. Standalone validation passed; engine verification remains pending; no observed M12 duration fix, Studio/Player/device test, merge, upload or publish by this agent. Existing live mission statuses remain unchanged.
+
 2026-11-03 cleanup sweep merged to main `6fe63112` (#248–#271, 24 PRs; maintainability, readability and security pass requested by the owner). **No one played these changes in Roblox Player or on a phone.** They are live through the automatic pipeline. Every completed main publish run succeeded, including the final one for `6fe63112` (#271). Runs marked cancelled were queued runs superseded by a later merge. Gameplay and balance are unchanged; no level status changed.
 
 What the owner may notice in Player (none of it observed yet):

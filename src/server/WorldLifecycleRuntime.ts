@@ -49,7 +49,9 @@ export function registerWorldClear(worldKey: string, clear: WorldClear): () => v
 	};
 }
 export function worldClear(worldKey?: string): WorldClear {
-	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? (() => clearTerrainIfDirty());
+	return (
+		(worldKey !== undefined ? clears.get(worldKey) : undefined) ?? ((cancelled) => clearTerrainIfDirty(cancelled))
+	);
 }
 /** The server's single world gate (see WorldLifecycle). */
 export const worldLifecycle = new WorldLifecycle(robloxScheduler);

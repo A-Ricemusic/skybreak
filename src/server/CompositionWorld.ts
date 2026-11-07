@@ -60,7 +60,7 @@ function available(name: string): WorldAssetName | undefined {
 }
 /** Native dirty-state clear for finished and partial builds; the gate owns completion. */
 export function compositionClear(cancelled: () => boolean): void {
-	if (!cancelled()) clearTerrainIfDirty();
+	clearTerrainIfDirty(cancelled);
 }
 export function buildComposition(
 	parent: Instance,
