@@ -1,0 +1,185 @@
+{
+  "head": "ef56c177ca37684ce09ef19972f291b7c89bb0fb",
+  "actualSummary": {
+    "total": 34,
+    "success": true,
+    "suites": 4,
+    "passed": 34,
+    "failed": 0
+  },
+  "expectedSuites": 4,
+  "expectedTests": 34,
+  "countsBySuite": {
+    "TerrainEngineAcceptance": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "TerrainSchedule": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    "TerrainWriteState": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "WorldLifecycle": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "records": [
+    {
+      "stage": "cooperative_cancel",
+      "footprint": true,
+      "clean": false,
+      "pages": 1,
+      "dirty": true
+    },
+    {
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      },
+      "error": "Resolution has to be 4",
+      "stage": "native_engine_error"
+    },
+    {
+      "progress": "elapsed=0.00039466668386012316 completed=1/12 work=0.000018291641026735306 yields=1 stage=yield",
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      },
+      "stage": "hard_task_cancel"
+    },
+    {
+      "stage": "yielding_restore_retry",
+      "footprint": false,
+      "clean": true,
+      "pages": 0,
+      "dirty": false
+    },
+    {
+      "signature": "Enum.Material.Sand:1",
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      },
+      "stage": "replacement_stable"
+    },
+    {
+      "seconds": 0.0004137083888053894,
+      "stage": "small_fixture_diagnostic_cost",
+      "diagnostics": false,
+      "work": 0.00022016651928424835,
+      "complete": true,
+      "yields": 0,
+      "jobs": 24
+    },
+    {
+      "seconds": 0.00041958328802138567,
+      "stage": "small_fixture_diagnostic_cost",
+      "diagnostics": true,
+      "work": 0.00021374959032982588,
+      "complete": true,
+      "yields": 0,
+      "jobs": 24
+    },
+    {
+      "seconds": 0.0003992499550804496,
+      "stage": "small_fixture_diagnostic_cost",
+      "diagnostics": false,
+      "work": 0.00020983314607292414,
+      "complete": true,
+      "yields": 0,
+      "jobs": 24
+    },
+    {
+      "seconds": 0.000408999971114099,
+      "stage": "small_fixture_diagnostic_cost",
+      "diagnostics": true,
+      "work": 0.0002114166272804141,
+      "complete": true,
+      "yields": 0,
+      "jobs": 24
+    },
+    {
+      "seconds": 8.509093083324842,
+      "stage": "actual_M12_build",
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      }
+    },
+    {
+      "ok": true,
+      "seconds": 11.149041916709393,
+      "owner": {
+        "footprint": false,
+        "clean": true,
+        "pages": 0,
+        "dirty": false
+      },
+      "error": "nil",
+      "stage": "actual_M12_clear"
+    },
+    {
+      "ok": true,
+      "seconds": 0.07928441662807018,
+      "owner": {
+        "footprint": false,
+        "clean": true,
+        "pages": 0,
+        "dirty": false
+      },
+      "error": "nil",
+      "stage": "actual_menu_restore"
+    },
+    {
+      "seconds": 10.62071825005114,
+      "stage": "actual_M13_build",
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      }
+    },
+    {
+      "samples": 5,
+      "stage": "actual_M13_stable",
+      "owner": {
+        "footprint": true,
+        "clean": false,
+        "pages": 1,
+        "dirty": true
+      }
+    },
+    {
+      "ok": true,
+      "owner": {
+        "footprint": false,
+        "clean": true,
+        "pages": 0,
+        "dirty": false
+      },
+      "error": "nil",
+      "stage": "final_teardown"
+    }
+  ],
+  "scope": "Selected synthetic actual-engine state/timing/recovery acceptance with reviewed procedural dependencies; no Player/mobile/visual or full CampaignSmoke claim",
+  "teardown": "Passing assertions require every owned worker dead, lifecycle idle and actual state clean/footprint removed",
+  "warnings": "Expected deliberately interrupted short QA clear; no assetcreate/PBR/staticcontent attempts observed",
+  "quietMachine": false
+}

@@ -1,0 +1,152 @@
+{
+  "head": "ef56c177ca37684ce09ef19972f291b7c89bb0fb",
+  "summary": {
+    "total": 4,
+    "success": true,
+    "suites": 1,
+    "passed": 4,
+    "failed": 0
+  },
+  "allMissionsActuallyExercised": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "rows": [
+    {
+      "missionId": 0,
+      "buildMilliseconds": 1885,
+      "targets": 1,
+      "errors": "0"
+    },
+    {
+      "missionId": 1,
+      "buildMilliseconds": 9536,
+      "targets": 13,
+      "errors": "0"
+    },
+    {
+      "missionId": 2,
+      "buildMilliseconds": 13334,
+      "targets": 24,
+      "errors": "0"
+    },
+    {
+      "missionId": 3,
+      "buildMilliseconds": 11015,
+      "targets": 14,
+      "errors": "0"
+    },
+    {
+      "missionId": 4,
+      "buildMilliseconds": 12447,
+      "targets": 3,
+      "errors": "0"
+    },
+    {
+      "missionId": 5,
+      "buildMilliseconds": 4407,
+      "targets": 90,
+      "errors": "0"
+    },
+    {
+      "missionId": 6,
+      "buildMilliseconds": 5679,
+      "targets": 94,
+      "errors": "0"
+    },
+    {
+      "missionId": 7,
+      "buildMilliseconds": 12417,
+      "targets": 51,
+      "errors": "0"
+    },
+    {
+      "missionId": 8,
+      "buildMilliseconds": 1568,
+      "targets": 0,
+      "errors": "0"
+    },
+    {
+      "missionId": 9,
+      "buildMilliseconds": 8094,
+      "targets": 55,
+      "errors": "0"
+    },
+    {
+      "missionId": 10,
+      "buildMilliseconds": 17075,
+      "targets": 140,
+      "errors": "0"
+    },
+    {
+      "missionId": 11,
+      "buildMilliseconds": 12801,
+      "targets": 0,
+      "errors": "0"
+    },
+    {
+      "missionId": 12,
+      "buildMilliseconds": 13962,
+      "targets": 24,
+      "errors": "0"
+    },
+    {
+      "missionId": 13,
+      "buildMilliseconds": 16531,
+      "targets": 0,
+      "errors": "0"
+    },
+    {
+      "missionId": 14,
+      "buildMilliseconds": 20707,
+      "targets": 0,
+      "errors": "0"
+    },
+    {
+      "missionId": 15,
+      "buildMilliseconds": 9790,
+      "targets": 69,
+      "errors": "0"
+    },
+    {
+      "missionId": 16,
+      "buildMilliseconds": 13167,
+      "targets": 138,
+      "errors": "0"
+    },
+    {
+      "missionId": 17,
+      "buildMilliseconds": 5052,
+      "targets": 60,
+      "errors": "0"
+    },
+    {
+      "missionId": 18,
+      "buildMilliseconds": 980,
+      "targets": 4,
+      "errors": "0"
+    }
+  ],
+  "blockedOrUnavailable": false,
+  "sourceUnchanged": true,
+  "scope": "Procedural dependency fixture; full original synthetic CampaignSmoke including forced victories/in-memory storage; not natural play, real network or Player/mobile acceptance",
+  "timingCaveat": "Contended, not quiet; original helper deadline begins after initial task.spawn; strict per-wall bounds separately covered by prior34/34 engine gate",
+  "unexpectedAssetCreation": false
+}
