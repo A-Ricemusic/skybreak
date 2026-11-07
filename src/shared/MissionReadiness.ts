@@ -112,17 +112,27 @@ export function captureTerrainProbes(
 ): LoadingTerrainProbe[] | undefined {
 	const alive = options.alive ?? (() => true);
 	const deadline = os.clock() + (options.timeout ?? 2);
-	if (!alive() || positions.isEmpty()) return undefined;
-	const probes = positions.map((position) => (options.snapshot ?? snapshotTerrainColumn)(position, options.bounds));
+	const withinBudget = () => alive() && os.clock() < deadline;
+	if (!withinBudget() || positions.isEmpty()) return undefined;
+	const probes: LoadingTerrainProbe[] = [];
+	const snapshot = options.snapshot ?? snapshotTerrainColumn;
+	for (const position of positions) {
+		if (!withinBudget()) return undefined;
+		const probe = snapshot(position, options.bounds);
+		if (!withinBudget()) return undefined;
+		probes.push(probe);
+	}
 	const cast = options.raycast ?? terrainColumnHit;
-	while (alive() && os.clock() < deadline) {
+	while (withinBudget()) {
 		let settled = true;
 		for (const probe of probes) {
+			if (!withinBudget()) return undefined;
 			const hit = cast(probe.origin, probe.distance);
+			if (!withinBudget()) return undefined;
 			if (!matchesColumn(probe, hit)) settled = false;
 			else probe.position = hit?.Position;
 		}
-		if (settled && alive()) return probes;
+		if (settled && withinBudget()) return probes;
 		task.wait();
 	}
 	return undefined;

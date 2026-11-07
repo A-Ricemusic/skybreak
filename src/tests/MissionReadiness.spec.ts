@@ -81,6 +81,43 @@ describe("scoped critical geometry readiness", () => {
 		expect(terrainProbesReady([])).toBe(false);
 		expect(terrainProbesReady(undefined)).toBe(false);
 	});
+	it("rejects cancellation during snapshotting and matching casts that finish after the deadline", () => {
+		const position = new Vector3(100000, 300, 100000);
+		const bounds = { minY: 0, maxY: 300 };
+		let alive = true;
+		let snapshots = 0;
+		let casts = 0;
+		expect(
+			captureTerrainProbes([position, position], {
+				bounds,
+				alive: () => alive,
+				snapshot: () => {
+					snapshots++;
+					alive = false;
+					return { origin: position, distance: 100 };
+				},
+				raycast: () => {
+					casts++;
+					return undefined;
+				},
+			}),
+		).toBeUndefined();
+		expect(snapshots).toBe(1);
+		expect(casts).toBe(0);
+		expect(
+			captureTerrainProbes([position], {
+				bounds,
+				timeout: 0.01,
+				snapshot: () => ({ origin: position, distance: 100 }),
+				raycast: () => {
+					casts++;
+					task.wait(0.02);
+					return undefined; // Matches the empty column, but must not succeed late.
+				},
+			}),
+		).toBeUndefined();
+		expect(casts).toBe(1);
+	});
 	it("represents genuinely empty columns explicitly and waits out stale occupied collision", () => {
 		const position = new Vector3(100000, 300, 100000);
 		let calls = 0;
