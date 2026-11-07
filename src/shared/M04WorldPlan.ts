@@ -63,8 +63,11 @@ function m04Detailed(x: number, z: number): boolean {
 		]) < 320
 	);
 }
+let cachedTracks: Array<{ x: number; z: number; yaw: number }> | undefined;
+let trackCells: Set<string> | undefined;
 /** Snap each short rotated strip inside one sampled cell, avoiding every terrain step. */
 function m04Tracks() {
+	if (cachedTracks !== undefined) return cachedTracks;
 	const out: Array<{ x: number; z: number; yaw: number }> = [];
 	for (let i = 0; i < 32; i++) {
 		const z = -14000 + i * 880,
@@ -76,14 +79,21 @@ function m04Tracks() {
 			yaw: 0.3 * math.cos(z / 4200),
 		});
 	}
+	cachedTracks = out;
+	trackCells = new Set(out.map((t) => `${t.x}:${t.z}`));
 	return out;
+}
+function m04TrackCell(x: number, z: number): boolean {
+	// Lazy: surfaceSide needs the initialized M04_SURFACE; it never calls material.
+	m04Tracks();
+	return trackCells!.has(`${x}:${z}`);
 }
 export const M04_SURFACE: WorldSurface = {
 	waterColumns: true,
 	height: m04Height,
 	detail: m04Detailed,
 	material: (x, z) =>
-		m04Tracks().some((t) => t.x === x && t.z === z)
+		m04TrackCell(x, z)
 			? "Ground"
 			: polyDist(x, z, M04.river) < 160
 				? "Mud"

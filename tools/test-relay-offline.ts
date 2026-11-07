@@ -487,10 +487,17 @@ return { expect=expect,
 `,
 );
 
+// Optional focused execution still stages the official dependency graph and runs guards.
+const requestedSpecs = process.argv.filter((arg) => arg.startsWith("--spec=")).map((arg) => arg.slice(7));
+for (const name of requestedSpecs)
+	if (!SPECS.some((entry) => stagedName(entry) === name)) throw new Error(`Unknown offline spec: ${name}`);
+const selectedSpecs =
+	requestedSpecs.length === 0 ? SPECS : SPECS.filter((entry) => requestedSpecs.includes(stagedName(entry)));
+
 // Every staged spec runs, in registration order, then the shared counter reports.
 const runScript =
 	checkedRequire +
-	SPECS.map((entry) => `require("./${stagedName(entry)}")\n`).join("") +
+	selectedSpecs.map((entry) => `require("./${stagedName(entry)}")\n`).join("") +
 	'require("./OfflineAssertions").result()\n';
 await Bun.write(resolve(dest, "run.luau"), runScript);
 
@@ -518,7 +525,7 @@ for (const [kind, source] of Object.entries({
 		throw new Error(`Module error guard failed: ${kind}: ${out}${err}`);
 }
 console.log("OFFLINE_MODULE_GUARD passed=4 failed=0");
-console.log(`OFFLINE_SPECS registered=${SPECS.length}`);
+console.log(`OFFLINE_SPECS registered=${selectedSpecs.length}`);
 
 const { stdout, stderr, code } = await spawnWithTimeout([executable, resolve(dest, "run.luau")], {
 	cwd: root,

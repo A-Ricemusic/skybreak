@@ -288,7 +288,7 @@ export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): Ter
 		run = [];
 	};
 	for (const job of commutingTerrainRuns(jobs)) {
-		if (job.region !== undefined || alignedBlockRegion(job.op) === undefined) {
+		if (job.region !== undefined || job.op.material === "Water" || alignedBlockRegion(job.op) === undefined) {
 			flush();
 			out.push(job);
 			continue;

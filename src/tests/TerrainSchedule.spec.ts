@@ -326,6 +326,10 @@ describe("Full-voxel terrain execution", () => {
 		expect(ops).toEqual(saved);
 		for (const j of jobs) expect(j.cells).toBeLessThanOrEqual(32);
 	});
+	it("keeps Water as a native semantic barrier even for adjacent full-voxel boxes", () => {
+		const ops = [box(0, 0, 0, 8, 8, 8, "Water"), box(8, 0, 0, 8, 8, 8, "Water")];
+		expect(terrainExecutionJobs(ops, 32).map((j) => j.op)).toEqual(ops);
+	});
 	it("coalesces all three axes without crossing material barriers or mutating plans", () => {
 		const ops: TerrainOp[] = [];
 		for (const x of [2, 6]) for (const y of [2, 6]) for (const z of [2, 6]) ops.push(box(x, y, z, 4, 4, 4));
