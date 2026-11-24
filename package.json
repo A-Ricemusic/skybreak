@@ -27,15 +27,15 @@
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",
-    "@rbxts/types": "^1.0.959",
+    "@rbxts/types": "^1.0.963",
     "eslint": "^9",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-roblox-ts": "^1.4.1",
+    "eslint-plugin-roblox-ts": "^1.5.0",
     "globals": "^17.14.0",
     "prettier": "^3",
     "roblox-ts": "3.0.0",
     "typescript": "5.5.3",
-    "typescript-eslint": "^8.72.1"
+    "typescript-eslint": "^8.73.0"
   },
   "dependencies": {
     "@rbxts/jest": "3.16.0-ts.2",
